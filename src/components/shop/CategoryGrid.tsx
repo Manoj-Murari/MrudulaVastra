@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { useCart } from "@/components/providers/CartProvider";
-import Breadcrumb from "@/components/ui/Breadcrumb";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 
 interface Product {
@@ -20,27 +19,25 @@ interface Product {
   is_trending: boolean;
 }
 
-const CATEGORIES = ["All", "Sarees", "Dress Materials", "Kids Wear"];
-
-export default function ShopGrid({ products }: { products: Product[] }) {
+export default function CategoryGrid({
+  products,
+  categoryTitle,
+}: {
+  products: Product[];
+  categoryTitle: string;
+}) {
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const { addToCart } = useCart();
 
   const filtered = useMemo(() => {
     let result = [...products];
 
-    if (activeCategory !== "All") {
-      result = result.filter((p) => p.category === activeCategory);
-    }
-
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
           p.tag?.toLowerCase().includes(q)
       );
     }
@@ -59,42 +56,18 @@ export default function ShopGrid({ products }: { products: Product[] }) {
     }
 
     return result;
-  }, [products, search, activeCategory, sortBy]);
+  }, [products, search, sortBy]);
 
   return (
     <>
-      <Breadcrumb items={[{ label: "Collections" }]} />
-
-      {/* Hero */}
-      <section className="relative py-16 lg:py-20 text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
-        <div className="relative z-10 max-w-3xl mx-auto px-6">
-          <p
-            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-4"
-            style={{ fontSize: "11px" }}
-          >
-            Shop
-          </p>
-          <h1 className="font-playfair text-forest font-bold text-4xl lg:text-5xl mb-4">
-            All Collections
-          </h1>
-          <p className="text-text-muted font-dm text-lg max-w-xl mx-auto">
-            Browse our entire curated catalog of handpicked ethnic wear.
-          </p>
-        </div>
-      </section>
-
-      {/* Utility Bar */}
+      {/* Utility Bar (no category pills since we're already in a category) */}
       <ShopUtilityBar
         search={search}
         onSearchChange={setSearch}
         sortBy={sortBy}
         onSortChange={setSortBy}
         resultCount={filtered.length}
-        resultLabel={activeCategory !== "All" ? ` in ${activeCategory}` : ""}
-        categories={CATEGORIES}
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
+        resultLabel={` in ${categoryTitle}`}
       />
 
       {/* Products Grid */}
@@ -105,7 +78,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
               No products found.
             </p>
             <p className="text-text-muted/60 font-dm text-sm">
-              Try adjusting your search or filters.
+              Try adjusting your search or sort.
             </p>
           </div>
         ) : (
@@ -156,9 +129,6 @@ export default function ShopGrid({ products }: { products: Product[] }) {
                 </div>
 
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-text-muted font-dm mb-0.5">
-                    {product.category}
-                  </p>
                   <h3 className="font-playfair text-forest font-semibold text-lg leading-tight mb-1 group-hover:text-gold transition-colors duration-300">
                     {product.name}
                   </h3>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "About — Mrudula Vastra",
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-cream">
+      <Breadcrumb items={[{ label: "About" }]} />
       {/* ── Hero ─────────────────────────────────────── */}
       <section className="relative py-24 lg:py-32 text-center">
         <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
