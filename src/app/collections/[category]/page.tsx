@@ -3,23 +3,24 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const revalidate = 0;
 
 /* ── Slug → DB category mapping ──────────────────────── */
-const CATEGORY_MAP: Record<string, { name: string; title: string; subtitle: string }> = {
+const CATEGORY_MAP: Record<string, { dbName: string; title: string; subtitle: string }> = {
   sarees: {
-    name: "SAREES",
+    dbName: "Sarees",
     title: "Sarees",
     subtitle: "Timeless drapes woven with heritage and grace",
   },
   "dress-materials": {
-    name: "DRESS MATERIALS",
+    dbName: "Dress Materials",
     title: "Dress Materials",
     subtitle: "Curated fabrics for bespoke elegance",
   },
   kids: {
-    name: "KIDS",
+    dbName: "Kids Wear",
     title: "Kids Wear",
     subtitle: "Adorable ethnic wear crafted for little royals",
   },
@@ -53,13 +54,21 @@ export default async function CategoryPage({
   const { data: products } = await (supabase as any)
     .from("products")
     .select("*")
-    .ilike("category", cat.name)
+    .eq("category", cat.dbName)
     .order("id", { ascending: true });
 
   return (
     <main className="min-h-screen bg-cream">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: "Collections", href: "/collections" },
+          { label: cat.title },
+        ]}
+      />
+
       {/* ── Hero Banner ──────────────────────────────── */}
-      <section className="relative py-20 lg:py-28 text-center">
+      <section className="relative py-16 lg:py-20 text-center">
         <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
         <div className="relative z-10 max-w-3xl mx-auto px-6">
           <p
@@ -85,10 +94,10 @@ export default async function CategoryPage({
               No products found in this collection yet.
             </p>
             <Link
-              href="/"
+              href="/collections"
               className="inline-block mt-6 px-8 py-3 bg-forest text-white uppercase text-sm tracking-wider font-bold hover:bg-forest/90 transition-colors"
             >
-              Back to Home
+              Browse All Collections
             </Link>
           </div>
         ) : (
@@ -106,7 +115,6 @@ export default async function CategoryPage({
                       className="object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                   ) : (
-                    /* Premium placeholder when image is missing */
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <p
                         className="font-playfair text-forest/20 font-bold"
@@ -120,14 +128,12 @@ export default async function CategoryPage({
                     </div>
                   )}
 
-                  {/* Badge */}
                   {product.badge && (
                     <span className="absolute top-3 left-3 bg-forest text-white px-3 py-1 text-[10px] uppercase tracking-wider font-bold font-dm">
                       {product.badge}
                     </span>
                   )}
 
-                  {/* Tag */}
                   {product.tag && (
                     <span className="absolute top-3 right-3 bg-gold/90 text-white px-3 py-1 text-[10px] uppercase tracking-wider font-bold font-dm">
                       {product.tag}
