@@ -8,12 +8,12 @@ import { NAV_LINKS } from "@/data/navigation";
 import { useCart } from "@/components/providers/CartProvider";
 
 /* ── Animated underline link ─────────────────────────── */
-function NavLink({ label }: { label: string }) {
+function NavLink({ label, href }: { label: string; href: string }) {
   const [hovered, setHovered] = useState(false);
 
   return (
     <Link
-      href="#"
+      href={href}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="relative py-1 text-text-nav font-medium font-dm"
@@ -117,12 +117,13 @@ export default function Header() {
 
           {/* Right: User + Cart */}
           <div className="flex items-center gap-4 w-[120px] justify-end">
-            <button
+            <Link
+              href="/profile"
               className="hidden sm:block text-text-nav hover:text-forest transition-colors p-1"
               aria-label="My Account"
             >
               <User size={19} strokeWidth={1.3} />
-            </button>
+            </Link>
             <button
               onClick={() => toggleCart()}
               className="text-text-nav hover:text-forest transition-colors p-1 relative"
@@ -163,7 +164,7 @@ export default function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-center gap-10 h-full">
           {NAV_LINKS.map((link) => (
-            <NavLink key={link} label={link} />
+            <NavLink key={link.href} label={link.label} href={link.href} />
           ))}
         </div>
       </motion.nav>
@@ -185,7 +186,7 @@ export default function Header() {
             <div className="px-8 py-5 space-y-0.5">
               {NAV_LINKS.map((link, i) => (
                 <motion.div
-                  key={link}
+                  key={link.href}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{
@@ -195,7 +196,7 @@ export default function Header() {
                   }}
                 >
                   <Link
-                    href="#"
+                    href={link.href}
                     onClick={() => setMenuOpen(false)}
                     className="block py-3.5 text-forest hover:text-amber-700 transition-colors font-medium font-dm"
                     style={{
@@ -203,7 +204,7 @@ export default function Header() {
                       borderBottom: "1px solid rgba(184,150,62,0.1)",
                     }}
                   >
-                    {link}
+                    {link.label}
                   </Link>
                 </motion.div>
               ))}
@@ -219,7 +220,7 @@ export default function Header() {
                 }}
               >
                 <Link
-                  href="#"
+                  href="/profile"
                   onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-3 py-3.5 text-forest hover:text-amber-700 transition-colors font-medium font-dm"
                   style={{ fontSize: "15px" }}
