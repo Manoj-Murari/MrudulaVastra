@@ -39,7 +39,7 @@ function NavLink({ label }: { label: string }) {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { cartCount } = useCart();
+  const { cartCount, toggleCart } = useCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -124,6 +124,7 @@ export default function Header() {
               <User size={19} strokeWidth={1.3} />
             </button>
             <button
+              onClick={() => toggleCart()}
               className="text-text-nav hover:text-forest transition-colors p-1 relative"
               aria-label="Shopping bag"
             >

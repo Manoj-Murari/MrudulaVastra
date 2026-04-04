@@ -5,7 +5,13 @@ import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
-import { CATEGORIES } from "@/data/categories";
+import type { Database } from "@/lib/supabase/types";
+
+type Category = Database["public"]["Tables"]["categories"]["Row"];
+
+interface CategorySectionProps {
+  categories: Category[];
+}
 
 const containerVariants = {
   hidden: {},
@@ -23,7 +29,7 @@ const cardVariants = {
   },
 };
 
-export default function CategorySection() {
+export default function CategorySection({ categories }: CategorySectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -68,7 +74,7 @@ export default function CategorySection() {
           animate={isInView ? "visible" : "hidden"}
           className="grid sm:grid-cols-3 gap-5 lg:gap-7"
         >
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <motion.div
               key={cat.id}
               variants={cardVariants}

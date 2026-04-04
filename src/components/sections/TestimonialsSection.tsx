@@ -4,7 +4,13 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Star } from "lucide-react";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
-import { TESTIMONIALS } from "@/data/testimonials";
+import type { Database } from "@/lib/supabase/types";
+
+type Testimonial = Database["public"]["Tables"]["testimonials"]["Row"];
+
+interface TestimonialsSectionProps {
+  testimonials: Testimonial[];
+}
 
 const containerVariants = {
   hidden: {},
@@ -22,7 +28,7 @@ const cardVariants = {
   },
 };
 
-export default function TestimonialsSection() {
+export default function TestimonialsSection({ testimonials }: TestimonialsSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -67,7 +73,7 @@ export default function TestimonialsSection() {
           animate={isInView ? "visible" : "hidden"}
           className="grid sm:grid-cols-3 gap-6 lg:gap-8"
         >
-          {TESTIMONIALS.map((t, i) => (
+          {testimonials.map((t, i) => (
             <motion.div
               key={i}
               variants={cardVariants}

@@ -7,7 +7,13 @@ import { ShoppingBag, Heart, ArrowRight } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import StarRating from "@/components/ui/StarRating";
 import { useCart } from "@/components/providers/CartProvider";
-import { PRODUCTS } from "@/data/products";
+import type { Database } from "@/lib/supabase/types";
+
+type Product = Database["public"]["Tables"]["products"]["Row"];
+
+interface TrendingSectionProps {
+  products: Product[];
+}
 
 const containerVariants = {
   hidden: {},
@@ -29,7 +35,7 @@ function discount(price: number, original: number) {
   return Math.round(((original - price) / original) * 100);
 }
 
-export default function TrendingSection() {
+export default function TrendingSection({ products }: TrendingSectionProps) {
   const [wishlist, setWishlist] = useState<number[]>([]);
   const { addToCart } = useCart();
   const ref = useRef<HTMLDivElement>(null);
@@ -96,7 +102,7 @@ export default function TrendingSection() {
           animate={isInView ? "visible" : "hidden"}
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7"
         >
-          {PRODUCTS.map((product) => (
+          {products.map((product) => (
             <motion.div
               key={product.id}
               variants={cardVariants}
@@ -131,7 +137,7 @@ export default function TrendingSection() {
                     className="text-white px-2 py-1 font-bold bg-gold"
                     style={{ fontSize: "10px" }}
                   >
-                    -{discount(product.price, product.originalPrice)}%
+                    -{discount(product.price, product.original_price)}%
                   </span>
                 </div>
 
@@ -219,13 +225,13 @@ export default function TrendingSection() {
                       className="text-gold line-through"
                       style={{ fontSize: "12px" }}
                     >
-                      ₹{product.originalPrice.toLocaleString("en-IN")}
+                      ₹{product.original_price.toLocaleString("en-IN")}
                     </span>
                   </div>
                   <motion.button
                     onClick={(e) => {
                       e.stopPropagation();
-                      addToCart(product.id);
+                      addToCart(product);
                     }}
                     whileTap={{ scale: 0.92 }}
                     className="px-3 py-2 uppercase font-semibold hover:bg-emerald-900 hover:text-white transition-all duration-300 flex items-center gap-1.5"
