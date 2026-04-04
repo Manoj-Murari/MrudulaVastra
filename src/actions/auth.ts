@@ -28,20 +28,29 @@ export async function loginWithEmail(formData: FormData) {
 export async function signupWithEmail(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const fullName = formData.get("fullName") as string;
 
-  if (!email || !password) {
-    return { error: "Email and password are required." };
+  if (!email || !password || !fullName) {
+    return { error: "Name, email, and password are required." };
   }
 
-  if (password.length < 6) {
-    return { error: "Password must be at least 6 characters." };
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
   }
 
   const supabase = await createClient();
 
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        full_name: fullName,
+      },
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
   });
 
   if (error) {

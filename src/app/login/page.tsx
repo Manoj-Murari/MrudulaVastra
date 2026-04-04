@@ -25,7 +25,7 @@ export default function LoginPage() {
       setError(result.error);
     }
     if (result && "success" in result && result.success) {
-      setSuccess(result.success);
+      setSuccess("Welcome to Mrudula Vastra! Please check your email to verify your account.");
     }
   }
 
@@ -55,20 +55,69 @@ export default function LoginPage() {
             {isSignUp ? "Create Account" : "Welcome Back"}
           </h2>
 
-          {/* Error / Success Messages */}
+          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 font-dm text-sm">
               {error}
             </div>
           )}
-          {success && (
-            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 font-dm text-sm">
-              {success}
-            </div>
-          )}
 
-          <form action={handleSubmit} className="space-y-6">
-            <div>
+          {success ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg
+                  className="w-8 h-8 text-emerald-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  ></path>
+                </svg>
+              </div>
+              <h3 className="font-playfair text-forest font-bold text-xl mb-3">
+                Check Your Email
+              </h3>
+              <p className="text-text-muted font-dm text-sm leading-relaxed mb-8">
+                {success}
+              </p>
+              <button
+                onClick={() => {
+                  setSuccess(null);
+                  setIsSignUp(false);
+                }}
+                className="w-full py-4 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold font-dm hover:bg-forest/90 transition-colors"
+              >
+                Return to Login
+              </button>
+            </div>
+          ) : (
+            <>
+              <form action={handleSubmit} className="space-y-6">
+                {isSignUp && (
+                  <div>
+                    <label
+                      htmlFor="login-name"
+                      className="block text-forest font-dm font-medium text-sm mb-2"
+                    >
+                      Full Name
+                    </label>
+                    <input
+                      id="login-name"
+                      name="fullName"
+                      type="text"
+                      required
+                      placeholder="Your name"
+                      className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                    />
+                  </div>
+                )}
+
+                <div>
               <label
                 htmlFor="login-email"
                 className="block text-forest font-dm font-medium text-sm mb-2"
@@ -97,7 +146,7 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
               />
@@ -119,24 +168,26 @@ export default function LoginPage() {
                 "Sign In"
               )}
             </button>
-          </form>
+              </form>
 
-          {/* Toggle */}
-          <div className="mt-8 text-center">
-            <p className="text-text-muted font-dm text-sm">
-              {isSignUp ? "Already have an account?" : "Don\u2019t have an account?"}{" "}
-              <button
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError(null);
-                  setSuccess(null);
-                }}
-                className="text-forest font-semibold hover:text-gold transition-colors underline underline-offset-2"
-              >
-                {isSignUp ? "Sign In" : "Create One"}
-              </button>
-            </p>
-          </div>
+              {/* Toggle */}
+              <div className="mt-8 text-center">
+                <p className="text-text-muted font-dm text-sm">
+                  {isSignUp ? "Already have an account?" : "Don\u2019t have an account?"}{" "}
+                  <button
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                    className="text-forest font-semibold hover:text-gold transition-colors underline underline-offset-2"
+                  >
+                    {isSignUp ? "Sign In" : "Create One"}
+                  </button>
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Back to Home */}
