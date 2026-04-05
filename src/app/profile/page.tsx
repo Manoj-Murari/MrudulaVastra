@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut } from "@/actions/auth";
 import type { Metadata } from "next";
 import { User, Package, LogOut, ChevronRight } from "lucide-react";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "My Profile — Mrudula Vastra",
@@ -29,6 +30,7 @@ export default async function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-cream">
+      <Breadcrumb items={[{ label: "My Account" }]} />
       {/* ── Hero ─────────────────────────────────────── */}
       <section className="relative py-20 lg:py-24 text-center">
         <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
