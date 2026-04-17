@@ -40,8 +40,6 @@ export async function signupWithEmail(formData: FormData) {
 
   const supabase = await createClient();
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -49,15 +47,38 @@ export async function signupWithEmail(formData: FormData) {
       data: {
         full_name: fullName,
       },
-      emailRedirectTo: `${origin}/auth/callback`,
     },
+  });
+
+  // Supabase will now naturally catch real duplicates here!
+  if (error) {
+    return { error: error.message }; // Will output "User already registered"
+  }
+
+  return { success: "Check your email for the verification code!" };
+}
+
+export async function verifySignupOtp(formData: FormData) {
+  const email = formData.get("email") as string;
+  const token = formData.get("otp") as string;
+
+  if (!email || !token) {
+    return { error: "Email and OTP are required." };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'signup',
   });
 
   if (error) {
     return { error: error.message };
   }
 
-  return { success: "Check your email for the confirmation link!" };
+  redirect("/profile");
 }
 
 export async function signOut() {

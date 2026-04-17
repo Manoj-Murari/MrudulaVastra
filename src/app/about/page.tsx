@@ -54,10 +54,10 @@ export default function AboutPage() {
               Heritage
             </p>
             <h2 className="font-playfair text-forest font-bold text-3xl mb-5">
-              Rooted in Vijayawada
+              Rooted in Machilipatnam
             </h2>
             <p className="text-text-muted font-dm leading-relaxed mb-4">
-              From the bustling textile markets of Vijayawada to your doorstep, we
+              From the bustling textile markets of Machilipatnam to your doorstep, we
               travel across the heartland of Indian weaving traditions — from
               Kanjivaram to Banarasi, from Chanderi to Pochampally — to bring you
               fabrics that tell stories.
@@ -163,20 +163,20 @@ export default function AboutPage() {
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-white/70 font-dm text-sm">
             <span className="flex items-center gap-2">
-              <MapPin size={16} /> Vijayawada, Andhra Pradesh
+              <MapPin size={16} /> Machilipatnam, Andhra Pradesh
             </span>
             <span className="hidden sm:block text-white/30">|</span>
             <span className="flex items-center gap-2">
-              <Phone size={16} /> +91 98765 43210
+              <Phone size={16} /> +91 7208903117
             </span>
             <span className="hidden sm:block text-white/30">|</span>
             <span className="flex items-center gap-2">
-              <Clock size={16} /> Mon–Sat, 10 AM – 8 PM
+              <Clock size={16} /> Mon–Sat, 10 AM – 7 PM
             </span>
           </div>
           <div className="mt-4 flex items-center justify-center gap-2 text-white/70 font-dm text-sm">
             <Mail size={16} />
-            <span>hello@mrudulavatra.com</span>
+            <span>mrudulavastra@gmail.com</span>
           </div>
         </div>
       </section>

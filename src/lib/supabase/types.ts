@@ -151,6 +151,47 @@ export interface Database {
           unit_price?: number
         }
       }
+      addresses: {
+        Row: {
+          id: string
+          user_id: string
+          full_name: string
+          phone: string
+          address_line1: string
+          address_line2: string | null
+          city: string
+          state: string
+          pincode: string
+          is_default: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          full_name: string
+          phone: string
+          address_line1: string
+          address_line2?: string | null
+          city: string
+          state: string
+          pincode: string
+          is_default?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          full_name?: string
+          phone?: string
+          address_line1?: string
+          address_line2?: string | null
+          city?: string
+          state?: string
+          pincode?: string
+          is_default?: boolean
+          created_at?: string
+        }
+      }
     }
   }
 }

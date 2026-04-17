@@ -5,6 +5,7 @@ import { signOut } from "@/actions/auth";
 import type { Metadata } from "next";
 import { User, Package, LogOut, ChevronRight } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import AddressManager from "@/components/profile/AddressManager";
 
 export const metadata: Metadata = {
   title: "My Profile — Mrudula Vastra",
@@ -21,12 +22,22 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  // Fetch user's orders
-  const { data: orders } = await (supabase as any)
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10);
+  // Fetch user's orders and addresses in parallel
+  const [{ data: orders }, { data: addresses }] = await Promise.all([
+    (supabase as any)
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10),
+    (supabase as any)
+      .from("addresses")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: false }),
+  ]);
+
+  const displayName = user.user_metadata?.full_name || user.email;
 
   return (
     <main className="min-h-screen bg-cream">
@@ -53,11 +64,17 @@ export default async function ProfilePage() {
             Account Details
           </p>
           <div className="space-y-4">
+            {displayName !== user.email && (
+              <div className="flex justify-between items-center py-3 border-b border-gold/8">
+                <span className="text-text-muted font-dm text-sm">Name</span>
+                <span className="text-forest font-dm font-medium text-sm">{displayName}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center py-3 border-b border-gold/8">
               <span className="text-text-muted font-dm text-sm">Email</span>
               <span className="text-forest font-dm font-medium text-sm">{user.email}</span>
             </div>
-            <div className="flex justify-between items-center py-3 border-b border-gold/8">
+            <div className="flex justify-between items-center py-3">
               <span className="text-text-muted font-dm text-sm">Member Since</span>
               <span className="text-forest font-dm font-medium text-sm">
                 {new Date(user.created_at).toLocaleDateString("en-IN", {
@@ -67,14 +84,11 @@ export default async function ProfilePage() {
                 })}
               </span>
             </div>
-            <div className="flex justify-between items-center py-3">
-              <span className="text-text-muted font-dm text-sm">User ID</span>
-              <span className="text-forest/50 font-mono text-xs">
-                {user.id.slice(0, 12)}…
-              </span>
-            </div>
           </div>
         </div>
+
+        {/* Saved Addresses */}
+        <AddressManager addresses={addresses || []} />
 
         {/* Order History Card */}
         <div className="bg-white border border-gold/10 p-8">

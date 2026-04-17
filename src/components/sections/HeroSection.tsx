@@ -2,9 +2,11 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
+
 
 const stats = [
   ["10K+", "Happy Customers"],
@@ -50,7 +52,8 @@ export default function HeroSection() {
             custom={0}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="uppercase font-semibold mb-5 flex items-center gap-2 text-gold"
             style={{ fontSize: "11px", letterSpacing: "0.3em" }}
           >
@@ -62,7 +65,8 @@ export default function HeroSection() {
             custom={1}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="font-playfair text-text-primary font-bold mb-2"
             style={{ lineHeight: 1.12, fontSize: "clamp(36px, 5vw, 62px)" }}
           >
@@ -73,7 +77,8 @@ export default function HeroSection() {
             custom={2}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="font-playfair text-forest font-bold italic mb-6"
             style={{ lineHeight: 1.12, fontSize: "clamp(36px, 5vw, 62px)" }}
           >
@@ -84,7 +89,8 @@ export default function HeroSection() {
             custom={3}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="mb-10 max-w-sm text-text-body"
             style={{ lineHeight: 1.75, fontSize: "15px" }}
           >
@@ -96,7 +102,8 @@ export default function HeroSection() {
             custom={4}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
           >
             <OrnamentalDivider className="mb-10 max-w-xs" />
           </motion.div>
@@ -105,37 +112,29 @@ export default function HeroSection() {
             custom={5}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="flex flex-wrap gap-4"
           >
-            <button
-              className="px-8 py-4 uppercase font-semibold hover:opacity-90 transition-all duration-300 flex items-center gap-2.5 group bg-forest text-cream"
-              style={{ fontSize: "13px", letterSpacing: "0.1em" }}
-            >
+            <Link href="/collections" className="px-8 py-4 uppercase font-semibold hover:opacity-90 transition-all duration-300 flex items-center gap-2.5 group bg-forest text-cream" style={{ fontSize: "13px", letterSpacing: "0.1em" }}>
               Shop the Collection
               <ArrowRight
                 size={14}
                 className="group-hover:translate-x-1 transition-transform"
               />
-            </button>
-            <button
-              className="px-8 py-4 uppercase font-semibold hover:bg-amber-50 transition-all duration-300 flex items-center gap-2.5 text-gold"
-              style={{
-                border: "1.5px solid #B8963E",
-                fontSize: "13px",
-                letterSpacing: "0.1em",
-              }}
-            >
+            </Link>
+            <Link href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="px-8 py-4 uppercase font-semibold hover:bg-amber-50 transition-all duration-300 flex items-center gap-2.5 text-gold" style={{ border: "1.5px solid #B8963E", fontSize: "13px", letterSpacing: "0.1em" }}>
               <Play size={13} className="fill-current" />
               View Reels
-            </button>
+            </Link>
           </motion.div>
 
           <motion.div
             custom={6}
             variants={textReveal}
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true }}
             className="flex items-center gap-8 mt-12"
           >
             {stats.map(([num, label]) => (
@@ -156,7 +155,8 @@ export default function HeroSection() {
       <motion.div
         variants={imageReveal}
         initial="hidden"
-        animate="visible"
+        whileInView="visible"
+        viewport={{ once: true }}
         className="relative overflow-hidden order-1 lg:order-2 min-h-[55vw] lg:min-h-0"
       >
         <Image
@@ -182,7 +182,8 @@ export default function HeroSection() {
         <motion.div
           variants={floatingBadge}
           initial="hidden"
-          animate="visible"
+          whileInView="visible"
+          viewport={{ once: true }}
           className="absolute p-4 shadow-2xl max-w-[200px]"
           style={{
             background: "rgba(253,251,247,0.95)",

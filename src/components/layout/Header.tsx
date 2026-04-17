@@ -20,8 +20,6 @@ function NavLink({ label, href }: { label: string; href: string }) {
       style={{ fontSize: "12.5px", letterSpacing: "0.08em" }}
     >
       {label}
-
-      {/* Gold underline – fades in/out slowly */}
       <motion.span
         className="absolute left-0 right-0 bottom-0 h-[1.5px] bg-gold origin-left"
         initial={false}
@@ -32,6 +30,53 @@ function NavLink({ label, href }: { label: string; href: string }) {
         transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
       />
     </Link>
+  );
+}
+
+/* ── Compact Premium Typewriter Search Bar ───────────── */
+function TypewriterSearchBar() {
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const fullText = "What are you looking for?";
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    const handleTyping = () => {
+      if (!isDeleting) {
+        if (placeholderText.length < fullText.length) {
+          setPlaceholderText(fullText.slice(0, placeholderText.length + 1));
+          timer = setTimeout(handleTyping, 80);
+        } else {
+          timer = setTimeout(() => setIsDeleting(true), 2000);
+        }
+      } else {
+        if (placeholderText.length > 0) {
+          setPlaceholderText(fullText.slice(0, placeholderText.length - 1));
+          timer = setTimeout(handleTyping, 40);
+        } else {
+          setIsDeleting(false);
+          timer = setTimeout(handleTyping, 600);
+        }
+      }
+    };
+    timer = setTimeout(handleTyping, 100);
+    return () => clearTimeout(timer);
+  }, [placeholderText, isDeleting]);
+
+  return (
+    <div className="relative group w-full flex items-center">
+      {/* Search Icon - Positioned closer to the edge to fix "too much space" */}
+      <div className="absolute left-3.5 text-forest/40 group-focus-within:text-gold transition-colors duration-300 pointer-events-none">
+        <Search size={16} strokeWidth={1.5} />
+      </div>
+
+      {/* Search Input - Tightened left padding (pl-10) */}
+      <input
+        type="text"
+        placeholder={placeholderText}
+        className="w-full py-2 lg:py-2.5 pl-10 pr-4 bg-cream/40 border border-gold/10 rounded-full font-dm text-[11px] lg:text-[13px] tracking-wide text-forest placeholder:text-text-muted/50 focus:outline-none focus:border-gold/40 focus:bg-white focus:shadow-[0_4px_20px_rgba(197,168,128,0.08)] transition-all duration-500 ease-out"
+      />
+    </div>
   );
 }
 
@@ -54,47 +99,36 @@ export default function Header() {
         background: scrolled ? "rgba(253,251,247,0.92)" : "#FDFBF7",
         backdropFilter: scrolled ? "blur(16px)" : "none",
         WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-        boxShadow: scrolled
-          ? "0 1px 24px rgba(26,60,46,0.06)"
-          : "none",
-        borderBottom: scrolled
-          ? "1px solid rgba(184,150,62,0.12)"
-          : "1px solid rgba(184,150,62,0.06)",
+        boxShadow: scrolled ? "0 1px 24px rgba(26,60,46,0.06)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(184,150,62,0.12)" : "1px solid rgba(184,150,62,0.06)",
       }}
     >
-      {/* ── Row 1: Icons · Logo · Icons ────────────── */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10">
+      <div className="max-w-7xl mx-auto px-4 lg:px-10">
         <div
-          className="flex items-center justify-between transition-all duration-500"
-          style={{ paddingTop: scrolled ? "14px" : "20px", paddingBottom: scrolled ? "8px" : "12px" }}
+          className="flex items-center justify-between transition-all duration-500 relative"
+          style={{ paddingTop: scrolled ? "12px" : "18px", paddingBottom: scrolled ? "8px" : "12px" }}
         >
-          {/* Left: Hamburger (mobile) + Search */}
-          <div className="flex items-center gap-4 w-[120px]">
+          {/* Left: Search Bar + Hamburger */}
+          <div className="flex items-center gap-3 lg:gap-4 flex-1">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="lg:hidden text-text-nav hover:text-forest transition-colors p-1"
               aria-label="Menu"
             >
-              {menuOpen ? (
-                <X size={22} strokeWidth={1.3} />
-              ) : (
-                <Menu size={22} strokeWidth={1.3} />
-              )}
+              {menuOpen ? <X size={22} strokeWidth={1.3} /> : <Menu size={22} strokeWidth={1.3} />}
             </button>
-            <button
-              className="text-text-nav hover:text-forest transition-colors p-1"
-              aria-label="Search"
-            >
-              <Search size={19} strokeWidth={1.3} />
-            </button>
+
+            <div className="w-full max-w-[150px] sm:max-w-[240px] lg:max-w-[320px]">
+              <TypewriterSearchBar />
+            </div>
           </div>
 
           {/* Center: Brand Logo */}
-          <Link href="/" className="text-center flex-1 lg:flex-none">
+          <Link href="/" className="text-center flex-shrink-0 px-4">
             <h1
               className="font-playfair text-forest font-bold transition-all duration-500"
               style={{
-                fontSize: scrolled ? "clamp(20px, 2.5vw, 26px)" : "clamp(24px, 3vw, 32px)",
+                fontSize: scrolled ? "clamp(18px, 2.5vw, 24px)" : "clamp(22px, 3vw, 30px)",
                 letterSpacing: "0.08em",
                 lineHeight: 1.1,
               }}
@@ -107,7 +141,7 @@ export default function Header() {
                 opacity: scrolled ? 0 : 1,
                 marginTop: scrolled ? 0 : 4,
               }}
-              transition={{ duration: 0.3, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
+              transition={{ duration: 0.3 }}
               className="uppercase text-gold font-dm overflow-hidden"
               style={{ fontSize: "9px", letterSpacing: "0.3em" }}
             >
@@ -115,8 +149,8 @@ export default function Header() {
             </motion.p>
           </Link>
 
-          {/* Right: User + Cart */}
-          <div className="flex items-center gap-4 w-[120px] justify-end">
+          {/* Right: User + Cart Icons */}
+          <div className="flex items-center gap-3 lg:gap-5 flex-1 justify-end">
             <Link
               href="/profile"
               className="hidden sm:block text-text-nav hover:text-forest transition-colors p-1"
@@ -137,7 +171,6 @@ export default function Header() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
                     className="absolute -top-1.5 -right-1.5 bg-forest text-white rounded-full flex items-center justify-center font-bold font-dm"
                     style={{ width: "17px", height: "17px", fontSize: "9px" }}
                   >
@@ -150,17 +183,12 @@ export default function Header() {
         </div>
       </div>
 
-      {/* ── Row 2: Centered Navigation Links (desktop) ── */}
+      {/* Desktop Navigation Row */}
       <motion.nav
         className="hidden lg:block overflow-hidden"
-        animate={{
-          height: scrolled ? 36 : 42,
-          opacity: 1,
-        }}
-        transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
-        style={{
-          borderTop: "1px solid rgba(184,150,62,0.08)",
-        }}
+        animate={{ height: scrolled ? 36 : 42, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        style={{ borderTop: "1px solid rgba(184,150,62,0.08)" }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-center gap-10 h-full">
           {NAV_LINKS.map((link) => (
@@ -169,66 +197,32 @@ export default function Header() {
         </div>
       </motion.nav>
 
-      {/* ── Mobile Menu ──────────────────────────────── */}
+      {/* Mobile Menu Dropdown */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
             className="overflow-hidden lg:hidden"
-            style={{
-              background: "rgba(253,251,247,0.98)",
-              borderTop: "1px solid rgba(184,150,62,0.1)",
-            }}
+            style={{ background: "rgba(253,251,247,0.98)", borderTop: "1px solid rgba(184,150,62,0.1)" }}
           >
             <div className="px-8 py-5 space-y-0.5">
               {NAV_LINKS.map((link, i) => (
-                <motion.div
-                  key={link.href}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: i * 0.05,
-                    duration: 0.35,
-                    ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number],
-                  }}
-                >
+                <motion.div key={link.href} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
                   <Link
                     href={link.href}
                     onClick={() => setMenuOpen(false)}
-                    className="block py-3.5 text-forest hover:text-amber-700 transition-colors font-medium font-dm"
-                    style={{
-                      fontSize: "15px",
-                      borderBottom: "1px solid rgba(184,150,62,0.1)",
-                    }}
+                    className="block py-3.5 text-forest font-medium font-dm text-[15px] border-bottom border-gold/10"
                   >
                     {link.label}
                   </Link>
                 </motion.div>
               ))}
-
-              {/* Mobile-only account link */}
-              <motion.div
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  delay: NAV_LINKS.length * 0.05,
-                  duration: 0.35,
-                  ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number],
-                }}
-              >
-                <Link
-                  href="/profile"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 py-3.5 text-forest hover:text-amber-700 transition-colors font-medium font-dm"
-                  style={{ fontSize: "15px" }}
-                >
-                  <User size={16} strokeWidth={1.3} />
-                  My Account
-                </Link>
-              </motion.div>
+              <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 py-3.5 text-forest font-medium font-dm text-[15px]">
+                <User size={16} strokeWidth={1.3} />
+                My Account
+              </Link>
             </div>
           </motion.div>
         )}

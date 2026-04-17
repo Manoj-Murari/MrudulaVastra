@@ -2,18 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { loginWithEmail, signupWithEmail } from "@/actions/auth";
+import { loginWithEmail, signupWithEmail, verifySignupOtp } from "@/actions/auth";
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [savedEmail, setSavedEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
-    setSuccess(null);
     setLoading(true);
+
+    const email = formData.get("email") as string;
+    setSavedEmail(email);
 
     const result = isSignUp
       ? await signupWithEmail(formData)
@@ -25,8 +28,26 @@ export default function LoginPage() {
       setError(result.error);
     }
     if (result && "success" in result && result.success) {
-      setSuccess("Welcome to Mrudula Vastra! Please check your email to verify your account.");
+      // Show the OTP screen instead of the old success message
+      setShowOtpInput(true);
     }
+  }
+
+  async function handleVerifyOtp(formData: FormData) {
+    setError(null);
+    setLoading(true);
+
+    // We append the email saved from the first step so Supabase knows who is verifying
+    formData.append("email", savedEmail);
+
+    const result = await verifySignupOtp(formData);
+
+    setLoading(false);
+
+    if (result && "error" in result && result.error) {
+      setError(result.error);
+    }
+    // Note: On success, verifySignupOtp automatically redirects to /profile
   }
 
   return (
@@ -43,16 +64,22 @@ export default function LoginPage() {
             </h1>
           </Link>
           <p className="text-text-muted font-dm text-sm mt-3">
-            {isSignUp
-              ? "Create an account to track your orders"
-              : "Sign in to your account"}
+            {showOtpInput
+              ? "Verify your email address"
+              : isSignUp
+                ? "Create an account to track your orders"
+                : "Sign in to your account"}
           </p>
         </div>
 
         {/* Form Card */}
         <div className="bg-white border border-gold/10 p-8 lg:p-10">
           <h2 className="font-playfair text-forest font-bold text-2xl mb-8 text-center">
-            {isSignUp ? "Create Account" : "Welcome Back"}
+            {showOtpInput
+              ? "Enter Code"
+              : isSignUp
+                ? "Create Account"
+                : "Welcome Back"}
           </h2>
 
           {/* Error Message */}
@@ -62,37 +89,50 @@ export default function LoginPage() {
             </div>
           )}
 
-          {success ? (
-            <div className="text-center py-6">
-              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-8 h-8 text-emerald-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  ></path>
-                </svg>
-              </div>
-              <h3 className="font-playfair text-forest font-bold text-xl mb-3">
-                Check Your Email
-              </h3>
-              <p className="text-text-muted font-dm text-sm leading-relaxed mb-8">
-                {success}
+          {showOtpInput ? (
+            <div className="text-center">
+              <p className="text-text-muted font-dm text-sm leading-relaxed mb-6">
+                We sent a 6-digit code to <br />
+                <span className="font-bold text-forest">{savedEmail}</span>
               </p>
+
+              <form action={handleVerifyOtp} className="space-y-6">
+                <div>
+                  <input
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    maxLength={6}
+                    required
+                    placeholder="000000"
+                    className="w-full px-4 py-4 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-3xl tracking-[0.5em] text-center text-forest placeholder:text-text-muted/30"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold font-dm hover:bg-forest/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify Account"
+                  )}
+                </button>
+              </form>
+
               <button
                 onClick={() => {
-                  setSuccess(null);
+                  setShowOtpInput(false);
                   setIsSignUp(false);
                 }}
-                className="w-full py-4 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold font-dm hover:bg-forest/90 transition-colors"
+                className="mt-6 text-text-muted font-dm text-sm hover:text-forest transition-colors underline underline-offset-2"
               >
-                Return to Login
+                Cancel and return to login
               </button>
             </div>
           ) : (
@@ -118,67 +158,67 @@ export default function LoginPage() {
                 )}
 
                 <div>
-              <label
-                htmlFor="login-email"
-                className="block text-forest font-dm font-medium text-sm mb-2"
-              >
-                Email Address
-              </label>
-              <input
-                id="login-email"
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
-              />
-            </div>
+                  <label
+                    htmlFor="login-email"
+                    className="block text-forest font-dm font-medium text-sm mb-2"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    id="login-email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                  />
+                </div>
 
-            <div>
-              <label
-                htmlFor="login-password"
-                className="block text-forest font-dm font-medium text-sm mb-2"
-              >
-                Password
-              </label>
-              <input
-                id="login-password"
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
-              />
-            </div>
+                <div>
+                  <label
+                    htmlFor="login-password"
+                    className="block text-forest font-dm font-medium text-sm mb-2"
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="login-password"
+                    name="password"
+                    type="password"
+                    required
+                    minLength={8}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                  />
+                </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold font-dm hover:bg-forest/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {isSignUp ? "Creating Account..." : "Signing In..."}
-                </>
-              ) : isSignUp ? (
-                "Create Account"
-              ) : (
-                "Sign In"
-              )}
-            </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold font-dm hover:bg-forest/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {isSignUp ? "Sending Code..." : "Signing In..."}
+                    </>
+                  ) : isSignUp ? (
+                    "Create Account"
+                  ) : (
+                    "Sign In"
+                  )}
+                </button>
               </form>
 
               {/* Toggle */}
               <div className="mt-8 text-center">
                 <p className="text-text-muted font-dm text-sm">
-                  {isSignUp ? "Already have an account?" : "Don\u2019t have an account?"}{" "}
+                  {isSignUp ? "Already have an account?" : "Don’t have an account?"}{" "}
                   <button
+                    type="button"
                     onClick={() => {
                       setIsSignUp(!isSignUp);
                       setError(null);
-                      setSuccess(null);
                     }}
                     className="text-forest font-semibold hover:text-gold transition-colors underline underline-offset-2"
                   >

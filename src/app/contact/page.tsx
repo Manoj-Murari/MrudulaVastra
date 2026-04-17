@@ -5,7 +5,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 export const metadata: Metadata = {
   title: "Contact — Mrudula Vastra",
   description:
-    "Get in touch with Mrudula Vastra. Visit our store in Vijayawada, call us, or send us a message.",
+    "Get in touch with Mrudula Vastra. Based in Machilipatnam, Andhra Pradesh. Call us or send us a message.",
 };
 
 export default function ContactPage() {
@@ -55,9 +55,9 @@ export default function ContactPage() {
                     <p className="text-text-muted font-dm text-sm leading-relaxed">
                       Mrudula Vastra
                       <br />
-                      MG Road, Governorpet
+                      Machilipatnam
                       <br />
-                      Vijayawada, Andhra Pradesh 520002
+                      Andhra Pradesh, India
                     </p>
                   </div>
                 </div>
@@ -70,8 +70,7 @@ export default function ContactPage() {
                     <h3 className="font-dm text-forest font-semibold text-sm mb-1">
                       Phone
                     </h3>
-                    <p className="text-text-muted font-dm text-sm">+91 98765 43210</p>
-                    <p className="text-text-muted font-dm text-sm">+91 86677 99887</p>
+                    <p className="text-text-muted font-dm text-sm">+91 7208903117</p>
                   </div>
                 </div>
 
@@ -84,10 +83,7 @@ export default function ContactPage() {
                       Email
                     </h3>
                     <p className="text-text-muted font-dm text-sm">
-                      hello@mrudulavastra.com
-                    </p>
-                    <p className="text-text-muted font-dm text-sm">
-                      orders@mrudulavastra.com
+                      mrudulavastra@gmail.com
                     </p>
                   </div>
                 </div>
@@ -101,10 +97,10 @@ export default function ContactPage() {
                       Store Hours
                     </h3>
                     <p className="text-text-muted font-dm text-sm">
-                      Monday – Saturday: 10:00 AM – 8:00 PM
+                      Monday – Saturday: 10:00 AM – 7:00 PM
                     </p>
                     <p className="text-text-muted font-dm text-sm">
-                      Sunday: 11:00 AM – 5:00 PM
+                      Sunday: Closed
                     </p>
                   </div>
                 </div>

@@ -6,14 +6,32 @@ import { InstagramIcon, FacebookIcon, YoutubeIcon } from "@/components/ui/Social
 import Link from "next/link";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
-const QUICK_LINKS = ["New Arrivals", "Sarees", "Dress Materials", "Kids Wear", "Sale", "Gift Cards"];
-const HELP_LINKS = ["Shipping Policy", "Returns & Exchange", "Size Guide", "Track Your Order", "FAQ", "Privacy Policy"];
+const QUICK_LINKS = [
+  { label: "New Arrivals", href: "/collections" },
+  { label: "Sarees", href: "/collections/sarees" },
+  { label: "Dress Materials", href: "/collections/dress-materials" },
+  { label: "Kids Wear", href: "/collections/kids" },
+];
 
-const SOCIAL_ICONS = [InstagramIcon, FacebookIcon, YoutubeIcon];
+const HELP_LINKS = [
+  { label: "Shipping Policy", href: "/shipping-policy" },
+  { label: "Returns & Exchange", href: "/returns" },
+  { label: "Size Guide", href: "/size-guide" },
+  { label: "Track Your Order", href: "/track-order" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
+];
+
+const SOCIAL_LINKS = [
+  { Icon: InstagramIcon, href: "https://www.instagram.com/mrudulavastra/", label: "Instagram" },
+  { Icon: FacebookIcon, href: "#", label: "Facebook" },
+  { Icon: YoutubeIcon, href: "#", label: "YouTube" },
+];
+
 const CONTACT_INFO = [
-  { Icon: Phone, text: "+91 98765 43210" },
-  { Icon: Mail, text: "hello@mrudulavstra.in" },
-  { Icon: MapPin, text: "Vijayawada, Andhra Pradesh, India" },
+  { Icon: Phone, text: "+91 7208903117", href: "tel:+917208903117" },
+  { Icon: Mail, text: "mrudulavastra@gmail.com", href: "mailto:mrudulavastra@gmail.com" },
+  { Icon: MapPin, text: "Machilipatnam, Andhra Pradesh, India", href: null },
 ];
 
 export default function Footer() {
@@ -35,7 +53,7 @@ export default function Footer() {
               Join the Mrudula Circle
             </p>
             <p style={{ color: "rgba(14,34,25,0.7)", fontSize: "13px" }}>
-              Get exclusive drops, early access & festive offers.
+              Get exclusive drops, early access &amp; festive offers.
             </p>
           </div>
           <form onSubmit={handleSubscribe} className="flex gap-0 w-full sm:w-auto max-w-sm">
@@ -95,15 +113,17 @@ export default function Footer() {
             elegance — for women and children who deserve the finest.
           </p>
           <div className="flex items-center gap-4">
-            {SOCIAL_ICONS.map((Icon, i) => (
+            {SOCIAL_LINKS.map((social) => (
               <a
-                key={i}
-                href="#"
+                key={social.label}
+                href={social.href}
+                target={social.href !== "#" ? "_blank" : undefined}
+                rel={social.href !== "#" ? "noopener noreferrer" : undefined}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-amber-400/60 hover:text-amber-400 hover:border-amber-400 transition-all duration-200"
                 style={{ border: "1px solid rgba(184,150,62,0.3)" }}
-                aria-label={`Social link ${i + 1}`}
+                aria-label={social.label}
               >
-                <Icon size={15} />
+                <social.Icon size={15} />
               </a>
             ))}
           </div>
@@ -119,17 +139,17 @@ export default function Footer() {
           </p>
           {QUICK_LINKS.map((link) => (
             <Link
-              key={link}
-              href="#"
+              key={link.label}
+              href={link.href}
               className="block mb-3 hover:text-amber-400 transition-colors duration-200"
               style={{ color: "rgba(253,251,247,0.45)", fontSize: "13px" }}
             >
-              {link}
+              {link.label}
             </Link>
           ))}
         </AnimatedSection>
 
-        {/* Help */}
+        {/* Customer Care */}
         <AnimatedSection delay={0.2}>
           <p
             className="uppercase font-semibold mb-5 text-cream"
@@ -139,12 +159,12 @@ export default function Footer() {
           </p>
           {HELP_LINKS.map((link) => (
             <Link
-              key={link}
-              href="#"
+              key={link.label}
+              href={link.href}
               className="block mb-3 hover:text-amber-400 transition-colors duration-200"
               style={{ color: "rgba(253,251,247,0.45)", fontSize: "13px" }}
             >
-              {link}
+              {link.label}
             </Link>
           ))}
         </AnimatedSection>
@@ -158,16 +178,26 @@ export default function Footer() {
             Reach Us
           </p>
           <div className="space-y-4">
-            {CONTACT_INFO.map(({ Icon, text }) => (
+            {CONTACT_INFO.map(({ Icon, text, href }) => (
               <div key={text} className="flex items-start gap-3">
                 <Icon
                   size={14}
                   className="text-gold flex-shrink-0"
                   style={{ marginTop: "2px" }}
                 />
-                <span style={{ color: "rgba(253,251,247,0.5)", fontSize: "13px", lineHeight: 1.5 }}>
-                  {text}
-                </span>
+                {href ? (
+                  <a
+                    href={href}
+                    className="hover:text-amber-400 transition-colors duration-200"
+                    style={{ color: "rgba(253,251,247,0.5)", fontSize: "13px", lineHeight: 1.5 }}
+                  >
+                    {text}
+                  </a>
+                ) : (
+                  <span style={{ color: "rgba(253,251,247,0.5)", fontSize: "13px", lineHeight: 1.5 }}>
+                    {text}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -200,14 +230,18 @@ export default function Footer() {
             © 2025 Mrudula Vastra. All Rights Reserved.
           </p>
           <div className="flex items-center gap-5">
-            {["Terms", "Privacy", "Sitemap"].map((link) => (
+            {[
+              { label: "Terms", href: "#" },
+              { label: "Privacy", href: "/privacy-policy" },
+              { label: "Sitemap", href: "#" },
+            ].map((link) => (
               <Link
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
                 className="hover:text-amber-400/60 transition-colors"
                 style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}
               >
-                {link}
+                {link.label}
               </Link>
             ))}
           </div>
