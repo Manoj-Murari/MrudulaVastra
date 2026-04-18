@@ -28,7 +28,7 @@ function NavLink({ label, href }: { label: string; href: string }) {
           scaleX: hovered ? 1 : 0,
           opacity: hovered ? 1 : 0,
         }}
-        transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] }}
+        transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] as const }}
       />
     </Link>
   );

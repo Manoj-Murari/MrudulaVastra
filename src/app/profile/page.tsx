@@ -5,6 +5,9 @@ import { User, LogOut } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import AuthForms from "./AuthForms";
 import DashboardTabs from "./DashboardTabs";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   title: "My Profile — Mrudula Vastra",
@@ -39,8 +42,11 @@ export default async function ProfilePage() {
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || "Guest";
 
   return (
-    <main className="min-h-screen bg-cream">
-      <Breadcrumb items={[{ label: "My Account" }]} />
+    <>
+      <AnnouncementBar />
+      <Header />
+      <main className="min-h-screen bg-cream">
+        <Breadcrumb items={[{ label: "My Account" }]} />
       
       {/* ── Hero ─────────────────────────────────────── */}
       <section className="relative py-16 lg:py-24 text-center">
@@ -79,7 +85,9 @@ export default async function ProfilePage() {
           </>
         )}
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }
 

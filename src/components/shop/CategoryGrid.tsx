@@ -23,6 +23,7 @@ interface Product {
   material: string | null;
   sizes: string[] | null;
   inventory_count: number;
+  gallery_images: string[] | null;
 }
 
 export default function CategoryGrid({

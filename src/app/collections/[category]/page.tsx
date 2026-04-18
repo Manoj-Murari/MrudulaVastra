@@ -4,6 +4,9 @@ import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import CategoryGrid from "@/components/shop/CategoryGrid";
 import { Suspense } from "react";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export const revalidate = 0;
 
@@ -58,8 +61,11 @@ export default async function CategoryPage({
     .order("id", { ascending: true });
 
   return (
-    <main className="min-h-screen bg-cream">
-      {/* Breadcrumb */}
+    <>
+      <AnnouncementBar />
+      <Header />
+      <main className="min-h-screen bg-cream">
+        {/* Breadcrumb */}
       <Breadcrumb
         items={[
           { label: "Collections", href: "/collections" },
@@ -91,5 +97,7 @@ export default async function CategoryPage({
         <CategoryGrid products={products || []} categoryTitle={cat.title} />
       </Suspense>
     </main>
+    <Footer />
+    </>
   );
 }

@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import ShopGrid from "@/components/shop/ShopGrid";
 import { Suspense } from "react";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export const revalidate = 0;
 
@@ -20,10 +23,15 @@ export default async function CollectionsPage() {
     .order("id", { ascending: false });
 
   return (
-    <main className="min-h-screen bg-cream">
-      <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 rounded-full border-2 border-forest border-t-transparent animate-spin" /></div>}>
-        <ShopGrid products={products || []} />
-      </Suspense>
-    </main>
+    <>
+      <AnnouncementBar />
+      <Header />
+      <main className="min-h-screen bg-cream">
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 rounded-full border-2 border-forest border-t-transparent animate-spin" /></div>}>
+          <ShopGrid products={products || []} />
+        </Suspense>
+      </main>
+      <Footer />
+    </>
   );
 }

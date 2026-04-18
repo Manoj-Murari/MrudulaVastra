@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { ShoppingBag, Heart, ArrowRight } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import StarRating from "@/components/ui/StarRating";
@@ -27,7 +28,7 @@ const cardVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] },
+    transition: { duration: 0.6, ease: [0.25, 0.4, 0.25, 1] as const },
   },
 };
 
@@ -77,21 +78,24 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
             </h2>
           </motion.div>
 
-          <motion.a
-            href="#"
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex items-center gap-2 uppercase font-semibold text-forest hover:text-amber-700 transition-colors group"
-            style={{ fontSize: "13px", letterSpacing: "0.08em" }}
           >
-            View All
-            <ArrowRight
-              size={14}
-              className="group-hover:translate-x-1 transition-transform"
-            />
-          </motion.a>
+            <Link
+              href="/collections"
+              className="flex items-center gap-2 uppercase font-semibold text-forest hover:text-amber-700 transition-colors group"
+              style={{ fontSize: "13px", letterSpacing: "0.08em" }}
+            >
+              View All
+              <ArrowRight
+                size={14}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </Link>
+          </motion.div>
         </div>
 
         {/* Product Grid */}
@@ -103,12 +107,12 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7"
         >
           {products.map((product) => (
-            <motion.div
-              key={product.id}
-              variants={cardVariants}
-              className="group cursor-pointer"
-            >
-              {/* Image Container */}
+            <Link key={product.id} href={`/product/${product.id}`} className="block">
+              <motion.div
+                variants={cardVariants}
+                className="group cursor-pointer h-full"
+              >
+                {/* Image Container */}
               <div
                 className="relative overflow-hidden mb-4"
                 style={{
@@ -144,6 +148,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                 {/* Wishlist */}
                 <motion.button
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     toggleWishlist(product.id);
                   }}
@@ -230,6 +235,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                   </div>
                   <motion.button
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       addToCart(product);
                     }}
@@ -248,6 +254,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                 </div>
               </div>
             </motion.div>
+            </Link>
           ))}
         </motion.div>
       </div>

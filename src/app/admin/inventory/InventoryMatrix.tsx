@@ -40,6 +40,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     color: "",
     material: "",
     sizes: [] as string[],
+    gallery_images: [] as string[],
   });
 
   const filtered = products.filter(
@@ -75,27 +76,53 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     await deleteProduct(id);
   };
 
+  const handleRemoveImage = (imgUrl: string) => {
+    setFormData(prev => {
+        if (prev.image === imgUrl) {
+            // Pick next from gallery as primary if exists
+            const nextGallery = [...(prev.gallery_images || [])];
+            const nextPrimary = nextGallery.length > 0 ? nextGallery.shift()! : "";
+            return { ...prev, image: nextPrimary, gallery_images: nextGallery };
+        } else {
+            return { ...prev, gallery_images: (prev.gallery_images || []).filter(u => u !== imgUrl) };
+        }
+    });
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     setIsUploading(true);
     const supabase = createClient();
     
-    const fileExt = file.name.split('.').pop();
-    // Unique name
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const fileArray = Array.from(files);
+    const uploadPromises = fileArray.map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        const { error } = await supabase.storage.from("product-images").upload(fileName, file);
+        if (error) return null;
+        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+        return publicUrl;
+    });
 
-    const { error } = await supabase.storage.from("product-images").upload(fileName, file);
+    const results = await Promise.all(uploadPromises);
+    const uploadedUrls = results.filter((url): url is string => url !== null);
 
-    if (error) {
-      alert("Image upload failed: " + error.message);
-      setIsUploading(false);
-      return;
+    if (uploadedUrls.length > 0) {
+        setFormData(prev => {
+            const currentImages = [...(prev.gallery_images || [])];
+            let newImage = prev.image;
+            let urlsToAdd = [...uploadedUrls];
+            if (!newImage && urlsToAdd.length > 0) {
+                newImage = urlsToAdd.shift()!;
+            }
+            return { ...prev, image: newImage, gallery_images: [...currentImages, ...urlsToAdd] };
+        });
+    } else {
+        alert("Image upload failed for all files.");
     }
-
-    const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
-    setFormData(prev => ({ ...prev, image: publicUrl }));
+    
     setIsUploading(false);
   };
 
@@ -114,6 +141,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       color: formData.color || null,
       material: formData.material || null,
       sizes: formData.sizes.length > 0 ? formData.sizes : null,
+      gallery_images: formData.gallery_images.length > 0 ? formData.gallery_images : null,
       is_trending: false,
       rating: 5,
       reviews: 0,
@@ -126,7 +154,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
        setProducts(prev => [{ id: Math.random() * 1000000, ...newProduct }, ...prev]);
        setIsAdding(false);
        setFormData({
-        name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: []
+        name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: []
        });
     } else {
        alert("Failed to add product: " + res.error);
@@ -429,23 +457,13 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   </div>
 
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product Image *</label>
-                    <div className="flex items-center gap-4">
-                      <div 
-                        className="w-16 h-16 rounded-lg overflow-hidden border flex items-center justify-center shrink-0 relative"
-                        style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
-                      >
-                        {isUploading ? (
-                          <span className="text-[10px] animate-pulse uppercase font-bold" style={{ color: "var(--admin-accent)" }}>Up...</span>
-                        ) : formData.image ? (
-                          <Image src={formData.image} alt="Preview" fill className="object-cover" />
-                        ) : (
-                          <Package size={20} style={{ color: "var(--admin-text-dim)" }} />
-                        )}
-                      </div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product Images *</label>
+                    <div className="flex flex-col gap-4">
+                      {/* Upload Input */}
                       <div className="flex-1">
                         <input 
                           type="file" 
+                          multiple
                           accept="image/*" 
                           onChange={handleImageUpload} 
                           disabled={isUploading}
@@ -453,9 +471,64 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                           style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }} 
                         />
                         <p className="text-[10px] mt-2" style={{ color: "var(--admin-text-dim)" }}>
-                          Upload directly to Supabase product-images bucket.
+                          Upload multiple high-res images. First image is the primary grid thumbnail.
                         </p>
                       </div>
+
+                      {/* Mini-Gallery Preview */}
+                      {(formData.image || isUploading) && (
+                        <div className="flex items-center gap-3 overflow-x-auto pb-2 admin-scroll">
+                          {/* Primary Image */}
+                          {formData.image && (
+                            <div 
+                              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border shrink-0 relative group"
+                              style={{ borderColor: "var(--admin-accent)", background: "var(--admin-surface-elevated)" }}
+                            >
+                              <Image src={formData.image} alt="Primary Preview" fill className="object-cover" />
+                              <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" style={{ background: "var(--admin-accent)", color: "#000" }}>
+                                Primary
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={() => handleRemoveImage(formData.image)}
+                                className="absolute top-1 right-1 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+                                style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Gallery Images */}
+                          {formData.gallery_images && formData.gallery_images.map((url, i) => (
+                            <div 
+                              key={i}
+                              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border shrink-0 relative group"
+                              style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
+                            >
+                              <Image src={url} alt={`Gallery Preview ${i+1}`} fill className="object-cover" />
+                              <button 
+                                type="button"
+                                onClick={() => handleRemoveImage(url)}
+                                className="absolute top-1 right-1 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
+                                style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ))}
+
+                          {/* Loading Skeleton */}
+                          {isUploading && (
+                            <div 
+                              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg border flex items-center justify-center shrink-0"
+                              style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
+                            >
+                              <span className="text-[10px] animate-pulse uppercase font-bold" style={{ color: "var(--admin-accent)" }}>Up...</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

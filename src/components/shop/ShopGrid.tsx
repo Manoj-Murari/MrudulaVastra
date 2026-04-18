@@ -25,6 +25,7 @@ interface Product {
   material: string | null;
   sizes: string[] | null;
   inventory_count: number;
+  gallery_images: string[] | null;
 }
 
 const CATEGORIES = ["All", "Sarees", "Dress Materials", "Kids Wear"];

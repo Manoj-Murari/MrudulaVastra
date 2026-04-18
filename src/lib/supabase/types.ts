@@ -58,6 +58,7 @@ export interface Database {
           material: string | null
           sizes: string[] | null
           inventory_count: number
+          gallery_images: string[] | null
         }
         Insert: {
           id?: number
@@ -75,6 +76,7 @@ export interface Database {
           material?: string | null
           sizes?: string[] | null
           inventory_count?: number
+          gallery_images?: string[] | null
         }
         Update: {
           id?: number
@@ -92,6 +94,7 @@ export interface Database {
           material?: string | null
           sizes?: string[] | null
           inventory_count?: number
+          gallery_images?: string[] | null
         }
       }
       testimonials: {

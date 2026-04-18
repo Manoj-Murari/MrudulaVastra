@@ -19,17 +19,13 @@ const textReveal = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.3 + i * 0.15, duration: 0.7, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] },
+    transition: { delay: 0.3 + i * 0.15, duration: 0.7, ease: [0.25, 0.4, 0.25, 1] as const },
   }),
 };
 
 const imageReveal = {
   hidden: { scale: 1.08, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: { duration: 1.2, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] },
-  },
+  visible: { scale: 1, opacity: 1, transition: { duration: 0.8, ease: [0.25, 0.4, 0.25, 1] as const } },
 };
 
 const floatingBadge = {
@@ -38,7 +34,7 @@ const floatingBadge = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: 1.2, duration: 0.6, ease: [0.25, 0.4, 0.25, 1] as [number, number, number, number] },
+    transition: { delay: 1.2, duration: 0.6, ease: [0.25, 0.4, 0.25, 1] as const },
   },
 };
 

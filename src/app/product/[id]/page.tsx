@@ -4,6 +4,10 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ProductActions from "./ProductActions";
+import ProductGallery from "./ProductGallery";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export const revalidate = 0;
 
@@ -58,8 +62,11 @@ export default async function ProductPage({
   if (!product) notFound();
 
   return (
-    <main className="min-h-screen bg-cream">
-      <Breadcrumb
+    <>
+      <AnnouncementBar />
+      <Header />
+      <main className="min-h-screen bg-cream">
+        <Breadcrumb
         items={[
           { label: "Collections", href: "/collections" },
           { label: product.category, href: `/collections/${product.category.toLowerCase().replace(" ", "-")}` },
@@ -68,44 +75,14 @@ export default async function ProductPage({
       />
 
       <section className="max-w-7xl mx-auto px-6 lg:px-10 py-10 lg:py-20 flex flex-col lg:flex-row gap-10 lg:gap-24">
-        {/* Left Side: Image — full width on mobile, sticky on desktop */}
-        <div className="w-full lg:w-1/2">
-          <div className="relative aspect-[3/4] lg:sticky lg:top-[120px] bg-[#F5F0E8] overflow-hidden">
-            {product.image && !product.image.includes("/api/placeholder") ? (
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="font-playfair text-forest/20 font-bold text-4xl tracking-widest mb-2">MV</p>
-                <p className="text-forest/15 font-dm text-xs uppercase tracking-[0.3em]">Mrudula Vastra</p>
-              </div>
-            )}
-            {product.badge && (
-              <span className="absolute top-4 left-4 bg-forest text-white px-4 py-1.5 text-xs uppercase tracking-wider font-bold font-dm">
-                {product.badge}
-              </span>
-            )}
-            {product.tag && (
-              <span className="absolute top-4 right-4 bg-gold/90 text-white px-4 py-1.5 text-xs uppercase tracking-wider font-bold font-dm">
-                {product.tag}
-              </span>
-            )}
-            {/* Sold Out Overlay */}
-            {product.inventory_count === 0 && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-                <span className="px-5 py-2 bg-neutral-800 text-white text-xs font-bold uppercase tracking-[0.2em] font-dm">
-                  Sold Out
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+        <ProductGallery 
+          primaryImage={product.image} 
+          galleryImages={product.gallery_images} 
+          productName={product.name} 
+          badge={product.badge} 
+          tag={product.tag} 
+          isSoldOut={product.inventory_count === 0} 
+        />
 
         {/* Right Side: Details & Actions */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center">
@@ -169,6 +146,8 @@ export default async function ProductPage({
           </div>
         </div>
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }
