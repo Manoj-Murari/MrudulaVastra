@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import CategoryGrid from "@/components/shop/CategoryGrid";
+import { Suspense } from "react";
 
 export const revalidate = 0;
 
@@ -86,7 +87,9 @@ export default async function CategoryPage({
       </section>
 
       {/* Grid with Search & Sort */}
-      <CategoryGrid products={products || []} categoryTitle={cat.title} />
+      <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="w-8 h-8 rounded-full border-2 border-forest border-t-transparent animate-spin" /></div>}>
+        <CategoryGrid products={products || []} categoryTitle={cat.title} />
+      </Suspense>
     </main>
   );
 }

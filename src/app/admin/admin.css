@@ -1,0 +1,52 @@
+/* ─── Admin Dashboard Design System ────────────────────────── */
+/* A hyper-premium dark theme with emerald/gold accents        */
+
+:root {
+  --admin-bg: #0B0F0D;
+  --admin-surface: #111916;
+  --admin-surface-elevated: #172119;
+  --admin-border: rgba(184, 150, 62, 0.08);
+  --admin-border-active: rgba(184, 150, 62, 0.25);
+  --admin-text: #E8E4DC;
+  --admin-text-muted: #7A7567;
+  --admin-text-dim: #4A473F;
+  --admin-accent: #B8963E;
+  --admin-accent-glow: rgba(184, 150, 62, 0.12);
+  --admin-emerald: #34D399;
+  --admin-emerald-muted: rgba(52, 211, 153, 0.12);
+  --admin-red: #F87171;
+  --admin-red-muted: rgba(248, 113, 113, 0.12);
+  --admin-blue: #60A5FA;
+  --admin-blue-muted: rgba(96, 165, 250, 0.12);
+  --admin-amber: #FBBF24;
+  --admin-amber-muted: rgba(251, 191, 36, 0.12);
+  --admin-sidebar-w: 260px;
+  --admin-sidebar-collapsed-w: 72px;
+  --admin-header-h: 64px;
+}
+
+/* Scrollbar for admin */
+.admin-scroll::-webkit-scrollbar { width: 4px; }
+.admin-scroll::-webkit-scrollbar-track { background: transparent; }
+.admin-scroll::-webkit-scrollbar-thumb { background: var(--admin-border-active); border-radius: 2px; }
+
+/* KPI shimmer animation */
+@keyframes admin-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.admin-shimmer {
+  background: linear-gradient(90deg, transparent 0%, var(--admin-accent-glow) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: admin-shimmer 2s infinite;
+}
+
+/* Chart tooltip */
+.admin-chart-tooltip {
+  background: var(--admin-surface-elevated) !important;
+  border: 1px solid var(--admin-border-active) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}

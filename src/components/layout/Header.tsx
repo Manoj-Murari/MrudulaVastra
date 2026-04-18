@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { NAV_LINKS } from "@/data/navigation";
 import { useCart } from "@/components/providers/CartProvider";
@@ -37,11 +38,16 @@ function NavLink({ label, href }: { label: string; href: string }) {
 function TypewriterSearchBar() {
   const [placeholderText, setPlaceholderText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const router = useRouter();
   const fullText = "What are you looking for?";
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
     const handleTyping = () => {
+      // Don't auto-type if user is currently typing
+      if (inputValue) return;
+
       if (!isDeleting) {
         if (placeholderText.length < fullText.length) {
           setPlaceholderText(fullText.slice(0, placeholderText.length + 1));
@@ -61,22 +67,32 @@ function TypewriterSearchBar() {
     };
     timer = setTimeout(handleTyping, 100);
     return () => clearTimeout(timer);
-  }, [placeholderText, isDeleting]);
+  }, [placeholderText, isDeleting, inputValue]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      router.push(`/collections?q=${encodeURIComponent(inputValue.trim())}`);
+      setInputValue("");
+    }
+  };
 
   return (
-    <div className="relative group w-full flex items-center">
-      {/* Search Icon - Positioned closer to the edge to fix "too much space" */}
+    <form onSubmit={handleSubmit} className="relative group w-full flex items-center">
+      {/* Search Icon */}
       <div className="absolute left-3.5 text-forest/40 group-focus-within:text-gold transition-colors duration-300 pointer-events-none">
         <Search size={16} strokeWidth={1.5} />
       </div>
 
-      {/* Search Input - Tightened left padding (pl-10) */}
+      {/* Search Input */}
       <input
         type="text"
-        placeholder={placeholderText}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder={inputValue ? "" : placeholderText}
         className="w-full py-2 lg:py-2.5 pl-10 pr-4 bg-cream/40 border border-gold/10 rounded-full font-dm text-[11px] lg:text-[13px] tracking-wide text-forest placeholder:text-text-muted/50 focus:outline-none focus:border-gold/40 focus:bg-white focus:shadow-[0_4px_20px_rgba(197,168,128,0.08)] transition-all duration-500 ease-out"
       />
-    </div>
+    </form>
   );
 }
 

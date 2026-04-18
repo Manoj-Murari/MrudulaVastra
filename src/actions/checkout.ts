@@ -1,10 +1,16 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { render } from "@react-email/render";
+import OrderReceipt from "@/emails/OrderReceipt";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
 
 export async function processMockCheckout(
   totalAmount: number,
-  items: { product_id: number; quantity: number; unit_price: number }[]
+  items: { product_id: number; quantity: number; unit_price: number; name?: string; variant?: string | null }[],
+  addressData?: { fullName: string; phone: string; fullAddress: string; pincode: string }
 ) {
   try {
     // 1. Simulate 2-second Razorpay processing delay
@@ -58,19 +64,47 @@ export async function processMockCheckout(
       }
     }
 
-    // 4. Mock Email Action (Resend)
-    const mockEmailPayload = {
-      to: "customer@example.com",
-      subject: "Order Confirmed - Mrudula Vastra",
-      orderId: mockOrderId,
-      totalAmount: `₹${totalAmount.toLocaleString("en-IN")}`,
-      customerName: "Valued Customer",
-    };
+    // 4. Send Email Action (Resend)
+    if (addressData) {
+      try {
+        const orderItems = items.map((i) => ({
+          name: i.name || `Product ID: ${i.product_id}`,
+          variant: i.variant,
+          quantity: i.quantity,
+          price: i.unit_price,
+        }));
 
-    console.log("====================================");
-    console.log("🟢 [RESEND MOCK] TRIGGERED EMAIL");
-    console.log(JSON.stringify(mockEmailPayload, null, 2));
-    console.log("====================================");
+        const html = await render(
+          OrderReceipt({
+            orderId: mockOrderId,
+            customerName: addressData.fullName,
+            totalAmount: `₹${totalAmount.toLocaleString("en-IN")}`,
+            items: orderItems,
+            shippingAddress: `${addressData.fullAddress}, ${addressData.pincode}`,
+          }) as React.ReactElement
+        );
+
+        if (process.env.RESEND_API_KEY) {
+          await resend.emails.send({
+            from: "Mrudula Vastra <orders@mrudulavastra.com>",
+            to: "customer@example.com", // In real scenario: use customer's verified email
+            subject: "Order Confirmed - Mrudula Vastra",
+            html: html,
+          });
+          console.log(`✅ Real email dispatched via Resend for order ${mockOrderId}`);
+        } else {
+          console.log("====================================");
+          console.log("🟢 [RESEND MOCK] HTML RECEIPT GENERATED SUCCESSFULLY");
+          console.log(
+            `Will be sent to customer once RESEND_API_KEY is configured in Vercel.`
+          );
+          console.log("====================================");
+        }
+      } catch (err) {
+        console.error("Failed to compile or send email receipt:", err);
+        // Do not abort checkout if email fails
+      }
+    }
 
     return {
       success: true,

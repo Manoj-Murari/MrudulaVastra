@@ -1,17 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, ShoppingBag, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/components/providers/CartProvider";
 import { processMockCheckout } from "@/actions/checkout";
+import { getUserProfile } from "@/actions/profile";
 
 export default function CartDrawer() {
-  const { isCartOpen, toggleCart, items, cartTotal, removeFromCart, updateQuantity, resetCart } = useCart();
+  const { isCartOpen, toggleCart, items, cartTotal, removeFromCart, updateQuantity, resetCart, isHydrated } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [checkoutStep, setCheckoutStep] = useState<"cart" | "address">("cart");
+  const [addressData, setAddressData] = useState({ fullName: "", phone: "", pincode: "", fullAddress: "" });
+  const [hasProfileFetched, setHasProfileFetched] = useState(false);
+
+  useEffect(() => {
+    async function preloadProfile() {
+      if (checkoutStep === "address" && !hasProfileFetched) {
+        try {
+          const profile = await getUserProfile();
+          if (profile) {
+            setAddressData(prev => ({
+              fullName: prev.fullName || profile.full_name || "",
+              phone: prev.phone || profile.phone || "",
+              pincode: prev.pincode || profile.pincode || "",
+              fullAddress: prev.fullAddress || profile.full_address || ""
+            }));
+          }
+        } catch (e) {
+          // silent fail
+        } finally {
+          setHasProfileFetched(true);
+        }
+      }
+    }
+    preloadProfile();
+  }, [checkoutStep, hasProfileFetched]);
 
   const handleCheckout = async () => {
     setIsProcessing(true);
@@ -21,9 +48,11 @@ export default function CartDrawer() {
       product_id: item.product.id,
       quantity: item.quantity,
       unit_price: item.product.price,
+      name: item.product.name,
+      variant: item.selectedSize ? `${item.product.color ? item.product.color + ' | ' : ''}${item.selectedSize}` : item.product.color,
     }));
 
-    const result = await processMockCheckout(cartTotal, checkoutItems);
+    const result = await processMockCheckout(cartTotal, checkoutItems, addressData);
 
     setIsProcessing(false);
 
@@ -38,8 +67,11 @@ export default function CartDrawer() {
 
   const closeDrawer = () => {
     toggleCart(false);
-    // Give time for layout to slide out before resetting success state
-    setTimeout(() => setSuccess(false), 500); 
+    // Give time for layout to slide out before resetting states
+    setTimeout(() => {
+      setSuccess(false);
+      setCheckoutStep("cart");
+    }, 500); 
   };
 
   return (
@@ -62,7 +94,7 @@ export default function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full max-w-[420px] bg-cream shadow-2xl z-[101] flex flex-col"
+            className="fixed top-0 right-0 h-full w-full sm:max-w-[420px] bg-cream shadow-2xl z-[101] flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gold/20">
@@ -106,6 +138,22 @@ export default function CartDrawer() {
                     Continue Shopping
                   </button>
                 </motion.div>
+              ) : checkoutStep === "address" ? (
+                /* Address Form */
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full space-y-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <button onClick={() => setCheckoutStep("cart")} className="text-text-muted hover:text-forest text-sm font-dm transition-colors">
+                      &larr; Back to Cart
+                    </button>
+                  </div>
+                  <h3 className="font-playfair text-2xl font-bold text-forest">Shipping Details</h3>
+                  <div className="space-y-4">
+                    <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    <input type="text" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({...addressData, phone: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({...addressData, pincode: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    <textarea placeholder="Full Address" value={addressData.fullAddress} onChange={e => setAddressData({...addressData, fullAddress: e.target.value})} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
+                  </div>
+                </motion.div>
               ) : items.length === 0 ? (
                 /* Empty Cart State */
                 <div className="flex flex-col items-center justify-center h-full opacity-60">
@@ -116,14 +164,15 @@ export default function CartDrawer() {
               ) : (
                 /* Active Cart Items */
                 <div className="flex flex-col gap-6">
-                  {items.map((item) => (
-                    <div key={item.product.id} className="flex gap-4 items-start">
+                  {isHydrated && items.map((item) => (
+                    <div key={item.cartItemId} className="flex gap-4 items-start">
                       {/* Product Image */}
                       <div className="relative w-24 h-32 bg-white flex-shrink-0 border border-gold/10">
                         <Image
                           src={item.product.image}
                           alt={item.product.name}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className="object-cover"
                         />
                       </div>
@@ -136,6 +185,16 @@ export default function CartDrawer() {
                         <h4 className="font-playfair text-forest font-semibold text-lg leading-tight truncate">
                           {item.product.name}
                         </h4>
+                        
+                        {/* Variant Info */}
+                        {(item.selectedSize || item.product.color) && (
+                          <p className="text-[11px] font-dm text-text-muted mt-0.5">
+                            {item.product.color ? `Color: ${item.product.color}` : ""}
+                            {item.product.color && item.selectedSize ? " | " : ""}
+                            {item.selectedSize ? `Size: ${item.selectedSize}` : ""}
+                          </p>
+                        )}
+
                         <div className="text-forest font-semibold mt-1">
                           ₹{item.product.price.toLocaleString("en-IN")}
                         </div>
@@ -144,14 +203,14 @@ export default function CartDrawer() {
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center border border-gold/30 rounded-full overflow-hidden">
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
                               className="px-3 py-1 bg-white hover:bg-gold/10 text-forest font-bold"
                             >
                               -
                             </button>
                             <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
                               className="px-3 py-1 bg-white hover:bg-gold/10 text-forest font-bold"
                             >
                               +
@@ -159,7 +218,7 @@ export default function CartDrawer() {
                           </div>
                           
                           <button
-                            onClick={() => removeFromCart(item.product.id)}
+                            onClick={() => removeFromCart(item.cartItemId)}
                             className="text-text-muted hover:text-red-500 transition-colors p-2"
                           >
                             <Trash2 size={16} />
@@ -182,20 +241,30 @@ export default function CartDrawer() {
                   </span>
                 </div>
                 
-                <button
-                  onClick={handleCheckout}
-                  disabled={isProcessing}
-                  className="w-full py-4 uppercase bg-forest text-white tracking-[0.15em] text-sm font-bold hover:bg-forest/90 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex justify-center items-center gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Pay Securely with Razorpay"
-                  )}
-                </button>
+                {checkoutStep === "cart" ? (
+                  <button
+                    onClick={() => setCheckoutStep("address")}
+                    className="w-full py-4 uppercase bg-forest text-white tracking-[0.15em] text-sm font-bold hover:bg-forest/90 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
+                  >
+                    Proceed to Checkout
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleCheckout}
+                    disabled={isProcessing || !addressData.fullName || !addressData.phone || !addressData.fullAddress || !addressData.pincode}
+                    className="w-full py-4 uppercase bg-forest text-white tracking-[0.15em] text-sm font-bold hover:bg-forest/90 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex justify-center items-center gap-2"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Complete Secure Order"
+                    )}
+                  </button>
+                )}
+                
                 <p className="text-center text-[10px] text-text-muted uppercase mt-3 tracking-widest">
                   Shipping & Taxes calculated at checkout
                 </p>

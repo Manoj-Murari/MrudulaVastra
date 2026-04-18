@@ -35,7 +35,10 @@ CREATE TABLE IF NOT EXISTS public.products (
   rating          NUMERIC(2,1) NOT NULL DEFAULT 0.0,
   reviews         INTEGER NOT NULL DEFAULT 0,
   badge           TEXT NOT NULL DEFAULT '',
-  is_trending     BOOLEAN NOT NULL DEFAULT true
+  is_trending     BOOLEAN NOT NULL DEFAULT true,
+  color           TEXT,
+  material        TEXT,
+  sizes           TEXT[]
 );
 
 -- Testimonials
@@ -147,11 +150,11 @@ ON CONFLICT (id) DO NOTHING;
 -- 6. SEED DATA — Products
 -- ────────────────────────────────────────────────────────────
 
-INSERT INTO public.products (id, name, category, price, original_price, image, tag, rating, reviews, badge, is_trending) VALUES
-  (1, 'Kanjivaram Silk Saree',      'Sarees',          8499, 10999, '/images/trending-1.webp', 'As Seen on Reels', 4.9, 124, '🔥 Trending', true),
-  (2, 'Chanderi Cotton Suit Set',   'Dress Materials', 3299,  4199, '/images/trending-2.webp', 'Reel Favourite',   4.8,  89, '✨ New',       true),
-  (3, 'Leheriya Anarkali Set',      'Kids Wear',       1899,  2499, '/images/trending-3.webp', 'Most Loved',       5.0,  67, '💛 Loved',     true),
-  (4, 'Organza Embroidered Saree',  'Sarees',          6799,  8999, '/images/trending-4.webp', 'As Seen on Reels', 4.7, 103, '🎬 Reel Hit',  true)
+INSERT INTO public.products (id, name, category, price, original_price, image, tag, rating, reviews, badge, is_trending, color, material, sizes) VALUES
+  (1, 'Kanjivaram Silk Saree',      'Sarees',          8499, 10999, '/images/trending-1.webp', 'As Seen on Reels', 4.9, 124, '🔥 Trending', true, 'Red', 'Pure Silk', ARRAY['Unstitched']),
+  (2, 'Chanderi Cotton Suit Set',   'Dress Materials', 3299,  4199, '/images/trending-2.webp', 'Reel Favourite',   4.8,  89, '✨ New',       true, 'Yellow', 'Chanderi Cotton', ARRAY['Unstitched']),
+  (3, 'Leheriya Anarkali Set',      'Kids Wear',       1899,  2499, '/images/trending-3.webp', 'Most Loved',       5.0,  67, '💛 Loved',     true, 'Pink', 'Cotton', ARRAY['2-3Y', '3-4Y', '4-5Y']),
+  (4, 'Organza Embroidered Saree',  'Sarees',          6799,  8999, '/images/trending-4.webp', 'As Seen on Reels', 4.7, 103, '🎬 Reel Hit',  true, 'Blue', 'Organza', ARRAY['Unstitched'])
 ON CONFLICT (id) DO NOTHING;
 
 -- Reset the products id sequence to avoid conflicts with future inserts

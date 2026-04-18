@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import ShopGrid from "@/components/shop/ShopGrid";
+import { Suspense } from "react";
 
 export const revalidate = 0;
 
@@ -20,7 +21,9 @@ export default async function CollectionsPage() {
 
   return (
     <main className="min-h-screen bg-cream">
-      <ShopGrid products={products || []} />
+      <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 rounded-full border-2 border-forest border-t-transparent animate-spin" /></div>}>
+        <ShopGrid products={products || []} />
+      </Suspense>
     </main>
   );
 }

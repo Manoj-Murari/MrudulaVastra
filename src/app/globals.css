@@ -15,9 +15,6 @@
   --font-dm: var(--font-dm-sans);
 }
 
-html {
-  scroll-behavior: smooth;
-}
 
 body {
   background: var(--color-cream);

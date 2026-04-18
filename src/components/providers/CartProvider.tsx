@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import CartDrawer from "@/components/layout/CartDrawer";
 
 import type { Database } from "@/lib/supabase/types";
@@ -8,8 +8,10 @@ import type { Database } from "@/lib/supabase/types";
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
 export interface CartItem {
+  cartItemId: string;
   product: Product;
   quantity: number;
+  selectedSize?: string;
 }
 
 interface CartContextType {
@@ -17,11 +19,12 @@ interface CartContextType {
   cartCount: number;
   cartTotal: number;
   isCartOpen: boolean;
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  addToCart: (product: Product, selectedSize?: string) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   resetCart: () => void;
   toggleCart: (open?: boolean) => void;
+  isHydrated: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -29,34 +32,55 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("mrudula_cart");
+      if (saved) {
+        setItems(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error("Failed to load cart from localStorage", e);
+    }
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("mrudula_cart", JSON.stringify(items));
+    }
+  }, [items, isHydrated]);
 
   const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
   const cartTotal = items.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback((product: Product, selectedSize?: string) => {
     setItems((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const cartItemId = `${product.id}-${selectedSize || "none"}`;
+      const existing = prev.find((item) => item.cartItemId === cartItemId);
+      
       if (existing) {
         return prev.map((item) =>
-          item.product.id === product.id
+          item.cartItemId === cartItemId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { cartItemId, product, quantity: 1, selectedSize }];
     });
     setIsCartOpen(true); // Auto open cart on add
   }, []);
 
-  const removeFromCart = useCallback((productId: number) => {
-    setItems((prev) => prev.filter((item) => item.product.id !== productId));
+  const removeFromCart = useCallback((cartItemId: string) => {
+    setItems((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
   }, []);
 
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity < 1) return removeFromCart(productId);
+  const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
+    if (quantity < 1) return removeFromCart(cartItemId);
     setItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        item.cartItemId === cartItemId ? { ...item, quantity } : item
       )
     );
   }, [removeFromCart]);
@@ -81,6 +105,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         resetCart,
         toggleCart,
+        isHydrated,
       }}
     >
       <CartDrawer />

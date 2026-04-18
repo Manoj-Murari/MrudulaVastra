@@ -54,6 +54,10 @@ export interface Database {
           reviews: number
           badge: string
           is_trending: boolean
+          color: string | null
+          material: string | null
+          sizes: string[] | null
+          inventory_count: number
         }
         Insert: {
           id?: number
@@ -67,6 +71,10 @@ export interface Database {
           reviews?: number
           badge?: string
           is_trending?: boolean
+          color?: string | null
+          material?: string | null
+          sizes?: string[] | null
+          inventory_count?: number
         }
         Update: {
           id?: number
@@ -80,6 +88,10 @@ export interface Database {
           reviews?: number
           badge?: string
           is_trending?: boolean
+          color?: string | null
+          material?: string | null
+          sizes?: string[] | null
+          inventory_count?: number
         }
       }
       testimonials: {
