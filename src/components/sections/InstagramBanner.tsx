@@ -6,10 +6,14 @@ import Image from "next/image";
 import { Heart } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 
-const posts = Array.from({ length: 6 }, (_, i) => ({
-  id: i,
-  img: `/images/insta-${i + 1}.webp`,
-}));
+const posts = [
+  { id: 0, img: "/images/insta-1.webp", alt: "Premium silk saree styling — elegant draping by Mrudula Vastra customer" },
+  { id: 1, img: "/images/insta-2.webp", alt: "Handpicked Kanjivaram saree in rich jewel tones from Mrudula Vastra" },
+  { id: 2, img: "/images/insta-3.webp", alt: "Traditional Indian ethnic wear — festive saree collection from Machilipatnam" },
+  { id: 3, img: "/images/insta-4.webp", alt: "Banarasi silk saree with intricate zari work — Mrudula Vastra collection" },
+  { id: 4, img: "/images/insta-5.webp", alt: "Premium dress materials and unstitched fabrics by Mrudula Vastra" },
+  { id: 5, img: "/images/insta-6.webp", alt: "Designer ethnic outfit for kids — adorable traditional wear from Mrudula Vastra" },
+];
 
 const gridVariants = {
   hidden: {},
@@ -55,10 +59,12 @@ export default function InstagramBanner() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-playfair text-text-primary font-bold mb-2"
+            className="font-playfair font-bold mb-2"
             style={{ fontSize: "clamp(24px, 3vw, 38px)" }}
           >
-            @mrudulavstra
+            <a href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="text-text-primary hover:text-gold transition-colors duration-300">
+              @mrudulavastra
+            </a>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -87,7 +93,7 @@ export default function InstagramBanner() {
             >
               <Image
                 src={post.img}
-                alt="Instagram post"
+                alt={post.alt}
                 fill
                 sizes="(max-width: 640px) 33vw, 16vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -110,7 +116,9 @@ export default function InstagramBanner() {
           className="text-center"
         >
           <a
-            href="#"
+            href="https://www.instagram.com/mrudulavastra/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 px-10 py-3.5 uppercase font-semibold text-forest hover:bg-emerald-900 hover:text-white transition-all duration-300 font-dm"
             style={{
               border: "1.5px solid #1A3C2E",

@@ -9,8 +9,8 @@ import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 
 
 const stats = [
-  ["10K+", "Happy Customers"],
-  ["500+", "Designs"],
+  ["Premium", "Quality"],
+  ["Handpicked", "Designs"],
   ["100%", "Authentic"],
 ] as const;
 
@@ -57,7 +57,7 @@ export default function HeroSection() {
             Summer Collection 2025
           </motion.p>
 
-          <motion.h2
+          <motion.h1
             custom={1}
             variants={textReveal}
             initial="hidden"
@@ -67,9 +67,9 @@ export default function HeroSection() {
             style={{ lineHeight: 1.12, fontSize: "clamp(36px, 5vw, 62px)" }}
           >
             Wear the Art
-          </motion.h2>
+          </motion.h1>
 
-          <motion.h2
+          <motion.p
             custom={2}
             variants={textReveal}
             initial="hidden"
@@ -79,7 +79,7 @@ export default function HeroSection() {
             style={{ lineHeight: 1.12, fontSize: "clamp(36px, 5vw, 62px)" }}
           >
             of India.
-          </motion.h2>
+          </motion.p>
 
           <motion.p
             custom={3}
@@ -175,12 +175,17 @@ export default function HeroSection() {
         />
 
         {/* Floating Instagram badge */}
-        <motion.div
+        <motion.a
+          href="https://www.instagram.com/mrudulavastra/"
+          target="_blank"
+          rel="noopener noreferrer"
           variants={floatingBadge}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="absolute p-4 shadow-2xl max-w-[200px]"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="absolute p-4 shadow-2xl max-w-[200px] cursor-pointer block"
           style={{
             background: "rgba(253,251,247,0.95)",
             backdropFilter: "blur(12px)",
@@ -193,15 +198,15 @@ export default function HeroSection() {
               <InstagramIcon size={15} className="text-white" />
             </div>
             <div>
-              <p className="text-text-primary font-bold" style={{ fontSize: "12px" }}>
-                @mrudulavstra
+              <p className="text-text-primary font-bold transition-colors hover:text-gold" style={{ fontSize: "12px" }}>
+                @mrudulavastra
               </p>
               <p className="text-text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
                 Follow us for daily drops ✨
               </p>
             </div>
           </div>
-        </motion.div>
+        </motion.a>
 
         {/* Gold accent corners */}
         <div

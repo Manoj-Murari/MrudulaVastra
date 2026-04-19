@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -9,6 +10,16 @@ import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import { createClient } from "@/lib/supabase/server";
 
 export const revalidate = 0;
+
+/* ── Homepage-specific metadata (overrides layout template) ──── */
+export const metadata: Metadata = {
+  title: "Mrudula Vastra — Premium Sarees & Ethnic Wear from Machilipatnam",
+  description:
+    "Shop handpicked sarees, elegant dress materials & adorable kids wear at Mrudula Vastra. Premium Indian ethnic wear from Machilipatnam, Andhra Pradesh. Kanjivaram, Banarasi, Pochampally, Chanderi silks. Nationwide delivery with free shipping over ₹2000.",
+  alternates: {
+    canonical: "https://mrudulavastra.in",
+  },
+};
 
 export default async function HomePage() {
   const supabase = await createClient();

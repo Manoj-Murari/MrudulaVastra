@@ -9,6 +9,33 @@ import Script from "next/script";
 import { createRazorpayOrder, processOrderAfterPayment } from "@/actions/checkout";
 import { getUserProfile } from "@/actions/profile";
 
+/* ── Razorpay Types ──────────────────────────────────── */
+
+interface RazorpaySuccessResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailResponse {
+  error: {
+    code: string;
+    description: string;
+    source: string;
+    step: string;
+    reason: string;
+  };
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => {
+      open: () => void;
+      on: (event: string, handler: (response: RazorpayFailResponse) => void) => void;
+    };
+  }
+}
+
 export default function CartDrawer() {
   const { isCartOpen, toggleCart, items, cartTotal, removeFromCart, updateQuantity, resetCart, isHydrated } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -80,7 +107,7 @@ export default function CartDrawer() {
       name: "Mrudula Vastra",
       description: "Secure Checkout",
       order_id: orderResult.orderId,
-      handler: async function (response: any) {
+      handler: async function (response: RazorpaySuccessResponse) {
         // Step 3: Handle success, process order and save to DB
         const verifyResult = await processOrderAfterPayment(
           cartTotal,
@@ -113,9 +140,9 @@ export default function CartDrawer() {
       } // The modal close is handled correctly by Razorpay internally
     };
 
-    const rzp = new (window as any).Razorpay(options);
+    const rzp = new window.Razorpay(options);
     
-    rzp.on('payment.failed', function (response: any) {
+    rzp.on('payment.failed', function (response: RazorpayFailResponse) {
        alert("Payment Failed: " + response.error.description);
        setIsProcessing(false);
     });

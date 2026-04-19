@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ChevronRight, ArrowLeft } from "lucide-react";
 
 interface BreadcrumbItem {
   label: string;
@@ -10,7 +8,7 @@ interface BreadcrumbItem {
 }
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
-  const router = useRouter();
+
 
   return (
     <nav

@@ -11,21 +11,27 @@ import Footer from "@/components/layout/Footer";
 export const revalidate = 0;
 
 /* ── Slug → DB category mapping ──────────────────────── */
-const CATEGORY_MAP: Record<string, { dbName: string; title: string; subtitle: string }> = {
+const CATEGORY_MAP: Record<string, { dbName: string; title: string; subtitle: string; seoDescription: string }> = {
   sarees: {
     dbName: "Sarees",
     title: "Sarees",
     subtitle: "Timeless drapes woven with heritage and grace",
+    seoDescription:
+      "Shop premium sarees at Mrudula Vastra — handpicked Kanjivaram, Banarasi, Pochampally & Chanderi silk sarees from Machilipatnam. Authentic handloom sarees with nationwide delivery.",
   },
   "dress-materials": {
     dbName: "Dress Materials",
     title: "Dress Materials",
     subtitle: "Curated fabrics for bespoke elegance",
+    seoDescription:
+      "Explore designer dress materials at Mrudula Vastra. Premium unstitched fabrics and suit materials curated from India's finest weavers. Free shipping from Machilipatnam across India.",
   },
   kids: {
     dbName: "Kids Wear",
     title: "Kids Wear",
     subtitle: "Adorable ethnic wear crafted for little royals",
+    seoDescription:
+      "Buy adorable kids ethnic wear online at Mrudula Vastra. Traditional Indian outfits for children — festive lehengas, kurtas & more from Machilipatnam. Premium quality guaranteed.",
   },
 };
 
@@ -38,8 +44,17 @@ export async function generateMetadata({
   const cat = CATEGORY_MAP[category];
   if (!cat) return { title: "Collection — Mrudula Vastra" };
   return {
-    title: `${cat.title} — Mrudula Vastra`,
-    description: cat.subtitle,
+    title: `${cat.title} — Premium ${cat.title} Collection`,
+    description: cat.seoDescription,
+    alternates: {
+      canonical: `https://mrudulavastra.in/collections/${category}`,
+    },
+    openGraph: {
+      title: `${cat.title} | Mrudula Vastra`,
+      description: cat.seoDescription,
+      url: `https://mrudulavastra.in/collections/${category}`,
+      type: "website",
+    },
   };
 }
 

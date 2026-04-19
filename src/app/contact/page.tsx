@@ -3,9 +3,19 @@ import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "Contact — Mrudula Vastra",
+  title: "Contact Us — Visit Our Boutique in Machilipatnam",
   description:
-    "Get in touch with Mrudula Vastra. Based in Machilipatnam, Andhra Pradesh. Call us or send us a message.",
+    "Get in touch with Mrudula Vastra — India's premium ethnic wear boutique in Machilipatnam, Andhra Pradesh. Call +91 7208903117, email mrudulavastra@gmail.com, or visit our store. Mon–Sat 10 AM – 7 PM.",
+  alternates: {
+    canonical: "https://mrudulavastra.in/contact",
+  },
+  openGraph: {
+    title: "Contact Mrudula Vastra — Machilipatnam, Andhra Pradesh",
+    description:
+      "Reach out for styling advice, collection inquiries, or to visit our boutique. Available Mon–Sat, 10 AM – 7 PM.",
+    url: "https://mrudulavastra.in/contact",
+    type: "website",
+  },
 };
 
 export default function ContactPage() {

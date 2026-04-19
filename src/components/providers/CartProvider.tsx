@@ -40,8 +40,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (saved) {
         setItems(JSON.parse(saved));
       }
-    } catch (e) {
-      console.error("Failed to load cart from localStorage", e);
+    } catch {
+      // Silent fail: localStorage unavailable (SSR / private browsing)
     }
     setIsHydrated(true);
   }, []);

@@ -6,11 +6,16 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import ProductActions from "./ProductActions";
 import ProductGallery from "./ProductGallery";
 import ReviewSection from "./ReviewSection";
+import ProductJsonLd from "@/components/seo/ProductJsonLd";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Star } from "lucide-react";
 import Link from "next/link";
+import ProductCard from "@/components/ui/ProductCard";
+import type { Database } from "@/lib/supabase/types";
+
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 export const revalidate = 0;
 
@@ -29,21 +34,44 @@ export async function generateMetadata({
 
   if (!product) return { title: "Product Not Found" };
 
+  const discount = product.original_price > product.price
+    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
+    : 0;
+
+  const priceText = `₹${product.price.toLocaleString("en-IN")}`;
+  const discountText = discount > 0 ? ` (${discount}% Off)` : "";
+
   return {
-    title: `${product.name} — Mrudula Vastra`,
-    description: `Shop the ${product.name} online at Mrudula Vastra. Elegance woven in every thread.`,
+    title: `${product.name} — ${product.category}`,
+    description: `Buy ${product.name} at ${priceText}${discountText}. ${product.material ? `Crafted in luxurious ${product.material}.` : ""} Premium ${product.category.toLowerCase()} from Mrudula Vastra, Machilipatnam. ✓ Authentic ✓ Free shipping over ₹2000 ✓ 7-day returns.`,
+    alternates: {
+      canonical: `https://mrudulavastra.in/product/${id}`,
+    },
     openGraph: {
       title: `${product.name} | Mrudula Vastra`,
-      description: `Shop the ${product.name} online at Mrudula Vastra. Elegance woven in every thread.`,
+      description: `Shop the ${product.name} at ${priceText}${discountText}. Premium ${product.category.toLowerCase()} — handpicked for elegance and tradition.`,
+      type: "website",
+      url: `https://mrudulavastra.in/product/${id}`,
       images: [
         {
           url: product.image,
           width: 800,
           height: 1067,
-          alt: product.name,
+          alt: `${product.name} — ${product.category} by Mrudula Vastra, premium Indian ethnic wear`,
         },
+        ...(product.gallery_images || []).slice(0, 3).map((img: string) => ({
+          url: img,
+          width: 800,
+          height: 1067,
+          alt: `${product.name} — Additional view`,
+        })),
       ],
-      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | Mrudula Vastra`,
+      description: `${product.name} at ${priceText}${discountText}. Premium ${product.category.toLowerCase()} from Machilipatnam.`,
+      images: [product.image],
     },
   };
 }
@@ -74,6 +102,20 @@ export default async function ProductPage({
 
   return (
     <>
+      <ProductJsonLd
+        name={product.name}
+        image={product.image}
+        price={product.price}
+        originalPrice={product.original_price}
+        category={product.category}
+        rating={product.rating}
+        reviewCount={product.reviews}
+        inStock={product.inventory_count > 0}
+        productId={id}
+        material={product.material}
+        color={product.color}
+        galleryImages={product.gallery_images}
+      />
       <AnnouncementBar />
       <Header />
       <main className="min-h-screen bg-cream">
@@ -179,26 +221,8 @@ export default async function ProductPage({
         <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-24 font-dm mt-8">
           <h2 className="text-lg lg:text-xl text-text-primary mb-8 text-left">You may also like</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {relatedProducts.map((rp: any) => (
-              <Link key={rp.id} href={`/product/${rp.id}`} className="group block">
-                 <div className="relative aspect-[3/4] bg-[#F5F0E8] overflow-hidden mb-3 border border-gold/10">
-                   <Image 
-                     src={rp.image} 
-                     alt={rp.name} 
-                     fill 
-                     className="object-cover transition-transform duration-700 group-hover:scale-105"
-                     sizes="(max-width: 640px) 50vw, 25vw"
-                   />
-                 </div>
-                 <p className="uppercase text-[9px] text-text-muted mb-0.5 tracking-wider">{rp.category}</p>
-                 <h3 className="font-playfair text-text-primary text-sm lg:text-[15px] font-semibold mb-1 truncate">{rp.name}</h3>
-                 <div className="flex gap-2 items-baseline">
-                   <span className="font-playfair text-forest font-bold text-sm lg:text-base">₹{rp.price.toLocaleString("en-IN")}</span>
-                   {rp.original_price > rp.price && (
-                     <span className="text-text-muted line-through text-[10px] lg:text-xs">₹{rp.original_price.toLocaleString("en-IN")}</span>
-                   )}
-                 </div>
-              </Link>
+            {relatedProducts.map((rp: Product) => (
+              <ProductCard key={rp.id} product={rp} />
             ))}
           </div>
         </section>

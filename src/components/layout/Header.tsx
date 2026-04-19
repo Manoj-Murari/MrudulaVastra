@@ -143,7 +143,7 @@ export default function Header() {
 
           {/* Center: Brand Logo */}
           <Link href="/" className="text-center flex-shrink-0 px-2 sm:px-4">
-            <h1
+            <p
               className="font-playfair text-forest font-bold transition-all duration-500 whitespace-nowrap"
               style={{
                 fontSize: scrolled ? "clamp(16px, 2.5vw, 24px)" : "clamp(18px, 3vw, 30px)",
@@ -152,7 +152,7 @@ export default function Header() {
               }}
             >
               MRUDULA VASTRA
-            </h1>
+            </p>
             <motion.p
               animate={{
                 height: scrolled ? 0 : "auto",

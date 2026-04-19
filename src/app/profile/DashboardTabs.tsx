@@ -1,10 +1,51 @@
 "use client";
 
 import { useState } from "react";
-import { Package, User, LogOut, ChevronRight } from "lucide-react";
+import { Package, User, ChevronRight } from "lucide-react";
 import { updateProfile } from "@/actions/profile";
 
-export default function DashboardTabs({ profile, orders, userEmail }: { profile: any; orders: any[]; userEmail: string }) {
+/* ── Component Types ─────────────────────────────────── */
+
+interface UserProfile {
+  full_name?: string | null;
+  phone?: string | null;
+  pincode?: string | null;
+  city?: string | null;
+  state?: string | null;
+  full_address?: string | null;
+}
+
+interface OrderItemProduct {
+  name?: string;
+  image?: string;
+  category?: string;
+}
+
+interface OrderItem {
+  id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  products?: OrderItemProduct;
+}
+
+interface UserOrder {
+  id: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  order_items?: OrderItem[];
+}
+
+interface DashboardTabsProps {
+  profile: UserProfile;
+  orders: UserOrder[];
+  userEmail: string;
+}
+
+export default function DashboardTabs({ profile, orders, userEmail }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState<"orders" | "shipping">("orders");
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState("");
@@ -59,7 +100,7 @@ export default function DashboardTabs({ profile, orders, userEmail }: { profile:
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.map((order: any) => {
+                {orders.map((order) => {
                   const isExpanded = expandedOrderId === order.id;
 
                   return (
@@ -116,7 +157,7 @@ export default function DashboardTabs({ profile, orders, userEmail }: { profile:
                             <h4 className="text-[10px] uppercase tracking-wider font-bold text-text-muted font-dm">
                               Order Items
                             </h4>
-                            {order.order_items.map((item: any) => (
+                            {order.order_items.map((item) => (
                               <div key={item.id} className="flex gap-4 p-3 bg-white border border-gold/5">
                                 {item.products?.image && (
                                   <div className="w-16 h-20 bg-cream relative shrink-0">

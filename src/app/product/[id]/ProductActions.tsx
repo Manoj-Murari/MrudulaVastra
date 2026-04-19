@@ -2,25 +2,9 @@
 
 import { useState } from "react";
 import { useCart } from "@/components/providers/CartProvider";
+import type { Database } from "@/lib/supabase/types";
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  original_price: number;
-  image: string;
-  tag: string;
-  rating: number;
-  reviews: number;
-  badge: string;
-  is_trending: boolean;
-  color: string | null;
-  material: string | null;
-  sizes: string[] | null;
-  inventory_count: number;
-  gallery_images: string[] | null;
-}
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 export default function ProductActions({ product, isSoldOut }: { product: Product; isSoldOut: boolean }) {
   const { addToCart } = useCart();

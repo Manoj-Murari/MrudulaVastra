@@ -123,7 +123,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
               >
                 <Image
                   src={product.image}
-                  alt={product.name}
+                  alt={`${product.name} — ${product.category} by Mrudula Vastra, premium Indian ethnic wear`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"

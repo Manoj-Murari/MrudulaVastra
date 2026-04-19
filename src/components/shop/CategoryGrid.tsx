@@ -6,25 +6,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
+import ProductCard from "@/components/ui/ProductCard";
+import type { Database } from "@/lib/supabase/types";
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
-  original_price: number;
-  image: string;
-  tag: string;
-  rating: number;
-  reviews: number;
-  badge: string;
-  is_trending: boolean;
-  color: string | null;
-  material: string | null;
-  sizes: string[] | null;
-  inventory_count: number;
-  gallery_images: string[] | null;
-}
+type Product = Database["public"]["Tables"]["products"]["Row"];
 
 export default function CategoryGrid({
   products,
@@ -122,93 +107,11 @@ export default function CategoryGrid({
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
             {filtered.map((product) => (
-              <div key={product.id} className="group flex flex-col h-full">
-                <Link href={`/product/${product.id}`} className="block relative aspect-[3/4] mb-4 overflow-hidden bg-[#F5F0E8]">
-                  {product.image &&
-                  !product.image.includes("/api/placeholder") ? (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p
-                        className="font-playfair text-forest/20 font-bold"
-                        style={{ fontSize: "28px", letterSpacing: "0.1em" }}
-                      >
-                        MV
-                      </p>
-                      <p className="text-forest/15 font-dm text-[10px] uppercase tracking-[0.3em] mt-1">
-                        Mrudula Vastra
-                      </p>
-                    </div>
-                  )}
-
-                  {product.badge && (
-                    <span className="absolute top-3 left-3 bg-forest text-white px-3 py-1 text-[10px] uppercase tracking-wider font-bold font-dm">
-                      {product.badge}
-                    </span>
-                  )}
-                  {product.tag && (
-                    <span className="absolute top-3 right-3 bg-gold/90 text-white px-3 py-1 text-[10px] uppercase tracking-wider font-bold font-dm">
-                      {product.tag}
-                    </span>
-                  )}
-
-                  {/* Sold Out overlay */}
-                  {product.inventory_count === 0 && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10 pointer-events-none">
-                      <span className="px-4 py-1.5 bg-neutral-800 text-white text-[10px] font-bold uppercase tracking-[0.2em] font-dm">
-                        Sold Out
-                      </span>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={(e) => { e.preventDefault(); handleAddToCart(product); }}
-                    disabled={product.inventory_count === 0}
-                    className={`absolute bottom-0 left-0 right-0 py-3 text-[11px] uppercase tracking-wider font-bold font-dm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 ${
-                      product.inventory_count === 0
-                        ? "hidden"
-                        : "bg-forest/90 text-white hover:bg-forest"
-                    }`}
-                  >
-                    Add to Bag
-                  </button>
-                </Link>
-
-                <div className="flex-1 flex flex-col">
-                  <p className="text-[10px] uppercase tracking-wider text-text-muted font-dm mb-0.5 mt-auto">
-                    {product.category}
-                  </p>
-                  <Link href={`/product/${product.id}`} className="mb-1">
-                    <h3 className="font-playfair text-forest font-semibold text-lg leading-tight group-hover:text-gold transition-colors duration-300">
-                      {product.name}
-                    </h3>
-                  </Link>
-                  <div className="flex items-center gap-2 font-dm">
-                    <span className="text-forest font-semibold">
-                      ₹{product.price.toLocaleString("en-IN")}
-                    </span>
-                    {product.original_price > product.price && (
-                      <span className="text-text-muted line-through text-sm">
-                        ₹{product.original_price.toLocaleString("en-IN")}
-                      </span>
-                    )}
-                  </div>
-                  {product.rating > 0 && (
-                    <div className="flex items-center gap-1 mt-1.5">
-                      <span className="text-gold text-sm">★</span>
-                      <span className="text-sm text-text-muted font-dm">
-                        {product.rating} ({product.reviews})
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         )}

@@ -24,8 +24,8 @@ const HELP_LINKS = [
 
 const SOCIAL_LINKS = [
   { Icon: InstagramIcon, href: "https://www.instagram.com/mrudulavastra/", label: "Instagram" },
-  { Icon: FacebookIcon, href: "#", label: "Facebook" },
-  { Icon: YoutubeIcon, href: "#", label: "YouTube" },
+  { Icon: FacebookIcon, href: "/", label: "Facebook" },
+  { Icon: YoutubeIcon, href: "/", label: "YouTube" },
 ];
 
 const CONTACT_INFO = [
@@ -226,13 +226,13 @@ export default function Footer() {
       <div className="px-6 lg:px-10 py-6" style={{ borderTop: "1px solid rgba(184,150,62,0.1)" }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-3 text-center sm:text-left">
           <p style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}>
-            © 2025 Mrudula Vastra. All Rights Reserved.
+            © 2026 Mrudula Vastra. All Rights Reserved.
           </p>
           <div className="flex items-center gap-5">
             {[
-              { label: "Terms", href: "#" },
+              { label: "Terms", href: "/" },
               { label: "Privacy", href: "/privacy-policy" },
-              { label: "Sitemap", href: "#" },
+              { label: "Sitemap", href: "/sitemap.xml" },
             ].map((link) => (
               <Link
                 key={link.label}

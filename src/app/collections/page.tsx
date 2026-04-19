@@ -9,9 +9,19 @@ import Footer from "@/components/layout/Footer";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "Shop All Collections — Mrudula Vastra",
+  title: "Shop All Collections — Sarees, Dress Materials & Kids Wear",
   description:
-    "Browse our entire curated catalog of sarees, dress materials, and kids wear — handpicked for elegance and tradition.",
+    "Browse our curated catalog of premium sarees, designer dress materials, and ethnic kids wear at Mrudula Vastra. Handloom, Kanjivaram, Banarasi & Pochampally silks from Machilipatnam. Free delivery across India.",
+  alternates: {
+    canonical: "https://mrudulavastra.in/collections",
+  },
+  openGraph: {
+    title: "Shop All Collections | Mrudula Vastra",
+    description:
+      "Explore handpicked sarees, dress materials & kids wear — premium ethnic wear from India's finest weavers.",
+    url: "https://mrudulavastra.in/collections",
+    type: "website",
+  },
 };
 
 export default async function CollectionsPage() {

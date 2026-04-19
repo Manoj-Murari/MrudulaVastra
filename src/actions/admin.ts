@@ -1,13 +1,31 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
-/* ─── Analytics Aggregators ───────────────────────────────── */
+/* ─── Domain Types ───────────────────────────────────── */
+
+type Order = Database["public"]["Tables"]["orders"]["Row"];
+type Product = Database["public"]["Tables"]["products"]["Row"];
+type Profile = { id: string; full_name: string | null; phone: string | null };
+
+interface RevenueByMonth {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
+interface CategoryBreakdown {
+  name: string;
+  count: number;
+  revenue: number;
+}
+
+/* ─── Analytics Aggregators ───────────────────────────── */
 
 export async function getAdminOverview() {
   const supabase = await createClient();
 
-  // Fetch everything in parallel
   const [
     { data: orders },
     { data: products },
@@ -24,49 +42,49 @@ export async function getAdminOverview() {
       .limit(5),
   ]);
 
-  const allOrders = orders || [];
-  const allProducts = products || [];
-  const allProfiles = profiles || [];
+  const allOrders: Order[] = orders || [];
+  const allProducts: Product[] = products || [];
+  const allProfiles: Profile[] = profiles || [];
 
-  // ── KPIs ──
-  const totalRevenue = allOrders.reduce((acc: number, o: any) => acc + (o.total_amount || 0), 0);
-  const paidOrders = allOrders.filter((o: any) => o.status === "paid");
+  // KPIs
+  const totalRevenue = allOrders.reduce((acc, o) => acc + (o.total_amount || 0), 0);
+  const paidOrders = allOrders.filter((o) => o.status === "paid");
   const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
-  // ── Revenue by month (last 6 months) ──
+  // Revenue by month (last 6 months)
   const now = new Date();
-  const revenueByMonth: { month: string; revenue: number; orders: number }[] = [];
+  const revenueByMonth: RevenueByMonth[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthKey = d.toLocaleString("en-IN", { month: "short", year: "2-digit" });
     const start = new Date(d.getFullYear(), d.getMonth(), 1);
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
 
-    const monthOrders = allOrders.filter((o: any) => {
+    const monthOrders = allOrders.filter((o) => {
       const created = new Date(o.created_at);
       return created >= start && created <= end;
     });
 
     revenueByMonth.push({
       month: monthKey,
-      revenue: monthOrders.reduce((acc: number, o: any) => acc + (o.total_amount || 0), 0),
+      revenue: monthOrders.reduce((acc, o) => acc + (o.total_amount || 0), 0),
       orders: monthOrders.length,
     });
   }
 
-  // ── Category breakdown ──
+  // Category breakdown
   const categoryMap: Record<string, { count: number; revenue: number }> = {};
-  allProducts.forEach((p: any) => {
+  allProducts.forEach((p) => {
     if (!categoryMap[p.category]) categoryMap[p.category] = { count: 0, revenue: 0 };
     categoryMap[p.category].count += 1;
     categoryMap[p.category].revenue += p.price;
   });
-  const categories = Object.entries(categoryMap).map(([name, data]) => ({ name, ...data }));
+  const categories: CategoryBreakdown[] = Object.entries(categoryMap).map(([name, data]) => ({ name, ...data }));
 
-  // ── Action items ──
-  const pendingOrders = allOrders.filter((o: any) => o.status === "pending").length;
-  const lowStockProducts = allProducts.filter((p: any) => p.inventory_count <= 2);
-  const outOfStock = allProducts.filter((p: any) => p.inventory_count === 0);
+  // Action items
+  const pendingOrders = allOrders.filter((o) => o.status === "pending").length;
+  const lowStockProducts = allProducts.filter((p) => p.inventory_count <= 2);
+  const outOfStock = allProducts.filter((p) => p.inventory_count === 0);
 
   return {
     kpis: {
@@ -88,7 +106,7 @@ export async function getAdminOverview() {
   };
 }
 
-/* ─── Order Management ────────────────────────────────────── */
+/* ─── Order Management ────────────────────────────────── */
 
 export async function getAdminOrders() {
   const supabase = await createClient();
@@ -109,7 +127,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   return { success: true };
 }
 
-/* ─── Product Management ──────────────────────────────────── */
+/* ─── Product Management ──────────────────────────────── */
 
 export async function getAdminProducts() {
   const supabase = await createClient();
@@ -120,7 +138,7 @@ export async function getAdminProducts() {
   return data || [];
 }
 
-export async function updateProductField(productId: number, field: string, value: any) {
+export async function updateProductField(productId: number, field: string, value: string | number | boolean) {
   const supabase = await createClient();
   const { error } = await (supabase as any)
     .from("products")
@@ -140,7 +158,7 @@ export async function deleteProduct(productId: number) {
   return { success: true };
 }
 
-export async function upsertProduct(product: any) {
+export async function upsertProduct(product: Database["public"]["Tables"]["products"]["Insert"]) {
   const supabase = await createClient();
   const { error } = await (supabase as any)
     .from("products")
@@ -149,7 +167,7 @@ export async function upsertProduct(product: any) {
   return { success: true };
 }
 
-/* ─── Customer Data ───────────────────────────────────────── */
+/* ─── Customer Data ───────────────────────────────────── */
 
 export async function getAdminCustomers() {
   const supabase = await createClient();
@@ -160,14 +178,14 @@ export async function getAdminCustomers() {
   ]);
 
   const orderMap: Record<string, { totalSpent: number; orderCount: number }> = {};
-  (orders || []).forEach((o: any) => {
+  (orders || []).forEach((o: { user_id: string | null; total_amount: number }) => {
     if (!o.user_id) return;
     if (!orderMap[o.user_id]) orderMap[o.user_id] = { totalSpent: 0, orderCount: 0 };
     orderMap[o.user_id].totalSpent += o.total_amount || 0;
     orderMap[o.user_id].orderCount += 1;
   });
 
-  return (profiles || []).map((p: any) => ({
+  return (profiles || []).map((p: Profile & Record<string, unknown>) => ({
     ...p,
     ltv: orderMap[p.id]?.totalSpent || 0,
     orderCount: orderMap[p.id]?.orderCount || 0,

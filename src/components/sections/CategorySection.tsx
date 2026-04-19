@@ -85,7 +85,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                 {/* Image */}
                 <Image
                   src={cat.image}
-                  alt={cat.title}
+                  alt={`${cat.title} — Premium ${cat.title.toLowerCase()} collection at Mrudula Vastra, Machilipatnam`}
                   fill
                   sizes="(max-width: 640px) 100vw, 33vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"

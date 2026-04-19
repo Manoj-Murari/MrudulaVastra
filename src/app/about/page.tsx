@@ -3,9 +3,19 @@ import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "About — Mrudula Vastra",
+  title: "About Mrudula Vastra — Our Heritage, Our Story",
   description:
-    "Discover the story behind Mrudula Vastra — a passion for authentic Indian ethnic wear, handpicked from the finest weavers across India.",
+    "Discover the story behind Mrudula Vastra — a passion-driven Indian ethnic wear boutique rooted in Machilipatnam, Andhra Pradesh. Handpicked sarees, dress materials & kids wear from India's finest weavers and artisans.",
+  alternates: {
+    canonical: "https://mrudulavastra.in/about",
+  },
+  openGraph: {
+    title: "About Mrudula Vastra — Our Heritage, Our Story",
+    description:
+      "Born from a deep reverence for India's textile heritage. Mrudula Vastra is more than a brand — it is a celebration of artistry, tradition, and timeless grace.",
+    url: "https://mrudulavastra.in/about",
+    type: "website",
+  },
 };
 
 export default function AboutPage() {
