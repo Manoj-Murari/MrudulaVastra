@@ -33,7 +33,7 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section className="bg-forest font-dm py-20 lg:py-28 px-6 lg:px-10">
+    <section className="bg-forest font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
           <motion.p

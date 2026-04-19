@@ -48,7 +48,7 @@ export default function Footer() {
       {/* Newsletter Strip */}
       <div className="bg-gold py-10 px-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
+          <div className="text-center sm:text-left">
             <p className="font-playfair font-bold" style={{ color: "#0E2219", fontSize: "20px" }}>
               Join the Mrudula Circle
             </p>
@@ -56,7 +56,7 @@ export default function Footer() {
               Get exclusive drops, early access &amp; festive offers.
             </p>
           </div>
-          <form onSubmit={handleSubscribe} className="flex gap-0 w-full sm:w-auto max-w-sm">
+          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 sm:gap-0 w-full sm:w-auto max-w-sm">
             <input
               type="email"
               placeholder="Your email address"
@@ -67,14 +67,13 @@ export default function Footer() {
               style={{
                 background: "rgba(14,34,25,0.1)",
                 border: "1.5px solid rgba(14,34,25,0.3)",
-                borderRight: "none",
                 color: "#0E2219",
                 fontSize: "13px",
               }}
             />
             <button
               type="submit"
-              className="px-6 py-3.5 uppercase font-bold hover:opacity-90 transition-opacity flex items-center gap-1.5 whitespace-nowrap"
+              className="px-6 py-3.5 uppercase font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto"
               style={{
                 background: "#0E2219",
                 color: "#B8963E",
@@ -90,7 +89,7 @@ export default function Footer() {
       </div>
 
       {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12">
         {/* Brand */}
         <AnimatedSection delay={0}>
           <h3
@@ -225,7 +224,7 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="px-6 lg:px-10 py-6" style={{ borderTop: "1px solid rgba(184,150,62,0.1)" }}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-3 text-center sm:text-left">
           <p style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}>
             © 2025 Mrudula Vastra. All Rights Reserved.
           </p>

@@ -49,7 +49,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
   };
 
   return (
-    <section className="bg-cream font-dm py-20 lg:py-28 px-6 lg:px-10">
+    <section className="bg-cream font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-14 gap-4">
@@ -104,7 +104,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-7"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-7"
         >
           {products.map((product) => (
             <Link key={product.id} href={`/product/${product.id}`} className="block">
@@ -199,16 +199,15 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
               </div>
 
               {/* Product Info */}
-              <div>
+              <div className="mt-3 sm:mt-4">
                 <p
-                  className="uppercase mb-1 font-medium text-text-muted"
-                  style={{ fontSize: "10px", letterSpacing: "0.15em" }}
+                  className="uppercase mb-1 font-medium text-text-muted text-[9px] sm:text-[10px]"
+                  style={{ letterSpacing: "0.15em" }}
                 >
                   {product.category}
                 </p>
                 <h3
-                  className="font-playfair text-text-primary font-semibold mb-2 leading-snug"
-                  style={{ fontSize: "16px" }}
+                  className="font-playfair text-text-primary font-semibold mb-1 sm:mb-2 leading-snug text-[13px] sm:text-[16px]"
                 >
                   {product.name}
                 </h3>
@@ -218,17 +217,15 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                     ({product.reviews})
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-baseline gap-2">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2 mt-2 sm:mt-0">
+                  <div className="flex items-baseline gap-1.5 sm:gap-2">
                     <span
-                      className="font-playfair text-forest font-bold"
-                      style={{ fontSize: "17px" }}
+                      className="font-playfair text-forest font-bold text-[14px] sm:text-[17px]"
                     >
                       ₹{product.price.toLocaleString("en-IN")}
                     </span>
                     <span
-                      className="text-gold line-through"
-                      style={{ fontSize: "12px" }}
+                      className="text-gold line-through text-[10px] sm:text-[12px]"
                     >
                       ₹{product.original_price.toLocaleString("en-IN")}
                     </span>
@@ -240,15 +237,14 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                       addToCart(product);
                     }}
                     whileTap={{ scale: 0.92 }}
-                    className="px-3 py-2 uppercase font-semibold hover:bg-emerald-900 hover:text-white transition-all duration-300 flex items-center gap-1.5"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 uppercase font-semibold hover:bg-emerald-900 hover:text-white transition-all duration-300 flex items-center justify-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] w-full xl:w-auto"
                     style={{
                       border: "1.5px solid #1A3C2E",
                       color: "#1A3C2E",
-                      fontSize: "10px",
                       letterSpacing: "0.1em",
                     }}
                   >
-                    <ShoppingBag size={11} />
+                    <ShoppingBag size={11} className="hidden sm:block" />
                     Add
                   </motion.button>
                 </div>

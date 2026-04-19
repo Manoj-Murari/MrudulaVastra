@@ -121,30 +121,32 @@ export default function Header() {
     >
       <div className="max-w-7xl mx-auto px-4 lg:px-10">
         <div
-          className="flex items-center justify-between transition-all duration-500 relative"
+          className="flex flex-col gap-3 md:gap-0 transition-all duration-500 relative"
           style={{ paddingTop: scrolled ? "12px" : "18px", paddingBottom: scrolled ? "8px" : "12px" }}
         >
-          {/* Left: Search Bar + Hamburger */}
-          <div className="flex items-center gap-3 lg:gap-4 flex-1">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden text-text-nav hover:text-forest transition-colors p-1"
-              aria-label="Menu"
-            >
-              {menuOpen ? <X size={22} strokeWidth={1.3} /> : <Menu size={22} strokeWidth={1.3} />}
-            </button>
+          {/* Main Row */}
+          <div className="flex items-center justify-between w-full">
+            {/* Left: Search Bar + Hamburger */}
+            <div className="flex items-center gap-2 lg:gap-4 flex-1">
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden text-text-nav hover:text-forest transition-colors p-1"
+                aria-label="Menu"
+              >
+                {menuOpen ? <X size={22} strokeWidth={1.3} /> : <Menu size={22} strokeWidth={1.3} />}
+              </button>
 
-            <div className="w-full max-w-[150px] sm:max-w-[240px] lg:max-w-[320px]">
-              <TypewriterSearchBar />
+              <div className="hidden md:block w-full max-w-[240px] lg:max-w-[320px]">
+                <TypewriterSearchBar />
+              </div>
             </div>
-          </div>
 
           {/* Center: Brand Logo */}
-          <Link href="/" className="text-center flex-shrink-0 px-4">
+          <Link href="/" className="text-center flex-shrink-0 px-2 sm:px-4">
             <h1
-              className="font-playfair text-forest font-bold transition-all duration-500"
+              className="font-playfair text-forest font-bold transition-all duration-500 whitespace-nowrap"
               style={{
-                fontSize: scrolled ? "clamp(18px, 2.5vw, 24px)" : "clamp(22px, 3vw, 30px)",
+                fontSize: scrolled ? "clamp(16px, 2.5vw, 24px)" : "clamp(18px, 3vw, 30px)",
                 letterSpacing: "0.08em",
                 lineHeight: 1.1,
               }}
@@ -195,6 +197,12 @@ export default function Header() {
                 )}
               </AnimatePresence>
             </button>
+          </div>
+          </div>
+
+          {/* Mobile Search Bar */}
+          <div className="block md:hidden w-full mt-1">
+            <TypewriterSearchBar />
           </div>
         </div>
       </div>

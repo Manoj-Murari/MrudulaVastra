@@ -153,7 +153,7 @@ export default function HeroSection() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        className="relative overflow-hidden order-1 lg:order-2 min-h-[55vw] lg:min-h-0"
+        className="relative overflow-hidden order-1 lg:order-2 min-h-[50vh] sm:min-h-[60vh] lg:min-h-0"
       >
         <Image
           src="/images/hero-saree.webp"
