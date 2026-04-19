@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ProductActions from "./ProductActions";
 import ProductGallery from "./ProductGallery";
+import ReviewSection from "./ReviewSection";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -167,40 +168,11 @@ export default async function ProductPage({
       </section>
 
       {/* Customer Reviews Section */}
-      <section className="max-w-4xl mx-auto px-6 lg:px-10 py-16 text-center font-dm mt-4 border-t border-gold/10">
-        <h2 className="text-xl text-text-primary mb-10">Customer Reviews</h2>
-        {product.reviews > 0 ? (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-            <div className="text-left flex flex-col items-center sm:items-start">
-               <div className="flex items-center gap-1 mb-2">
-                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} size={16} className={i < Math.floor(product.rating) ? "fill-[#1b7a66] text-[#1b7a66]" : "text-gray-200"} strokeWidth={1} />
-                 ))}
-               </div>
-               <p className="text-sm text-text-muted">Based on {product.reviews} reviews</p>
-            </div>
-            <div className="hidden sm:block w-px h-12 bg-gray-200"></div>
-            <button className="px-8 py-2.5 bg-[#1b7a66] text-white font-medium text-sm transition-colors hover:bg-forest shadow-sm">
-              Write a review
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
-            <div className="text-left flex flex-col items-center sm:items-start">
-               <div className="flex items-center gap-1 mb-2">
-                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} size={16} className="text-[#1b7a66]" strokeWidth={1.5} />
-                 ))}
-               </div>
-               <p className="text-sm text-text-muted">Be the first to write a review</p>
-            </div>
-            <div className="hidden sm:block w-px h-10 bg-gray-200"></div>
-            <button className="px-6 py-2.5 bg-[#1b7a66] text-white font-medium text-sm transition-colors hover:bg-forest shadow-sm">
-              Write a review
-            </button>
-          </div>
-        )}
-      </section>
+      <ReviewSection 
+        productId={id} 
+        reviews={product.reviews} 
+        rating={product.rating} 
+      />
 
       {/* You may also like */}
       {relatedProducts && relatedProducts.length > 0 && (

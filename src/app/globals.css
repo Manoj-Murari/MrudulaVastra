@@ -37,3 +37,32 @@ body {
   background: var(--color-gold);
   border-radius: 3px;
 }
+
+/* Interaction Performance & Feedback Improvements */
+@layer base {
+  button, 
+  a, 
+  input, 
+  select, 
+  textarea, 
+  [role="button"],
+  [type="button"],
+  [type="submit"] {
+    /* Removes the 300ms tap delay on mobile devices */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Make interactive elements feel immediately responsive on click */
+  button:active, 
+  a:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+    transition: transform 0.05s ease;
+  }
+
+  /* Disable the push-down effect for certain components that might handle their own transforms */
+  .no-active-scale:active {
+    transform: none;
+  }
+}

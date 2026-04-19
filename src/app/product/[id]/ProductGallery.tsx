@@ -86,7 +86,7 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
       {/* Main Image View */}
       <div className="relative w-full aspect-[3/4] bg-[#F5F0E8] overflow-hidden group">
         {activeImage ? (
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={activeImage}
               initial={{ opacity: 0, scale: 1.02 }}

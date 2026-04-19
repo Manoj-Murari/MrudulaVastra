@@ -26,7 +26,8 @@ export default async function ProfilePage() {
     const [{ data: fetchedOrders }, { data: fetchedProfile }] = await Promise.all([
       (supabase as any)
         .from("orders")
-        .select("*")
+        .select("*, order_items(*, products(*))")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(10),
       (supabase as any)

@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 
+import { revalidatePath } from "next/cache";
+
 export async function getUserProfile() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -14,7 +16,7 @@ export async function getUserProfile() {
     .eq("id", user.id)
     .single();
 
-  return profile;
+  return { ...(profile || {}), email: user.email };
 }
 
 export async function updateProfile(formData: FormData) {
@@ -30,6 +32,8 @@ export async function updateProfile(formData: FormData) {
     full_name: formData.get("fullName") as string,
     phone: formData.get("phone") as string,
     pincode: formData.get("pincode") as string,
+    city: formData.get("city") as string,
+    state: formData.get("state") as string,
     full_address: formData.get("fullAddress") as string,
     updated_at: new Date().toISOString(),
   };
@@ -42,5 +46,7 @@ export async function updateProfile(formData: FormData) {
     return { error: error.message };
   }
 
+  revalidatePath("/profile");
+  
   return { success: "Profile updated successfully" };
 }

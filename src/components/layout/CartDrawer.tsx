@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, ShoppingBag, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "@/components/providers/CartProvider";
-import { processMockCheckout } from "@/actions/checkout";
+import Script from "next/script";
+import { createRazorpayOrder, processOrderAfterPayment } from "@/actions/checkout";
 import { getUserProfile } from "@/actions/profile";
 
 export default function CartDrawer() {
@@ -14,7 +15,7 @@ export default function CartDrawer() {
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<"cart" | "address">("cart");
-  const [addressData, setAddressData] = useState({ fullName: "", phone: "", pincode: "", fullAddress: "" });
+  const [addressData, setAddressData] = useState({ fullName: "", phone: "", email: "", pincode: "", city: "", state: "", fullAddress: "" });
   const [hasProfileFetched, setHasProfileFetched] = useState(false);
 
   useEffect(() => {
@@ -24,9 +25,13 @@ export default function CartDrawer() {
           const profile = await getUserProfile();
           if (profile) {
             setAddressData(prev => ({
+              ...prev,
               fullName: prev.fullName || profile.full_name || "",
               phone: prev.phone || profile.phone || "",
+              email: prev.email || profile.email || "",
               pincode: prev.pincode || profile.pincode || "",
+              city: prev.city || profile.city || "",
+              state: prev.state || profile.state || "",
               fullAddress: prev.fullAddress || profile.full_address || ""
             }));
           }
@@ -41,9 +46,15 @@ export default function CartDrawer() {
   }, [checkoutStep, hasProfileFetched]);
 
   const handleCheckout = async () => {
+    // Make sure they filled everything out
+    if (!addressData.fullName || !addressData.phone || !addressData.email || !addressData.pincode || !addressData.city || !addressData.state || !addressData.fullAddress) {
+      alert("Please fill out all address fields including your Email to receive the receipt.");
+      return;
+    }
+
     setIsProcessing(true);
     
-    // Format items for the mock checkout API
+    // Format items
     const checkoutItems = items.map((item) => ({
       product_id: item.product.id,
       quantity: item.quantity,
@@ -52,17 +63,69 @@ export default function CartDrawer() {
       variant: item.selectedSize ? `${item.product.color ? item.product.color + ' | ' : ''}${item.selectedSize}` : item.product.color,
     }));
 
-    const result = await processMockCheckout(cartTotal, checkoutItems, addressData);
-
-    setIsProcessing(false);
-
-    if (result.success) {
-      setSuccess(true);
-      setOrderId(result.orderId || "MOCK-" + Math.random().toString(36).substring(2, 9).toUpperCase());
-      resetCart();
-    } else {
-      alert("Checkout failed: " + result.message);
+    // Step 1: Initialize razorpay order from backend
+    const orderResult = await createRazorpayOrder(cartTotal);
+    
+    if (!orderResult.success) {
+      alert("Failed to initialize checkout: " + orderResult.error);
+      setIsProcessing(false);
+      return;
     }
+
+    // Step 2: Open Razorpay checkout modal
+    const options = {
+      key: orderResult.key,
+      amount: orderResult.amount,
+      currency: "INR",
+      name: "Mrudula Vastra",
+      description: "Secure Checkout",
+      order_id: orderResult.orderId,
+      handler: async function (response: any) {
+        // Step 3: Handle success, process order and save to DB
+        const verifyResult = await processOrderAfterPayment(
+          cartTotal,
+          checkoutItems,
+          addressData,
+          {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature
+          }
+        );
+
+        setIsProcessing(false);
+
+        if (verifyResult.success) {
+          setSuccess(true);
+          setOrderId(verifyResult.orderId || orderResult.orderId);
+          resetCart();
+        } else {
+          alert("Order processing failed: " + verifyResult.message);
+        }
+      },
+      prefill: {
+        name: addressData.fullName,
+        contact: addressData.phone,
+        email: addressData.email,
+      },
+      theme: {
+        color: "#183226" // Forest
+      } // The modal close is handled correctly by Razorpay internally
+    };
+
+    const rzp = new (window as any).Razorpay(options);
+    
+    rzp.on('payment.failed', function (response: any) {
+       alert("Payment Failed: " + response.error.description);
+       setIsProcessing(false);
+    });
+
+    // Handle modal close without payment completion
+    rzp.on('payment.cancel', function() {
+      setIsProcessing(false);
+    });
+
+    rzp.open();
   };
 
   const closeDrawer = () => {
@@ -78,6 +141,7 @@ export default function CartDrawer() {
     <AnimatePresence>
       {isCartOpen && (
         <>
+          <Script id="razorpay-checkout-js" src="https://checkout.razorpay.com/v1/checkout.js" />
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -148,10 +212,26 @@ export default function CartDrawer() {
                   </div>
                   <h3 className="font-playfair text-2xl font-bold text-forest">Shipping Details</h3>
                   <div className="space-y-4">
-                    <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    <input type="text" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({...addressData, phone: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({...addressData, pincode: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    <textarea placeholder="Full Address" value={addressData.fullAddress} onChange={e => setAddressData({...addressData, fullAddress: e.target.value})} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
+                    <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    <input type="email" placeholder="Email Address (for receipt)" value={addressData.email} onChange={e => setAddressData({...addressData, email: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    <input type="tel" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({...addressData, phone: e.target.value.replace(/\D/g, '').slice(0, 15)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <select required value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors border-0">
+                        <option value="" disabled>Select State</option>
+                        {[
+                          "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+                          "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+                          "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+                          "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+                          "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+                        ].map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                      <input type="text" placeholder="City" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    </div>
+
+                    <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({...addressData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                    <textarea placeholder="House No, Building, Street Area" value={addressData.fullAddress} onChange={e => setAddressData({...addressData, fullAddress: e.target.value})} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
                   </div>
                 </motion.div>
               ) : items.length === 0 ? (

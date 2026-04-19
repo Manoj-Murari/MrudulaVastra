@@ -22,6 +22,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
@@ -142,17 +143,14 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       material: formData.material || null,
       sizes: formData.sizes.length > 0 ? formData.sizes : null,
       gallery_images: formData.gallery_images.length > 0 ? formData.gallery_images : null,
-      is_trending: false,
-      rating: 5,
-      reviews: 0,
-      badge: "New"
+      ...(editId ? { id: editId } : { is_trending: false, rating: 5, reviews: 0, badge: "New" })
     };
 
     const res = await upsertProduct(newProduct);
     if (!res.error) {
-       // Ideally we'd fetch the ID back, but for optimistic local update we can mock or just reload. Note: usually we'd refresh the page or rely on revalidation
-       setProducts(prev => [{ id: Math.random() * 1000000, ...newProduct }, ...prev]);
+       setProducts(prev => editId ? prev.map(p => p.id === editId ? { ...p, ...newProduct } : p) : [{ id: Math.random() * 1000000, ...newProduct }, ...prev]);
        setIsAdding(false);
+       setEditId(null);
        setFormData({
         name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: []
        });
@@ -175,7 +173,11 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
           </p>
         </div>
         <button
-          onClick={() => setIsAdding(true)}
+          onClick={() => {
+            setEditId(null);
+            setFormData({ name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [] });
+            setIsAdding(true);
+          }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors"
           style={{ background: "var(--admin-accent)", color: "#000", fontFamily: "'DM Sans', sans-serif" }}
         >
@@ -308,6 +310,23 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
               {/* Actions */}
               <div className="flex items-center justify-end gap-1">
                 <button
+                  onClick={() => {
+                    setEditId(product.id);
+                    setFormData({
+                      name: product.name || "",
+                      category: product.category || "",
+                      price: product.price ? product.price.toString() : "",
+                      original_price: product.original_price ? product.original_price.toString() : "",
+                      inventory_count: product.inventory_count !== undefined ? product.inventory_count.toString() : "",
+                      image: product.image || "",
+                      tag: product.tag || "",
+                      color: product.color || "",
+                      material: product.material || "",
+                      sizes: product.sizes || [],
+                      gallery_images: product.gallery_images || [],
+                    });
+                    setIsAdding(true);
+                  }}
                   className="p-1.5 rounded-lg transition-colors"
                   style={{ color: "var(--admin-text-dim)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
@@ -399,7 +418,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsAdding(false)}
+              onClick={() => { setIsAdding(false); setEditId(null); }}
               className="fixed inset-0 z-[150]"
               style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
             />
@@ -414,9 +433,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    Add New Product
+                    {editId ? "Edit Product" : "Add New Product"}
                   </h2>
-                  <button onClick={() => setIsAdding(false)} className="p-2 rounded-lg" style={{ color: "var(--admin-text-dim)" }}>
+                  <button onClick={() => { setIsAdding(false); setEditId(null); }} className="p-2 rounded-lg" style={{ color: "var(--admin-text-dim)" }}>
                     <X size={18} />
                   </button>
                 </div>
@@ -579,7 +598,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       className="w-full py-3.5 rounded-lg text-[13px] uppercase tracking-wider font-bold transition-colors disabled:opacity-50"
                       style={{ background: "var(--admin-accent)", color: "#000" }}
                     >
-                      {isSaving ? "Saving..." : "Create Product"}
+                      {isSaving ? "Saving..." : editId ? "Update Product" : "Create Product"}
                     </button>
                   </div>
                 </form>
