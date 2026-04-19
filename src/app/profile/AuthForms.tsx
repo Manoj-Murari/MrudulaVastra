@@ -8,6 +8,7 @@ export default function AuthForms() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailForVerification, setEmailForVerification] = useState("");
 
   async function handleLogin(formData: FormData) {
     setIsLoading(true);
@@ -25,6 +26,7 @@ export default function AuthForms() {
     if (result && result.error) {
       setError(result.error);
     } else if (result && result.success) {
+      setEmailForVerification(formData.get("email")?.toString() || "");
       setMessage(result.success);
       setMode("verify");
     }
@@ -49,7 +51,7 @@ export default function AuthForms() {
           ? "Login to access your orders and saved details." 
           : mode === "signup" 
           ? "Sign up to track orders and save your shipping details safely."
-          : "We sent a 6-digit code to your email."}
+          : `We sent a 6-digit code to ${emailForVerification}`}
       </p>
 
       {error && <p className="text-red-500 font-dm text-sm mb-4 bg-red-50 p-3">{error}</p>}
@@ -103,10 +105,7 @@ export default function AuthForms() {
 
       {mode === "verify" && (
         <form action={handleVerify} className="space-y-5">
-          <div>
-            <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Email Address</label>
-            <input type="email" name="email" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-          </div>
+          <input type="hidden" name="email" value={emailForVerification} />
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">6-Digit Code</label>
             <input type="text" name="otp" required className="w-full bg-transparent border-b border-gold/30 py-2 inset-shadow-xs focus:outline-none focus:border-forest text-forest tracking-[0.2em] font-mono transition-colors" />

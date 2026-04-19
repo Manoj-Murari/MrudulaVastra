@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { Maximize2, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductGalleryProps {
   primaryImage: string;
@@ -20,6 +21,39 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
   const images = Array.from(new Set(allImages)).filter(url => !url.includes("/api/placeholder"));
 
   const [activeImage, setActiveImage] = useState(images.length > 0 ? images[0] : "");
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  const activeIndex = images.indexOf(activeImage);
+
+  const handleNext = useCallback(() => {
+    if (images.length === 0) return;
+    setActiveImage(images[(activeIndex + 1) % images.length]);
+  }, [activeIndex, images]);
+
+  const handlePrev = useCallback(() => {
+    if (images.length === 0) return;
+    setActiveImage(images[(activeIndex - 1 + images.length) % images.length]);
+  }, [activeIndex, images]);
+
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsLightboxOpen(false);
+      if (e.key === "ArrowRight") handleNext();
+      if (e.key === "ArrowLeft") handlePrev();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLightboxOpen, handleNext, handlePrev]);
+
+  useEffect(() => {
+    if (isLightboxOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => { document.body.style.overflow = "unset"; };
+  }, [isLightboxOpen]);
 
   return (
     <div className="w-full lg:w-1/2 flex flex-col-reverse lg:flex-row gap-4 lg:gap-6 lg:items-start lg:sticky lg:top-[120px]">
@@ -96,7 +130,98 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
             </span>
           </div>
         )}
+
+        {/* Zoom Button */}
+        {activeImage && (
+          <button
+            onClick={() => setIsLightboxOpen(true)}
+            className="absolute top-4 right-4 z-10 w-9 h-9 bg-white/90 hover:bg-white flex items-center justify-center transition-colors shadow-sm outline-none"
+            aria-label="Expand image"
+          >
+            <Maximize2 size={16} className="text-gray-700" />
+          </button>
+        )}
       </div>
+
+      {/* Full Size Lightbox Overlay */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[999] bg-white flex flex-col cursor-zoom-out"
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            {/* Top Toolbar */}
+            <div className="flex items-center justify-between p-4 md:p-8 absolute top-0 left-0 right-0 z-20 font-dm pointer-events-none">
+              <span className="text-gray-400 text-[10px] md:text-xs font-medium tracking-[0.2em] bg-white/50 px-3 py-1.5 backdrop-blur-sm pointer-events-auto">
+                {activeIndex + 1} / {images.length}
+              </span>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLightboxOpen(false);
+                }}
+                className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-400 hover:text-forest transition-colors outline-none pointer-events-auto group"
+                aria-label="Close lightbox"
+              >
+                <X size={24} strokeWidth={1} className="group-hover:scale-110 transition-transform" />
+              </button>
+            </div>
+
+            {/* Main Image View */}
+            <div className="flex-1 relative w-full h-full p-4 lg:p-12 pointer-events-none">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeImage}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] }}
+                  className="w-full h-full relative"
+                >
+                  <Image
+                    src={activeImage}
+                    alt={`${productName} zoomed`}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-contain"
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrev();
+                  }}
+                  className="absolute left-2 md:left-10 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-gray-300 hover:text-forest transition-all z-20 outline-none group"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={32} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNext();
+                  }}
+                  className="absolute right-2 md:right-10 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-gray-300 hover:text-forest transition-all z-20 outline-none group"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={32} strokeWidth={1} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

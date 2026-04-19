@@ -8,6 +8,8 @@ import ProductGallery from "./ProductGallery";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { Star } from "lucide-react";
+import Link from "next/link";
 
 export const revalidate = 0;
 
@@ -61,6 +63,14 @@ export default async function ProductPage({
 
   if (!product) notFound();
 
+  // Fetch related products for "You may also like"
+  const { data: relatedProducts } = await (supabase as any)
+    .from("products")
+    .select("*")
+    .eq("category", product.category)
+    .neq("id", id)
+    .limit(4);
+
   return (
     <>
       <AnnouncementBar />
@@ -103,17 +113,26 @@ export default async function ProductPage({
             )}
           </div>
 
-          {product.rating > 0 && (
-            <div className="flex items-center gap-2 mb-8 pb-8 border-b border-gold/10">
-              <span className="text-gold text-lg">★</span>
-              <span className="text-forest font-dm font-medium">
-                {product.rating}
-              </span>
-              <span className="text-text-muted font-dm">
-                ({product.reviews} reviews)
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 mb-8 pb-8 border-b border-gold/10">
+            {product.reviews > 0 ? (
+              <>
+                <span className="text-[#1b7a66] text-lg">★</span>
+                <span className="text-forest font-dm font-medium">
+                  {product.rating}
+                </span>
+                <span className="text-text-muted font-dm">
+                  ({product.reviews} reviews)
+                </span>
+              </>
+            ) : (
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} className="text-gray-300" strokeWidth={2.5} />
+                ))}
+                <span className="text-text-muted text-sm ml-2 font-dm">0 reviews</span>
+              </div>
+            )}
+          </div>
 
           {/* Specs */}
           <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-10">
@@ -146,6 +165,73 @@ export default async function ProductPage({
           </div>
         </div>
       </section>
+
+      {/* Customer Reviews Section */}
+      <section className="max-w-4xl mx-auto px-6 lg:px-10 py-16 text-center font-dm mt-4 border-t border-gold/10">
+        <h2 className="text-xl text-text-primary mb-10">Customer Reviews</h2>
+        {product.reviews > 0 ? (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+            <div className="text-left flex flex-col items-center sm:items-start">
+               <div className="flex items-center gap-1 mb-2">
+                 {[...Array(5)].map((_, i) => (
+                   <Star key={i} size={16} className={i < Math.floor(product.rating) ? "fill-[#1b7a66] text-[#1b7a66]" : "text-gray-200"} strokeWidth={1} />
+                 ))}
+               </div>
+               <p className="text-sm text-text-muted">Based on {product.reviews} reviews</p>
+            </div>
+            <div className="hidden sm:block w-px h-12 bg-gray-200"></div>
+            <button className="px-8 py-2.5 bg-[#1b7a66] text-white font-medium text-sm transition-colors hover:bg-forest shadow-sm">
+              Write a review
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
+            <div className="text-left flex flex-col items-center sm:items-start">
+               <div className="flex items-center gap-1 mb-2">
+                 {[...Array(5)].map((_, i) => (
+                   <Star key={i} size={16} className="text-[#1b7a66]" strokeWidth={1.5} />
+                 ))}
+               </div>
+               <p className="text-sm text-text-muted">Be the first to write a review</p>
+            </div>
+            <div className="hidden sm:block w-px h-10 bg-gray-200"></div>
+            <button className="px-6 py-2.5 bg-[#1b7a66] text-white font-medium text-sm transition-colors hover:bg-forest shadow-sm">
+              Write a review
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* You may also like */}
+      {relatedProducts && relatedProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-24 font-dm mt-8">
+          <h2 className="text-lg lg:text-xl text-text-primary mb-8 text-left">You may also like</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {relatedProducts.map((rp: any) => (
+              <Link key={rp.id} href={`/product/${rp.id}`} className="group block">
+                 <div className="relative aspect-[3/4] bg-[#F5F0E8] overflow-hidden mb-3 border border-gold/10">
+                   <Image 
+                     src={rp.image} 
+                     alt={rp.name} 
+                     fill 
+                     className="object-cover transition-transform duration-700 group-hover:scale-105"
+                     sizes="(max-width: 640px) 50vw, 25vw"
+                   />
+                 </div>
+                 <p className="uppercase text-[9px] text-text-muted mb-0.5 tracking-wider">{rp.category}</p>
+                 <h3 className="font-playfair text-text-primary text-sm lg:text-[15px] font-semibold mb-1 truncate">{rp.name}</h3>
+                 <div className="flex gap-2 items-baseline">
+                   <span className="font-playfair text-forest font-bold text-sm lg:text-base">₹{rp.price.toLocaleString("en-IN")}</span>
+                   {rp.original_price > rp.price && (
+                     <span className="text-text-muted line-through text-[10px] lg:text-xs">₹{rp.original_price.toLocaleString("en-IN")}</span>
+                   )}
+                 </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       </main>
       <Footer />
     </>
