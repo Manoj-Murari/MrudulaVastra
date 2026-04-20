@@ -78,13 +78,32 @@ function ChartTooltip({ active, payload, label }: any) {
 export default function OverviewDashboard({ data }: { data: OverviewData }) {
   const { kpis, revenueByMonth, categories, actionItems, recentOrders } = data;
 
+  // Calculate real month-over-month trend
+  const calcTrend = (current: number, prev: number): { label: string | null; up: boolean } => {
+    if (prev === 0 && current === 0) return { label: null, up: true };
+    if (prev === 0 && current > 0) return { label: "New", up: true };
+    const pct = ((current - prev) / prev) * 100;
+    const sign = pct >= 0 ? "+" : "";
+    return { label: `${sign}${pct.toFixed(1)}%`, up: pct >= 0 };
+  };
+
+  const thisMonth = revenueByMonth[revenueByMonth.length - 1] ?? { revenue: 0, orders: 0 };
+  const lastMonth = revenueByMonth[revenueByMonth.length - 2] ?? { revenue: 0, orders: 0 };
+
+  const revTrend = calcTrend(thisMonth.revenue, lastMonth.revenue);
+  const orderTrend = calcTrend(thisMonth.orders, lastMonth.orders);
+  const avgCurrent = thisMonth.orders > 0 ? thisMonth.revenue / thisMonth.orders : 0;
+  const avgPrev = lastMonth.orders > 0 ? lastMonth.revenue / lastMonth.orders : 0;
+  const avgTrend = calcTrend(avgCurrent, avgPrev);
+  const custTrend = calcTrend(kpis.totalCustomers, 0);
+
   const kpiCards = [
     {
       label: "Total Revenue",
       value: `₹${kpis.totalRevenue.toLocaleString("en-IN")}`,
       icon: IndianRupee,
-      trend: "+12.5%",
-      trendUp: true,
+      trend: revTrend.label,
+      trendUp: revTrend.up,
       color: "var(--admin-emerald)",
       bg: "var(--admin-emerald-muted)",
     },
@@ -92,8 +111,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
       label: "Total Orders",
       value: kpis.totalOrders.toString(),
       icon: ShoppingCart,
-      trend: "+8.3%",
-      trendUp: true,
+      trend: orderTrend.label,
+      trendUp: orderTrend.up,
       color: "var(--admin-blue)",
       bg: "var(--admin-blue-muted)",
     },
@@ -101,8 +120,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
       label: "Avg. Order Value",
       value: `₹${kpis.avgOrderValue.toLocaleString("en-IN")}`,
       icon: TrendingUp,
-      trend: "+3.1%",
-      trendUp: true,
+      trend: avgTrend.label,
+      trendUp: avgTrend.up,
       color: "var(--admin-accent)",
       bg: "var(--admin-accent-glow)",
     },
@@ -110,8 +129,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
       label: "Customers",
       value: kpis.totalCustomers.toString(),
       icon: Users,
-      trend: "+15.7%",
-      trendUp: true,
+      trend: kpis.totalCustomers > 0 ? custTrend.label : null,
+      trendUp: custTrend.up,
       color: "var(--admin-amber)",
       bg: "var(--admin-amber-muted)",
     },
@@ -157,17 +176,19 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               >
                 <kpi.icon size={17} style={{ color: kpi.color }} />
               </div>
-              <div
-                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
-                style={{
-                  background: kpi.trendUp ? "var(--admin-emerald-muted)" : "var(--admin-red-muted)",
-                  color: kpi.trendUp ? "var(--admin-emerald)" : "var(--admin-red)",
-                  fontFamily: "'DM Sans', sans-serif",
-                }}
-              >
-                {kpi.trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                {kpi.trend}
-              </div>
+              {kpi.trend !== null && (
+                <div
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  style={{
+                    background: kpi.trendUp ? "var(--admin-emerald-muted)" : "var(--admin-red-muted)",
+                    color: kpi.trendUp ? "var(--admin-emerald)" : "var(--admin-red)",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  {kpi.trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                  {kpi.trend}
+                </div>
+              )}
             </div>
             <div className="mt-4">
               <p
