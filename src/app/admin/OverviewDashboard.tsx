@@ -218,8 +218,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               </span>
             </div>
           </div>
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[280px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <AreaChart data={revenueByMonth} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
@@ -283,8 +283,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
           <p className="text-[11px] mb-4" style={{ color: "var(--admin-text-dim)" }}>
             Product distribution
           </p>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[200px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie
                   data={categories}

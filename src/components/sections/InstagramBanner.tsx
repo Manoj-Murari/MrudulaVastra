@@ -36,7 +36,7 @@ export default function InstagramBanner() {
   const isInView = useInView(ref, { once: true, margin: "-60px" });
 
   return (
-    <section className="bg-sand py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10">
+    <section className="bg-sand py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <motion.div

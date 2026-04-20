@@ -44,7 +44,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-forest-deep font-dm">
+    <footer className="bg-forest-deep font-dm overflow-hidden w-full max-w-[100vw]">
       {/* Newsletter Strip */}
       <div className="bg-gold py-10 px-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">

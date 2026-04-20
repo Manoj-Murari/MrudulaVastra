@@ -11,6 +11,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Menu,
   Bell,
   Search,
   Command,
@@ -43,6 +44,7 @@ export default function AdminShell({
   user: any;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const pathname = usePathname();
 
@@ -62,12 +64,29 @@ export default function AdminShell({
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((v) => !v) }}>
       <div className="flex h-screen overflow-hidden" style={{ background: "var(--admin-bg)", color: "var(--admin-text)" }}>
-        
+        {/* ━━━ MOBILE BACKDROP ━━━ */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-[40] md:hidden"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
+            />
+          )}
+        </AnimatePresence>
+
         {/* ━━━ SIDEBAR ━━━ */}
         <motion.aside
-          animate={{ width: collapsed ? 72 : 260 }}
+          initial={false}
+          animate={{ 
+            width: collapsed ? 72 : 260,
+            x: 0,
+          }}
           transition={{ type: "spring", damping: 24, stiffness: 260 }}
-          className="relative flex flex-col h-full border-r shrink-0 overflow-hidden"
+          className={`fixed md:relative z-[50] h-full border-r shrink-0 overflow-hidden flex flex-col transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
           style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
         >
           {/* Brand */}
@@ -103,6 +122,7 @@ export default function AdminShell({
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={() => setMobileOpen(false)}
                   className="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
                   style={{
                     background: active ? "var(--admin-accent-glow)" : "transparent",
@@ -137,8 +157,8 @@ export default function AdminShell({
             })}
           </nav>
 
-          {/* Collapse Toggle */}
-          <div className="px-3 pb-4">
+          {/* Collapse Toggle (Desktop Only) */}
+          <div className="px-3 pb-4 hidden md:block">
             <button
               onClick={() => setCollapsed((v) => !v)}
               className="w-full flex items-center justify-center gap-2 py-2 rounded-lg transition-colors duration-200 hover:opacity-80"
@@ -166,11 +186,25 @@ export default function AdminShell({
           
           {/* ── TOP HEADER ── */}
           <header
-            className="h-16 shrink-0 flex items-center justify-between px-6 border-b"
+            className="h-16 shrink-0 flex items-center justify-between px-4 md:px-6 border-b"
             style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
           >
-            {/* Breadcrumbs */}
-            <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* Mobile Hamburger */}
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="md:hidden p-1.5 rounded-lg transition-colors border"
+                style={{ 
+                  background: "var(--admin-surface-elevated)", 
+                  borderColor: "var(--admin-border)",
+                  color: "var(--admin-text-dim)" 
+                }}
+              >
+                <Menu size={18} />
+              </button>
+
+              {/* Breadcrumbs */}
+              <div className="hidden sm:flex items-center gap-2 text-[12px]" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
               <Link href="/admin" className="hover:text-[var(--admin-accent)] transition-colors">Dashboard</Link>
               {pathname !== "/admin" && (
                 <>
@@ -181,9 +215,10 @@ export default function AdminShell({
                 </>
               )}
             </div>
+            </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               {/* CMD+K */}
               <button
                 onClick={() => setCmdOpen(true)}
@@ -205,7 +240,7 @@ export default function AdminShell({
 
               {/* Notifications */}
               <button
-                className="relative p-2 rounded-lg transition-colors duration-200"
+                className="relative p-1.5 md:p-2 rounded-lg transition-colors duration-200"
                 style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
               >
                 <Bell size={16} />
@@ -214,10 +249,10 @@ export default function AdminShell({
 
               {/* User Avatar */}
               <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                className="flex items-center gap-2 px-2 py-1.5 md:px-3 rounded-lg"
                 style={{ background: "var(--admin-surface-elevated)" }}
               >
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: "var(--admin-accent)", color: "#000" }}>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "var(--admin-accent)", color: "#000" }}>
                   {user?.email?.[0]?.toUpperCase() || "A"}
                 </div>
                 <AnimatePresence>

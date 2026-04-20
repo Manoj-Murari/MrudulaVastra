@@ -49,7 +49,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
   };
 
   return (
-    <section className="bg-cream font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10">
+    <section className="bg-cream font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-14 gap-4">

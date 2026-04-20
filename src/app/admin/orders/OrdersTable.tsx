@@ -78,7 +78,7 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
             style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap overflow-x-auto pb-1 sm:pb-0 admin-scroll">
           {["all", "pending", "paid", "shipped", "delivered"].map((s) => (
             <button
               key={s}
@@ -98,9 +98,10 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border overflow-hidden" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
-        {/* Table Header */}
-        <div
+      <div className="rounded-xl border overflow-x-auto admin-scroll" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
+        <div className="min-w-[650px] w-full">
+          {/* Table Header */}
+          <div
           className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-3 border-b text-[10px] uppercase tracking-[0.2em] font-bold"
           style={{ borderColor: "var(--admin-border)", color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}
         >
@@ -153,6 +154,7 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
             );
           })
         )}
+        </div>
       </div>
 
       {/* ── Order Detail Side Panel ── */}

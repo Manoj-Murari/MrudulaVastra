@@ -71,10 +71,16 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const handleDelete = async () => {
     if (!deleteTarget || deleteConfirm !== deleteTarget.name) return;
     const id = deleteTarget.id;
+    const targetProduct = deleteTarget;
     setProducts((prev) => prev.filter((p) => p.id !== id));
     setDeleteTarget(null);
     setDeleteConfirm("");
-    await deleteProduct(id);
+    const res = await deleteProduct(id);
+    if (res?.error) {
+      alert("Failed to delete product: " + res.error);
+      // Revert optimistic delete
+      setProducts((prev) => [...prev, targetProduct]);
+    }
   };
 
   const handleRemoveImage = (imgUrl: string) => {
@@ -201,7 +207,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border overflow-hidden" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
+      <div className="rounded-xl border overflow-x-auto admin-scroll" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
+        <div className="min-w-[850px] w-full">
         {/* Header */}
         <div
           className="grid grid-cols-[48px_1fr_100px_100px_80px_80px_100px] gap-3 px-5 py-3 border-b text-[10px] uppercase tracking-[0.2em] font-bold items-center"
@@ -347,6 +354,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
             </div>
           ))
         )}
+        </div>
       </div>
 
       {/* ── Delete Confirmation Modal ── */}

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { revalidatePath } from "next/cache";
 
 /* ─── Domain Types ───────────────────────────────────── */
 
@@ -124,6 +125,8 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
     .update({ status: newStatus })
     .eq("id", orderId);
   if (error) return { error: error.message };
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
   return { success: true };
 }
 
@@ -145,6 +148,8 @@ export async function updateProductField(productId: number, field: string, value
     .update({ [field]: value })
     .eq("id", productId);
   if (error) return { error: error.message };
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin");
   return { success: true };
 }
 
@@ -155,6 +160,8 @@ export async function deleteProduct(productId: number) {
     .delete()
     .eq("id", productId);
   if (error) return { error: error.message };
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin");
   return { success: true };
 }
 
@@ -164,6 +171,8 @@ export async function upsertProduct(product: Database["public"]["Tables"]["produ
     .from("products")
     .upsert(product);
   if (error) return { error: error.message };
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin");
   return { success: true };
 }
 

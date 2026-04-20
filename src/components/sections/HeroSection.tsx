@@ -40,7 +40,7 @@ const floatingBadge = {
 
 export default function HeroSection() {
   return (
-    <section className="bg-cream font-dm min-h-[88vh] grid lg:grid-cols-2">
+    <section className="bg-cream font-dm min-h-[88vh] grid lg:grid-cols-2 overflow-hidden w-full max-w-[100vw]">
       {/* Left: Text Panel */}
       <div className="flex flex-col justify-center px-8 sm:px-14 lg:px-20 py-16 lg:py-0 order-2 lg:order-1">
         <div className="max-w-lg">
@@ -185,12 +185,10 @@ export default function HeroSection() {
           viewport={{ once: true }}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="absolute p-4 shadow-2xl max-w-[200px] cursor-pointer block"
+          className="absolute p-3 sm:p-4 shadow-2xl max-w-[180px] sm:max-w-[200px] cursor-pointer block bottom-4 right-4 sm:bottom-8 sm:right-8"
           style={{
             background: "rgba(253,251,247,0.95)",
             backdropFilter: "blur(12px)",
-            bottom: "2rem",
-            right: "2rem",
           }}
         >
           <div className="flex items-start gap-3">
