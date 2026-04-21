@@ -83,7 +83,7 @@ export default function InstagramBanner() {
           variants={gridVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-10"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-10"
         >
           {posts.map((post) => (
             <motion.div

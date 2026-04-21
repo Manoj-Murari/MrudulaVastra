@@ -40,9 +40,9 @@ const floatingBadge = {
 
 export default function HeroSection() {
   return (
-    <section className="bg-cream font-dm min-h-[88vh] grid lg:grid-cols-2 overflow-hidden w-full max-w-[100vw]">
+    <section className="bg-cream font-dm lg:min-h-[88vh] grid lg:grid-cols-2 overflow-hidden w-full max-w-[100vw]">
       {/* Left: Text Panel */}
-      <div className="flex flex-col justify-center px-8 sm:px-14 lg:px-20 py-16 lg:py-0 order-2 lg:order-1">
+      <div className="flex flex-col justify-center px-8 sm:px-14 lg:px-20 py-10 lg:py-0 order-2 lg:order-1">
         <div className="max-w-lg">
           <motion.p
             custom={0}
@@ -153,7 +153,7 @@ export default function HeroSection() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        className="relative overflow-hidden order-1 lg:order-2 min-h-[50vh] sm:min-h-[60vh] lg:min-h-0"
+        className="relative overflow-hidden order-1 lg:order-2 min-h-[40vh] sm:min-h-[60vh] lg:min-h-0"
       >
         <Image
           src="/images/hero-saree.webp"
