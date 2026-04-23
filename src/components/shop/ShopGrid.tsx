@@ -35,6 +35,10 @@ export default function ShopGrid({ products }: { products: Product[] }) {
   };
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const q = searchParams?.get("q");
     if (q !== null && q !== undefined) setSearch(q);
   }, [searchParams]);
