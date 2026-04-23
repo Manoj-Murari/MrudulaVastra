@@ -54,6 +54,22 @@ export default function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const isSoldOut = product.inventory_count === 0;
 
+  // Badge Logic - Premium & Minimalist
+  const isActuallyNew =
+    (product as any).is_new === true ||
+    ((product as any).created_at &&
+      new Date((product as any).created_at).getTime() >
+        Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  // Determine the most relevant badge (Priority: Custom Tag > New Badge)
+  const activeBadge = product.tag || (isActuallyNew ? "NEW" : null);
+
+  // Secondary Image Logic for Hover Effect
+  const allImages = product.gallery_images || (product as any).images || [];
+  const secondaryImage = allImages.length > 1
+    ? allImages.find((img: string) => img !== product.image) || allImages[1]
+    : null;
+
   if (variant === "trending") {
     return (
       <div
@@ -65,19 +81,44 @@ export default function ProductCard({
           {/* ── Image Container ── */}
           <div className="relative aspect-[3/4] overflow-hidden mb-5 bg-sand">
             {product.image && !product.image.includes("/api/placeholder") ? (
-              <motion.div
-                className="absolute inset-0"
-                animate={{ scale: isHovered ? 1.04 : 1 }}
-                transition={{ duration: 0.7, ease: luxuryEase }}
-              >
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover"
-                />
-              </motion.div>
+              <>
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{ 
+                    scale: isHovered ? 1.04 : 1,
+                    opacity: isHovered && secondaryImage ? 0 : 1
+                  }}
+                  transition={{ duration: 0.7, ease: luxuryEase }}
+                >
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover"
+                  />
+                </motion.div>
+                
+                {secondaryImage && (
+                  <motion.div
+                    className="absolute inset-0"
+                    initial={{ opacity: 0, scale: 1 }}
+                    animate={{ 
+                      opacity: isHovered ? 1 : 0,
+                      scale: isHovered ? 1.04 : 1
+                    }}
+                    transition={{ duration: 0.7, ease: luxuryEase }}
+                  >
+                    <Image
+                      src={secondaryImage}
+                      alt={`${product.name} alternate view`}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover"
+                    />
+                  </motion.div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <p
@@ -108,14 +149,13 @@ export default function ProductCard({
               </div>
             )}
 
-            {/* Badge */}
-            {product.badge && (
-              <span
-                className="absolute top-4 left-4 bg-forest/90 text-cream/90 px-3 py-1.5 font-dm uppercase font-medium"
-                style={{ fontSize: "9px", letterSpacing: "0.2em" }}
-              >
-                {product.badge}
-              </span>
+            {/* Minimalist Badge */}
+            {activeBadge && (
+              <div className="absolute top-4 left-4 z-20 pointer-events-none">
+                <span className="px-2.5 py-1 text-[9px] font-dm font-bold tracking-[0.2em] uppercase bg-white/95 backdrop-blur-md text-forest border border-gold/20 shadow-sm">
+                  {activeBadge}
+                </span>
+              </div>
             )}
 
             {/* Wishlist */}
@@ -235,19 +275,44 @@ export default function ProductCard({
         className="block relative aspect-[3/4] mb-5 overflow-hidden bg-sand"
       >
         {product.image && !product.image.includes("/api/placeholder") ? (
-          <motion.div
-            className="absolute inset-0"
-            animate={{ scale: isHovered ? 1.04 : 1 }}
-            transition={{ duration: 0.7, ease: luxuryEase }}
-          >
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover"
-            />
-          </motion.div>
+          <>
+            <motion.div
+              className="absolute inset-0"
+              animate={{ 
+                scale: isHovered ? 1.04 : 1,
+                opacity: isHovered && secondaryImage ? 0 : 1
+              }}
+              transition={{ duration: 0.7, ease: luxuryEase }}
+            >
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover"
+              />
+            </motion.div>
+            
+            {secondaryImage && (
+              <motion.div
+                className="absolute inset-0"
+                initial={{ opacity: 0, scale: 1 }}
+                animate={{ 
+                  opacity: isHovered ? 1 : 0,
+                  scale: isHovered ? 1.04 : 1
+                }}
+                transition={{ duration: 0.7, ease: luxuryEase }}
+              >
+                <Image
+                  src={secondaryImage}
+                  alt={`${product.name} alternate view`}
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover"
+                />
+              </motion.div>
+            )}
+          </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <p
@@ -277,27 +342,13 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Badges */}
-        {product.badge && (
-          <span
-            className="absolute top-4 left-4 bg-forest/90 text-cream/90 px-3 py-1.5 font-dm uppercase font-medium"
-            style={{ fontSize: "9px", letterSpacing: "0.2em" }}
-          >
-            {product.badge}
-          </span>
-        )}
-        {product.tag && (
-          <span
-            className="absolute top-4 right-4 text-cream/90 px-3 py-1.5 font-dm uppercase font-medium"
-            style={{
-              fontSize: "9px",
-              letterSpacing: "0.2em",
-              background: "rgba(184,150,62,0.85)",
-              backdropFilter: "blur(4px)",
-            }}
-          >
-            {product.tag}
-          </span>
+        {/* Minimalist Badge */}
+        {activeBadge && (
+          <div className="absolute top-4 left-4 z-20 pointer-events-none">
+            <span className="px-2.5 py-1 text-[9px] font-dm font-bold tracking-[0.2em] uppercase bg-white/95 backdrop-blur-md text-forest border border-gold/20 shadow-sm">
+              {activeBadge}
+            </span>
+          </div>
         )}
 
         {/* ── Glass "Add to Bag" overlay ── */}

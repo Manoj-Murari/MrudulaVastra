@@ -71,14 +71,14 @@ export default function CategorySection({ categories }: CategorySectionProps) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14 justify-items-center"
+          className="flex md:grid md:grid-cols-3 gap-6 md:gap-10 lg:gap-14 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-6 px-6 md:mx-0 md:px-0"
         >
           {categories.map((cat, idx) => (
             <Link 
               key={cat.id} 
               href={cat.link || "/collections"} 
               prefetch={true} 
-              className="block group w-full"
+              className="block group w-[80vw] sm:w-[60vw] md:w-full flex-shrink-0 snap-center"
             >
               <motion.div variants={cardVariants} className="flex flex-col items-center">
                 
@@ -100,7 +100,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                         src={cat.image}
                         alt={`${cat.title} collection at Mrudula Vastra`}
                         fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
+                        sizes="(max-width: 768px) 80vw, 33vw"
                         className="object-cover transition-transform duration-1000 group-hover:scale-105"
                       />
                       {/* Delicate inner vignette to ensure luxury feel */}

@@ -30,17 +30,34 @@ export default async function HomePage() {
     { data: categories },
     { data: products },
     { data: testimonials },
+    { data: { user } }
   ] = await Promise.all([
     supabase.from("categories").select("*").order("id", { ascending: true }),
     supabase.from("products").select("*").order("id", { ascending: true }).limit(4),
     supabase.from("testimonials").select("*").order("id", { ascending: true }),
+    supabase.auth.getUser()
   ]);
+
+  let profile = null;
+  if (user) {
+    const { data } = await supabase.from("profiles").select("full_name").eq("id", user.id).single();
+    profile = data;
+  }
 
   return (
     <>
       <AnnouncementBar />
       <Header />
       <main>
+        {profile?.full_name && (
+          <div className="w-full bg-cream py-3.5 border-b border-gold/15 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-6 text-center animate-fade-in">
+              <p className="font-cormorant text-[1.1rem] lg:text-xl text-forest italic tracking-wide">
+                Welcome back to Mrudula Vastra, {profile.full_name.split(' ')[0]} ✨
+              </p>
+            </div>
+          </div>
+        )}
         <HeroSection />
         <ScrollingDivider />
         <CategorySection categories={categories || []} />
