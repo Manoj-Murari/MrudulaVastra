@@ -38,9 +38,13 @@ export default async function HomePage() {
     supabase.auth.getUser()
   ]);
 
-  let profile = null;
+  let profile: any = null;
   if (user) {
-    const { data } = await supabase.from("profiles").select("full_name").eq("id", user.id).single();
+    const { data } = await (supabase as any)
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
     profile = data;
   }
 
