@@ -19,6 +19,7 @@ import {
   Settings,
   BarChart3,
   Layers,
+  MessageSquare,
 } from "lucide-react";
 import "./admin.css";
 
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { label: "Inventory", icon: Package, href: "/admin/inventory" },
   { label: "Customers", icon: Users, href: "/admin/customers" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
+  { label: "Enquiries", icon: MessageSquare, href: "/admin/enquiries" },
 ];
 
 /* ─── Main Shell ──────────────────────────────────────────── */
@@ -122,6 +124,7 @@ export default function AdminShell({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   onClick={() => setMobileOpen(false)}
                   className="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200"
                   style={{
@@ -310,6 +313,7 @@ export default function AdminShell({
                     <Link
                       key={item.href}
                       href={item.href}
+                      prefetch={true}
                       onClick={() => setCmdOpen(false)}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150"
                       style={{

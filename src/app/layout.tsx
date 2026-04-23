@@ -2,13 +2,15 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/providers/CartProvider";
+import { ProgressBarProvider } from "@/components/providers/ProgressBarProvider";
 import JsonLd from "@/components/seo/JsonLd";
+import WelcomeModal from "@/components/ui/WelcomeModal";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-playfair-display",
+  variable: "--font-playfair",
   display: "swap",
-  weight: ["400", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
 });
 
@@ -151,7 +153,10 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body className="min-h-screen font-dm bg-cream text-text-primary antialiased overflow-x-hidden">
-        <CartProvider>{children}</CartProvider>
+        <ProgressBarProvider>
+          <CartProvider>{children}</CartProvider>
+        </ProgressBarProvider>
+        <WelcomeModal />
       </body>
     </html>
   );

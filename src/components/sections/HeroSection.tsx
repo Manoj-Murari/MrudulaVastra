@@ -3,70 +3,88 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
-import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 
+/* ── Cinematic easing — slow entrance, snappy settle ── */
+const luxuryEase = [0.16, 1, 0.3, 1] as const;
 
-const stats = [
+const textReveal = {
+  hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      delay: 0.3 + i * 0.15,
+      duration: 1.2,
+      ease: luxuryEase,
+    },
+  }),
+};
+
+const imageReveal = {
+  hidden: { y: 40, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { delay: 0.2, duration: 1.4, ease: luxuryEase },
+  },
+};
+
+const lineExpand = {
+  hidden: { scaleX: 0 },
+  visible: (i: number) => ({
+    scaleX: 1,
+    transition: { delay: 1.0 + i * 0.1, duration: 0.8, ease: luxuryEase },
+  }),
+};
+
+const pillars = [
   ["Premium", "Quality"],
   ["Handpicked", "Designs"],
   ["100%", "Authentic"],
 ] as const;
 
-const textReveal = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: 0.3 + i * 0.15, duration: 0.7, ease: [0.25, 0.4, 0.25, 1] as const },
-  }),
-};
-
-const imageReveal = {
-  hidden: { scale: 1.08, opacity: 0 },
-  visible: { scale: 1, opacity: 1, transition: { duration: 0.8, ease: [0.25, 0.4, 0.25, 1] as const } },
-};
-
-const floatingBadge = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { delay: 1.2, duration: 0.6, ease: [0.25, 0.4, 0.25, 1] as const },
-  },
-};
-
 export default function HeroSection() {
   return (
-    <section className="bg-cream font-dm lg:min-h-[88vh] grid lg:grid-cols-2 overflow-hidden w-full max-w-[100vw]">
-      {/* Left: Text Panel */}
-      <div className="flex flex-col justify-center px-8 sm:px-14 lg:px-20 py-10 lg:py-0 order-2 lg:order-1">
+    <section className="bg-cream font-dm lg:min-h-[85vh] flex flex-col lg:flex-row items-center overflow-hidden w-full max-w-[100vw]">
+      {/* ━━ Left: Editorial Text Panel ━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-14 lg:pl-24 lg:pr-16 py-16 lg:py-0 order-2 lg:order-1">
         <div className="max-w-lg">
+          {/* Eyebrow */}
           <motion.p
             custom={0}
             variants={textReveal}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="uppercase font-semibold mb-5 flex items-center gap-2 text-gold"
-            style={{ fontSize: "11px", letterSpacing: "0.3em" }}
+            className="uppercase font-semibold mb-8 flex items-center gap-4 text-forest/50"
+            style={{ fontSize: "9px", letterSpacing: "0.4em" }}
           >
-            <span className="inline-block w-6 h-px bg-gold" />
-            Summer Collection 2025
+            <motion.span
+              className="inline-block w-12 h-px bg-gold/50"
+              custom={0}
+              variants={lineExpand}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              style={{ transformOrigin: "left" }}
+            />
+            The Heritage Collection
           </motion.p>
 
+          {/* Headline — Extremely light, refined scale */}
           <motion.h1
             custom={1}
             variants={textReveal}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="font-playfair text-text-primary font-bold mb-2"
-            style={{ lineHeight: 1.12, fontSize: "clamp(36px, 5vw, 62px)" }}
+            className="font-playfair text-forest font-light mb-3 tracking-wide"
+            style={{ lineHeight: 1.1, fontSize: "clamp(36px, 4.5vw, 56px)" }}
           >
-            Wear the Art
+            Timeless Elegance
           </motion.h1>
 
           <motion.p
@@ -75,157 +93,141 @@ export default function HeroSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="font-playfair text-forest font-bold italic mb-6"
-            style={{ lineHeight: 1.12, fontSize: "clamp(36px, 5vw, 62px)" }}
+            className="font-playfair text-gold font-light italic mb-8"
+            style={{ lineHeight: 1.1, fontSize: "clamp(30px, 3.5vw, 46px)" }}
           >
-            of India.
+            Woven with Love.
           </motion.p>
 
+          {/* Body copy */}
           <motion.p
             custom={3}
             variants={textReveal}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mb-10 max-w-sm text-text-body"
-            style={{ lineHeight: 1.75, fontSize: "15px" }}
+            className="mb-10 max-w-sm text-text-muted font-light"
+            style={{ lineHeight: 1.8, fontSize: "14px" }}
           >
-            Handpicked sarees, elegant dress materials, and adorable kids wear —
-            crafted with love, woven with tradition.
+            Discover handpicked sarees, elegant dress materials, and exquisite kids wear. A curated celebration of Indian heritage, crafted for the modern connoisseur.
           </motion.p>
 
+          {/* CTA Buttons */}
           <motion.div
             custom={4}
             variants={textReveal}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
+            className="flex flex-wrap gap-5"
           >
-            <OrnamentalDivider className="mb-10 max-w-xs" />
+            <Link
+              href="/collections"
+              className="group relative px-10 py-4 uppercase font-bold overflow-hidden bg-transparent border border-forest/20 text-forest transition-colors duration-500 flex items-center gap-3"
+              style={{ fontSize: "10px", letterSpacing: "0.3em" }}
+            >
+              <span className="relative z-10 group-hover:text-cream transition-colors duration-500">
+                Shop Collection
+              </span>
+              <ArrowRight
+                size={12}
+                className="relative z-10 group-hover:translate-x-1.5 group-hover:text-cream transition-all duration-500"
+              />
+              <span className="absolute inset-0 bg-forest translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+            </Link>
+
+            <Link
+              href="https://www.instagram.com/mrudulavastra/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group px-8 py-4 uppercase font-bold transition-all duration-500 flex items-center gap-3 text-forest/60 hover:text-forest"
+              style={{
+                fontSize: "10px",
+                letterSpacing: "0.3em",
+              }}
+            >
+              <InstagramIcon size={12} className="opacity-80 group-hover:opacity-100 transition-opacity" />
+              View Reels
+            </Link>
           </motion.div>
 
+          {/* Pillar stats */}
           <motion.div
             custom={5}
             variants={textReveal}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="flex flex-wrap gap-4"
+            className="flex items-center gap-10 mt-16"
           >
-            <Link href="/collections" className="px-8 py-4 uppercase font-semibold hover:opacity-90 transition-all duration-300 flex items-center gap-2.5 group bg-forest text-cream" style={{ fontSize: "13px", letterSpacing: "0.1em" }}>
-              Shop the Collection
-              <ArrowRight
-                size={14}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </Link>
-            <Link href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="px-8 py-4 uppercase font-semibold hover:bg-amber-50 transition-all duration-300 flex items-center gap-2.5 text-gold" style={{ border: "1.5px solid #B8963E", fontSize: "13px", letterSpacing: "0.1em" }}>
-              <Play size={13} className="fill-current" />
-              View Reels
-            </Link>
-          </motion.div>
-
-          <motion.div
-            custom={6}
-            variants={textReveal}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="flex items-center gap-8 mt-12"
-          >
-            {stats.map(([num, label]) => (
-              <div key={label}>
-                <p className="font-playfair text-forest font-bold" style={{ fontSize: "22px" }}>
-                  {num}
-                </p>
-                <p className="text-text-muted" style={{ fontSize: "11px", letterSpacing: "0.05em" }}>
+            {pillars.map(([label, sub], idx) => (
+              <div key={sub} className="relative">
+                <p
+                  className="font-playfair text-forest font-light"
+                  style={{ fontSize: "16px" }}
+                >
                   {label}
                 </p>
+                <p
+                  className="text-text-muted font-semibold uppercase"
+                  style={{ fontSize: "8px", letterSpacing: "0.2em", marginTop: "4px" }}
+                >
+                  {sub}
+                </p>
+                {/* Vertical divider between stats */}
+                {idx < pillars.length - 1 && (
+                  <span
+                    className="absolute top-1/2 -translate-y-1/2 w-px h-6 bg-gold/20"
+                    style={{ right: "-20px" }}
+                  />
+                )}
               </div>
             ))}
           </motion.div>
         </div>
       </div>
 
-      {/* Right: Image Panel */}
-      <motion.div
-        variants={imageReveal}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="relative overflow-hidden order-1 lg:order-2 min-h-[40vh] sm:min-h-[60vh] lg:min-h-0"
-      >
-        <Image
-          src="/images/hero-saree.webp"
-          alt="Elegant woman wearing deep emerald silk saree"
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover"
-          style={{ filter: "brightness(0.92) saturate(1.1)" }}
-        />
-
-        {/* Overlay gradient */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent 60%, rgba(26,60,46,0.35) 100%)",
-          }}
-        />
-
-        {/* Floating Instagram badge */}
-        <motion.a
-          href="https://www.instagram.com/mrudulavastra/"
-          target="_blank"
-          rel="noopener noreferrer"
-          variants={floatingBadge}
+      {/* ━━ Right: Framed Gallery Image ━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-20 order-1 lg:order-2">
+        <motion.div
+          variants={imageReveal}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="absolute p-3 sm:p-4 shadow-2xl max-w-[180px] sm:max-w-[200px] cursor-pointer block bottom-4 right-4 sm:bottom-8 sm:right-8"
-          style={{
-            background: "rgba(253,251,247,0.95)",
-            backdropFilter: "blur(12px)",
-          }}
+          className="relative w-full max-w-sm lg:max-w-md aspect-[3/4] shadow-2xl shadow-forest/5"
         >
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-full bg-forest flex items-center justify-center flex-shrink-0 mt-0.5">
-              <InstagramIcon size={15} className="text-white" />
-            </div>
-            <div>
-              <p className="text-text-primary font-bold transition-colors hover:text-gold" style={{ fontSize: "12px" }}>
-                @mrudulavastra
-              </p>
-              <p className="text-text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
-                Follow us for daily drops ✨
-              </p>
-            </div>
-          </div>
-        </motion.a>
+          {/* Subtle offset gold frame */}
+          <div className="absolute top-4 left-4 lg:top-6 lg:left-6 w-full h-full border border-gold/30 z-0" />
+          
+          <div className="relative z-10 w-full h-full bg-[#F5F0E8] overflow-hidden">
+            {/* Ken Burns slow drift */}
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 25,
+                ease: "linear",
+                repeat: Infinity,
+                repeatType: "reverse",
+              }}
+            >
+              <Image
+                src="/images/hero-saree.webp"
+                alt="Elegant woman wearing deep emerald silk saree"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </motion.div>
 
-        {/* Gold accent corners */}
-        <div
-          className="absolute w-12 h-12"
-          style={{
-            borderTop: "3px solid #B8963E",
-            borderLeft: "3px solid #B8963E",
-            top: 24,
-            left: 24,
-          }}
-        />
-        <div
-          className="absolute w-12 h-12 hidden lg:block"
-          style={{
-            borderBottom: "3px solid #B8963E",
-            borderRight: "3px solid #B8963E",
-            bottom: 24,
-            right: 140,
-          }}
-        />
-      </motion.div>
+            {/* Very light inner vignette */}
+            <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(14,34,25,0.05)] pointer-events-none" />
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }

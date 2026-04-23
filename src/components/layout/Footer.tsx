@@ -49,7 +49,7 @@ export default function Footer() {
       <div className="bg-gold py-10 px-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="text-center sm:text-left">
-            <p className="font-playfair font-bold" style={{ color: "#0E2219", fontSize: "20px" }}>
+            <p className="font-playfair font-normal" style={{ color: "#0E2219", fontSize: "20px" }}>
               Join the Mrudula Circle
             </p>
             <p style={{ color: "rgba(14,34,25,0.7)", fontSize: "13px" }}>
@@ -93,7 +93,7 @@ export default function Footer() {
         {/* Brand */}
         <AnimatedSection delay={0}>
           <h3
-            className="font-playfair text-cream font-bold mb-2"
+            className="font-playfair text-cream font-medium mb-2"
             style={{ fontSize: "20px", letterSpacing: "0.06em" }}
           >
             MRUDULA VASTRA

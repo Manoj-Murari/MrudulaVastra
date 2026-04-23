@@ -15,6 +15,7 @@ function NavLink({ label, href }: { label: string; href: string }) {
   return (
     <Link
       href={href}
+      prefetch={true}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="relative py-1 text-text-nav font-medium font-dm"
@@ -142,7 +143,7 @@ export default function Header() {
             </div>
 
           {/* Center: Brand Logo */}
-          <Link href="/" className="text-center flex-shrink-0 px-2 sm:px-4">
+          <Link href="/" prefetch={true} className="text-center flex-shrink-0 px-2 sm:px-4">
             <p
               className="font-playfair text-forest font-bold transition-all duration-500 whitespace-nowrap"
               style={{
@@ -160,8 +161,8 @@ export default function Header() {
                 marginTop: scrolled ? 0 : 4,
               }}
               transition={{ duration: 0.3 }}
-              className="uppercase text-gold font-dm overflow-hidden"
-              style={{ fontSize: "9px", letterSpacing: "0.3em" }}
+              className="uppercase text-gold font-dm font-medium overflow-hidden"
+              style={{ fontSize: "10px", letterSpacing: "0.25em" }}
             >
               Elegance Woven in Every Thread
             </motion.p>

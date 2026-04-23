@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 import type { Database } from "@/lib/supabase/types";
 
@@ -16,42 +15,43 @@ interface CategorySectionProps {
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.15 },
+    transition: { staggerChildren: 0.2 },
   },
 };
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 50 },
+  hidden: { opacity: 0, y: 60 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, ease: [0.25, 0.4, 0.25, 1] as const },
+    transition: { duration: 1, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
 export default function CategorySection({ categories }: CategorySectionProps) {
-
   return (
-    <section className="bg-sand font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+    <section className="bg-cream font-dm py-12 lg:py-16 px-6 sm:px-10 overflow-hidden w-full max-w-[100vw]">
+      <div className="max-w-5xl mx-auto">
+        
+        {/* Section Header */}
+        <div className="text-center mb-16 lg:mb-20">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="uppercase font-semibold mb-3 text-gold"
-            style={{ fontSize: "11px", letterSpacing: "0.3em" }}
+            transition={{ duration: 0.6 }}
+            className="uppercase font-semibold mb-4 text-forest/40"
+            style={{ fontSize: "10px", letterSpacing: "0.4em" }}
           >
-            Explore Our World
+            The Curations
           </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-playfair text-text-primary font-bold"
-            style={{ fontSize: "clamp(28px, 3.5vw, 42px)" }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="font-playfair text-forest font-light tracking-wide"
+            style={{ fontSize: "clamp(32px, 4vw, 56px)" }}
           >
             Shop by Category
           </motion.h2>
@@ -59,89 +59,66 @@ export default function CategorySection({ categories }: CategorySectionProps) {
             initial={{ opacity: 0, scaleX: 0 }}
             whileInView={{ opacity: 1, scaleX: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <OrnamentalDivider className="mt-4 max-w-[200px] mx-auto" />
+            <OrnamentalDivider className="mt-6 max-w-[160px] mx-auto opacity-60" />
           </motion.div>
         </div>
 
+        {/* Asymmetrical Staggered Gallery */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-7"
+          className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14 justify-items-center"
         >
-          {categories.map((cat) => (
-            <Link key={cat.id} href={cat.link || "/collections"} className="block">
-              <motion.div
-                variants={cardVariants}
-                className="group relative overflow-hidden cursor-pointer h-full"
-                style={{
-                  aspectRatio: "4/5",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-                }}
-              >
-                {/* Image */}
-                <Image
-                  src={cat.image}
-                  alt={`${cat.title} — Premium ${cat.title.toLowerCase()} collection at Mrudula Vastra, Machilipatnam`}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 33vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+          {categories.map((cat, idx) => (
+            <Link 
+              key={cat.id} 
+              href={cat.link || "/collections"} 
+              prefetch={true} 
+              className="block group w-full"
+            >
+              <motion.div variants={cardVariants} className="flex flex-col items-center">
+                
+                {/* Premium Designer Frame */}
+                <div className="relative p-2 lg:p-3 bg-cream border border-gold/40 shadow-xl mb-6 w-full group-hover:border-gold transition-colors duration-700">
+                  
+                  {/* Decorative Corner Diamonds */}
+                  <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
+                  <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
+                  <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
+                  <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
 
-                {/* Gradient overlay */}
-                <div
-                  className="absolute inset-0 transition-opacity duration-300"
-                  style={{
-                    background: `linear-gradient(to top, ${cat.color}ee 0%, ${cat.color}88 45%, transparent 75%)`,
-                  }}
-                />
-
-                {/* Tag badge */}
-                <div
-                  className="absolute px-3 py-1.5 text-white uppercase font-semibold bg-gold"
-                  style={{ top: 18, left: 18, fontSize: "10px", letterSpacing: "0.15em" }}
-                >
-                  {cat.tag}
-                </div>
-
-                {/* Text content */}
-                <div className="absolute bottom-0 left-0 right-0 p-7">
-                  <p
-                    className="uppercase mb-1 font-medium"
-                    style={{
-                      color: "rgba(253,251,247,0.65)",
-                      fontSize: "11px",
-                      letterSpacing: "0.2em",
-                    }}
-                  >
-                    {cat.subtitle}
-                  </p>
-                  <h3
-                    className="font-playfair text-cream font-bold mb-4"
-                    style={{ fontSize: "clamp(22px, 2.5vw, 30px)" }}
-                  >
-                    {cat.title}
-                  </h3>
-                  <div
-                    className="inline-flex items-center gap-2 text-white px-5 py-2.5 uppercase font-semibold group-hover:bg-white/10 transition-colors duration-300"
-                    style={{
-                      border: "1.5px solid rgba(253,251,247,0.5)",
-                      fontSize: "11px",
-                      letterSpacing: "0.12em",
-                    }}
-                  >
-                    Explore <ChevronRight size={13} />
+                  {/* Inner Fine Border */}
+                  <div className="border-[0.5px] border-forest/30 p-1 lg:p-2">
+                    
+                    {/* Image Container */}
+                    <div className="relative w-full aspect-[3/4] overflow-hidden bg-[#F5F0E8]">
+                      <Image
+                        src={cat.image}
+                        alt={`${cat.title} collection at Mrudula Vastra`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                      />
+                      {/* Delicate inner vignette to ensure luxury feel */}
+                      <div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(14,34,25,0.03)] pointer-events-none" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Hover gold outline */}
-                <div
-                  className="absolute inset-3 group-hover:border-amber-400/50 transition-all duration-500"
-                  style={{ border: "2px solid rgba(184,150,62,0)" }}
-                />
+                {/* Typography placed beautifully below the image */}
+                <div className="text-center">
+                  <h3 className="font-playfair text-forest font-light text-2xl lg:text-3xl mb-2 tracking-wide group-hover:text-gold transition-colors duration-500">
+                    {cat.title}
+                  </h3>
+                  <p className="text-[11px] uppercase tracking-widest font-bold text-forest mt-2 group-hover:text-gold transition-colors duration-500">
+                    Explore &rarr;
+                  </p>
+                </div>
+
               </motion.div>
             </Link>
           ))}

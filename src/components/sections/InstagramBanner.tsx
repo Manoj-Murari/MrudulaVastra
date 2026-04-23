@@ -59,7 +59,7 @@ export default function InstagramBanner() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-playfair font-bold mb-2"
+            className="font-playfair font-normal mb-2"
             style={{ fontSize: "clamp(24px, 3vw, 38px)" }}
           >
             <a href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="text-text-primary hover:text-gold transition-colors duration-300">

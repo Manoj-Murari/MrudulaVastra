@@ -145,7 +145,7 @@ export default function CategoryGrid({
               >
                 ✕
               </button>
-              <h3 className="font-playfair text-xl font-bold text-forest mb-1">Select Size</h3>
+              <h3 className="font-playfair text-xl font-medium text-forest mb-1">Select Size</h3>
               <p className="text-text-muted text-sm font-dm mb-6">{quickAddProduct.name}</p>
               
               <div className="flex flex-wrap gap-3 pb-2">

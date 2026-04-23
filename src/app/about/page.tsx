@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
-import Breadcrumb from "@/components/ui/Breadcrumb";
+import Link from "next/link";
+import AnnouncementBar from "@/components/layout/AnnouncementBar";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import AnimatedSection from "@/components/ui/AnimatedSection";
 
 export const metadata: Metadata = {
-  title: "About Mrudula Vastra — Our Heritage, Our Story",
+  title: "About Mrudula Vastra — The Founder's Story",
   description:
-    "Discover the story behind Mrudula Vastra — a passion-driven Indian ethnic wear boutique rooted in Machilipatnam, Andhra Pradesh. Handpicked sarees, dress materials & kids wear from India's finest weavers and artisans.",
+    "Discover the story behind Mrudula Vastra — a passion-driven digital Indian ethnic wear boutique. Steered from Mumbai, rooted in Machilipatnam.",
   alternates: {
     canonical: "https://mrudulavastra.in/about",
   },
   openGraph: {
-    title: "About Mrudula Vastra — Our Heritage, Our Story",
+    title: "About Mrudula Vastra — The Founder's Story",
     description:
-      "Born from a deep reverence for India's textile heritage. Mrudula Vastra is more than a brand — it is a celebration of artistry, tradition, and timeless grace.",
+      "Where modern vision meets traditional soul. Discover our curated collection of sarees, dress materials, and kids' wear.",
     url: "https://mrudulavastra.in/about",
     type: "website",
   },
@@ -20,176 +23,110 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-cream">
-      <Breadcrumb items={[{ label: "About" }]} />
-      {/* ── Hero ─────────────────────────────────────── */}
-      <section className="relative py-24 lg:py-32 text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
-        <div className="relative z-10 max-w-3xl mx-auto px-6">
-          <p
-            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-4"
-            style={{ fontSize: "11px" }}
-          >
-            Our Story
-          </p>
-          <h1 className="font-playfair text-forest font-bold text-4xl lg:text-5xl mb-6">
-            Elegance Woven in
-            <br />
-            Every Thread
-          </h1>
-          <p className="text-text-muted font-dm text-lg max-w-xl mx-auto leading-relaxed">
-            Born from a deep reverence for India&apos;s textile heritage, Mrudula Vastra
-            is more than a brand — it is a celebration of artistry, tradition, and
-            timeless grace.
-          </p>
-        </div>
-      </section>
+    <>
+      <AnnouncementBar />
+      <Header />
+      
+      {/* ── HIGH FASHION COMPACT EDITORIAL ───────────────────────────── */}
+      <main className="bg-cream text-forest min-h-screen overflow-hidden selection:bg-gold/20 selection:text-forest flex flex-col">
+        
+        <div className="flex-1 flex flex-col justify-center py-16 lg:py-0">
+          <section className="max-w-[1400px] mx-auto px-6 lg:px-12 w-full">
+            <AnimatedSection direction="up" className="grid lg:grid-cols-12 gap-12 lg:gap-24 items-center">
+              
+              {/* ── Left Column: Title & CTA ───────────────────────────── */}
+              <div className="lg:col-span-5 flex flex-col h-full justify-center">
+                <div>
+                  <p className="uppercase tracking-[0.4em] text-[9px] text-forest/50 mb-8 font-dm font-semibold">
+                    The Heritage of Mrudula Vastra
+                  </p>
+                  <h1 className="font-playfair font-light text-5xl md:text-6xl lg:text-[72px] leading-[1.05] tracking-tight mb-8">
+                    Two Tech Minds.
+                    <br />
+                    <span className="italic text-gold">One Timeless Passion.</span>
+                  </h1>
+                </div>
 
-      {/* ── Story Sections ───────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-6 lg:px-10 pb-24 space-y-20">
-        {/* Heritage */}
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="bg-[#F5F0E8] aspect-[4/5] flex items-center justify-center">
-            <div className="text-center">
-              <p className="font-playfair text-forest/20 text-5xl font-bold tracking-widest">
-                MV
-              </p>
-              <p className="text-forest/15 font-dm text-[10px] uppercase tracking-[0.3em] mt-2">
-                Est. 2024
-              </p>
-            </div>
-          </div>
-          <div>
-            <p className="uppercase text-gold font-dm font-medium tracking-[0.3em] mb-3 text-[10px]">
-              Heritage
-            </p>
-            <h2 className="font-playfair text-forest font-bold text-3xl mb-5">
-              Rooted in Machilipatnam
-            </h2>
-            <p className="text-text-muted font-dm leading-relaxed mb-4">
-              From the bustling textile markets of Machilipatnam to your doorstep, we
-              travel across the heartland of Indian weaving traditions — from
-              Kanjivaram to Banarasi, from Chanderi to Pochampally — to bring you
-              fabrics that tell stories.
-            </p>
-            <p className="text-text-muted font-dm leading-relaxed">
-              Each piece in our collection is handpicked by our founder, ensuring
-              that only the most exquisite weaves make it to our shelves. We believe
-              that every saree is a canvas, and every weaver is an artist.
-            </p>
-          </div>
-        </div>
+                {/* Desktop CTA */}
+                <div className="hidden lg:block mt-12">
+                  <Link
+                    href="/collections"
+                    className="group relative inline-flex items-center justify-center px-12 py-5 overflow-hidden bg-transparent border border-forest/20"
+                  >
+                    <div className="absolute inset-0 bg-forest translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+                    <span className="relative z-10 text-[10px] uppercase tracking-[0.4em] text-forest font-dm font-bold group-hover:text-cream transition-colors duration-700">
+                      Enter The Boutique
+                    </span>
+                  </Link>
+                </div>
+              </div>
 
-        {/* Philosophy */}
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="order-2 md:order-1">
-            <p className="uppercase text-gold font-dm font-medium tracking-[0.3em] mb-3 text-[10px]">
-              Philosophy
-            </p>
-            <h2 className="font-playfair text-forest font-bold text-3xl mb-5">
-              Curation Over Mass Production
-            </h2>
-            <p className="text-text-muted font-dm leading-relaxed mb-4">
-              We don&apos;t chase trends. We seek timelessness. Every dress material,
-              every kids&apos; outfit, every saree in our collection is chosen for its
-              craftsmanship, its story, and its ability to make you feel extraordinary.
-            </p>
-            <p className="text-text-muted font-dm leading-relaxed">
-              Our commitment is to the artisans who pour their lives into every
-              thread, and to you — the discerning connoisseur who values authenticity.
-            </p>
-          </div>
-          <div className="order-1 md:order-2 bg-[#F5F0E8] aspect-[4/5] flex items-center justify-center">
-            <div className="text-center space-y-6">
-              <div>
-                <p className="font-playfair text-forest/30 text-4xl font-bold">500+</p>
-                <p className="text-forest/20 font-dm text-xs uppercase tracking-wider mt-1">
-                  Curated Pieces
-                </p>
+              {/* ── Right Column: Story & Grid ───────────────────────────── */}
+              <div className="lg:col-span-7 flex flex-col">
+                
+                {/* The Letter */}
+                <div className="space-y-6 font-dm text-lg lg:text-xl leading-[1.8] text-forest/90 font-light lg:border-l border-gold/30 lg:pl-16">
+                  <p>
+                    Hi, I&apos;m Bhavani — a Software Engineer by profession, and a lover of handpicked fabrics by heart.
+                  </p>
+                  <p>
+                    Together with my husband, what started as a curated Instagram grid of sarees, dress materials, and kids&apos; wear soon found its feet at the festive stalls of Bhimavaram, where fabric met fingers and digital dreams turned real.
+                  </p>
+                  <p>
+                    Steered from Mumbai, energized by Bhimavaram, and rooted in the heritage of Machilipatnam — Mrudula Vastra is where <span className="italic text-gold">modern vision meets traditional soul</span>.
+                  </p>
+                  
+                  <div className="pt-6">
+                    <p className="font-playfair italic text-3xl text-forest/80">
+                      — Bhavani & Balaji
+                    </p>
+                  </div>
+                </div>
+
+                {/* The Architectural Grid */}
+                <div className="mt-16 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gold/30 border-y border-gold/30 py-8 lg:ml-16">
+                  
+                  <div className="flex flex-col items-center md:items-start px-6 py-4 md:py-0">
+                    <p className="text-[9px] uppercase tracking-[0.4em] text-forest/40 mb-3 font-dm font-semibold">Steered From</p>
+                    <h3 className="font-dm uppercase tracking-widest text-xs text-forest mb-2">Mumbai</h3>
+                    <p className="font-playfair italic text-forest/60 text-sm">Modern Vision</p>
+                  </div>
+
+                  <div className="flex flex-col items-center md:items-center px-6 py-4 md:py-0">
+                    <p className="text-[9px] uppercase tracking-[0.4em] text-forest/40 mb-3 font-dm font-semibold">Energized By</p>
+                    <h3 className="font-dm uppercase tracking-widest text-xs text-forest mb-2">Bhimavaram</h3>
+                    <p className="font-playfair italic text-forest/60 text-sm">Festive Stalls</p>
+                  </div>
+
+                  <div className="flex flex-col items-center md:items-end px-6 py-4 md:py-0">
+                    <p className="text-[9px] uppercase tracking-[0.4em] text-forest/40 mb-3 font-dm font-semibold">Rooted In</p>
+                    <h3 className="font-dm uppercase tracking-widest text-xs text-forest mb-2">Machilipatnam</h3>
+                    <p className="font-playfair italic text-forest/60 text-sm">Heritage Weaves</p>
+                  </div>
+
+                </div>
+
+                {/* Mobile CTA */}
+                <div className="block lg:hidden mt-12 text-center">
+                  <Link
+                    href="/collections"
+                    className="group relative inline-flex items-center justify-center px-12 py-5 overflow-hidden bg-transparent border border-forest/20 w-full"
+                  >
+                    <div className="absolute inset-0 bg-forest translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+                    <span className="relative z-10 text-[10px] uppercase tracking-[0.4em] text-forest font-dm font-bold group-hover:text-cream transition-colors duration-700">
+                      Enter The Boutique
+                    </span>
+                  </Link>
+                </div>
+
               </div>
-              <div className="w-12 h-px bg-gold/30 mx-auto" />
-              <div>
-                <p className="font-playfair text-forest/30 text-4xl font-bold">50+</p>
-                <p className="text-forest/20 font-dm text-xs uppercase tracking-wider mt-1">
-                  Artisan Partners
-                </p>
-              </div>
-              <div className="w-12 h-px bg-gold/30 mx-auto" />
-              <div>
-                <p className="font-playfair text-forest/30 text-4xl font-bold">12+</p>
-                <p className="text-forest/20 font-dm text-xs uppercase tracking-wider mt-1">
-                  Weaving Traditions
-                </p>
-              </div>
-            </div>
-          </div>
+
+            </AnimatedSection>
+          </section>
         </div>
 
-        {/* Values */}
-        <div className="text-center">
-          <p className="uppercase text-gold font-dm font-medium tracking-[0.3em] mb-3 text-[10px]">
-            Our Values
-          </p>
-          <h2 className="font-playfair text-forest font-bold text-3xl mb-12">
-            What We Stand For
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Authenticity",
-                text: "Every piece is sourced directly from master weavers and verified for originality.",
-              },
-              {
-                title: "Sustainability",
-                text: "We champion handloom traditions that preserve the environment and empower communities.",
-              },
-              {
-                title: "Accessibility",
-                text: "Premium ethnic wear should be within everyone's reach, without compromising on quality.",
-              },
-            ].map((value) => (
-              <div
-                key={value.title}
-                className="p-8 bg-white border border-gold/10 hover:border-gold/25 transition-colors duration-300"
-              >
-                <h3 className="font-playfair text-forest font-bold text-xl mb-3">
-                  {value.title}
-                </h3>
-                <p className="text-text-muted font-dm text-sm leading-relaxed">
-                  {value.text}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Visit Us CTA */}
-        <div className="bg-forest text-white p-10 lg:p-16 text-center">
-          <p className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-4 text-[10px]">
-            Visit Us
-          </p>
-          <h2 className="font-playfair font-bold text-3xl mb-6">
-            Experience Our Collection In Person
-          </h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-white/70 font-dm text-sm">
-            <span className="flex items-center gap-2">
-              <MapPin size={16} /> Machilipatnam, Andhra Pradesh
-            </span>
-            <span className="hidden sm:block text-white/30">|</span>
-            <span className="flex items-center gap-2">
-              <Phone size={16} /> +91 7208903117
-            </span>
-            <span className="hidden sm:block text-white/30">|</span>
-            <span className="flex items-center gap-2">
-              <Clock size={16} /> Mon–Sat, 10 AM – 7 PM
-            </span>
-          </div>
-          <div className="mt-4 flex items-center justify-center gap-2 text-white/70 font-dm text-sm">
-            <Mail size={16} />
-            <span>mrudulavastra@gmail.com</span>
-          </div>
-        </div>
-      </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

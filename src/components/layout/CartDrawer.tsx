@@ -189,7 +189,7 @@ export default function CartDrawer() {
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gold/20">
-              <h2 className="font-playfair text-forest text-2xl font-bold flex items-center gap-2">
+              <h2 className="font-playfair text-forest text-2xl font-normal flex items-center gap-2">
                 <ShoppingBag size={22} />
                 Your Cart
               </h2>
@@ -211,7 +211,7 @@ export default function CartDrawer() {
                   className="flex flex-col items-center justify-center h-full text-center space-y-4"
                 >
                   <CheckCircle size={64} className="text-forest mb-2" />
-                  <h3 className="font-playfair text-2xl font-bold text-forest">Order Confirmed!</h3>
+                  <h3 className="font-playfair text-2xl font-normal text-forest">Order Confirmed!</h3>
                   <p className="text-text-muted text-sm">
                     Thank you for shopping with Mrudula Vastra. Your payment was securely processed.
                   </p>
@@ -237,7 +237,7 @@ export default function CartDrawer() {
                       &larr; Back to Cart
                     </button>
                   </div>
-                  <h3 className="font-playfair text-2xl font-bold text-forest">Shipping Details</h3>
+                  <h3 className="font-playfair text-2xl font-normal text-forest">Shipping Details</h3>
                   <div className="space-y-4">
                     <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
                     <input type="email" placeholder="Email Address (for receipt)" value={addressData.email} onChange={e => setAddressData({...addressData, email: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
@@ -289,7 +289,7 @@ export default function CartDrawer() {
                         <p className="text-[10px] uppercase tracking-wider text-text-muted mb-1">
                           {item.product.category}
                         </p>
-                        <h4 className="font-playfair text-forest font-semibold text-lg leading-tight truncate">
+                        <h4 className="font-playfair text-forest font-medium text-lg leading-tight truncate">
                           {item.product.name}
                         </h4>
                         
@@ -343,7 +343,7 @@ export default function CartDrawer() {
               <div className="p-6 border-t border-gold/20 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
                 <div className="flex justify-between items-end mb-6">
                   <span className="text-text-primary font-medium tracking-wide">Subtotal</span>
-                  <span className="font-playfair text-forest font-bold text-2xl">
+                  <span className="font-playfair text-forest font-medium text-2xl">
                     ₹{cartTotal.toLocaleString("en-IN")}
                   </span>
                 </div>

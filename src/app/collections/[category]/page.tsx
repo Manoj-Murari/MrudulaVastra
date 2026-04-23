@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Breadcrumb from "@/components/ui/Breadcrumb";
 import CategoryGrid from "@/components/shop/CategoryGrid";
 import { Suspense } from "react";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
@@ -41,8 +40,12 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const cat = CATEGORY_MAP[category];
-  if (!cat) return { title: "Collection — Mrudula Vastra" };
+  const normalizedCategory = category.toLowerCase();
+  const cat = CATEGORY_MAP[normalizedCategory] || {
+    title: category.charAt(0).toUpperCase() + category.slice(1).replace("-", " "),
+    seoDescription: `Explore our elegant collection of ${category.replace("-", " ")} at Mrudula Vastra.`,
+  };
+
   return {
     title: `${cat.title} — Premium ${cat.title} Collection`,
     description: cat.seoDescription,
@@ -64,15 +67,21 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  const cat = CATEGORY_MAP[category];
-  if (!cat) notFound();
+  const normalizedCategory = category.toLowerCase();
+  
+  // Fallback for dynamically added categories
+  const cat = CATEGORY_MAP[normalizedCategory] || {
+    dbName: category.charAt(0).toUpperCase() + category.slice(1).replace("-", " "),
+    title: category.charAt(0).toUpperCase() + category.slice(1).replace("-", " "),
+    subtitle: `Explore our elegant collection of ${category.replace("-", " ")}.`,
+  };
 
   const supabase = await createClient();
 
   const { data: products } = await (supabase as any)
     .from("products")
     .select("*")
-    .eq("category", cat.dbName)
+    .ilike("category", cat.dbName)
     .order("id", { ascending: true });
 
   return (
@@ -80,28 +89,19 @@ export default async function CategoryPage({
       <AnnouncementBar />
       <Header />
       <main className="min-h-screen bg-cream">
-        {/* Breadcrumb */}
-      <Breadcrumb
-        items={[
-          { label: "Collections", href: "/collections" },
-          { label: cat.title },
-        ]}
-      />
-
       {/* Hero Banner */}
-      <section className="relative py-16 lg:py-20 text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
+      <section className="relative pt-12 pb-10 lg:pt-16 lg:pb-12 text-center">
         <div className="relative z-10 max-w-3xl mx-auto px-6">
           <p
-            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-4"
-            style={{ fontSize: "11px" }}
+            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-3"
+            style={{ fontSize: "10px" }}
           >
             Collection
           </p>
-          <h1 className="font-playfair text-forest font-bold text-4xl lg:text-5xl mb-4">
+          <h1 className="font-playfair text-forest font-light text-3xl mb-3 tracking-wide">
             {cat.title}
           </h1>
-          <p className="text-text-muted font-dm text-lg max-w-xl mx-auto">
+          <p className="text-text-muted font-dm text-sm max-w-lg mx-auto">
             {cat.subtitle}
           </p>
         </div>

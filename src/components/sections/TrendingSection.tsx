@@ -49,10 +49,10 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
   };
 
   return (
-    <section className="bg-cream font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
+    <section className="bg-cream font-dm py-20 sm:py-28 lg:py-36 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-14 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16 lg:mb-20 gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -64,15 +64,15 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                 <InstagramIcon size={13} className="text-white" />
               </div>
               <p
-                className="uppercase font-semibold text-gold"
-                style={{ fontSize: "11px", letterSpacing: "0.3em" }}
+                className="uppercase font-medium text-gold"
+                style={{ fontSize: "11px", letterSpacing: "0.35em" }}
               >
                 As Seen on Reels
               </p>
             </div>
             <h2
-              className="font-playfair text-text-primary font-bold"
-              style={{ fontSize: "clamp(26px, 3vw, 40px)" }}
+              className="font-playfair text-text-primary font-light"
+              style={{ fontSize: "clamp(28px, 3vw, 44px)" }}
             >
               Trending Right Now
             </h2>
@@ -104,7 +104,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-7"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-10"
         >
           {products.map((product) => (
             <Link key={product.id} href={`/product/${product.id}`} className="block">
@@ -207,7 +207,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                   {product.category}
                 </p>
                 <h3
-                  className="font-playfair text-text-primary font-semibold mb-1 sm:mb-2 leading-snug text-[13px] sm:text-[16px]"
+                  className="font-playfair text-text-primary font-normal mb-1 sm:mb-2 leading-snug text-[14px] sm:text-[17px]"
                 >
                   {product.name}
                 </h3>
@@ -220,7 +220,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2 mt-2 sm:mt-0">
                   <div className="flex items-baseline gap-1.5 sm:gap-2">
                     <span
-                      className="font-playfair text-forest font-bold text-[14px] sm:text-[17px]"
+                      className="font-playfair text-forest font-medium text-[15px] sm:text-[18px]"
                     >
                       ₹{product.price.toLocaleString("en-IN")}
                     </span>

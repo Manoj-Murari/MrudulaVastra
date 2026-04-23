@@ -51,7 +51,7 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-playfair text-cream font-bold"
+            className="font-playfair text-cream font-normal"
             style={{ fontSize: "clamp(26px, 3vw, 40px)" }}
           >
             What Our Community Says
@@ -104,7 +104,7 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
               </p>
               <div>
                 <p
-                  className="font-playfair text-cream font-semibold"
+                  className="font-playfair text-cream font-medium"
                   style={{ fontSize: "15px" }}
                 >
                   {t.name}

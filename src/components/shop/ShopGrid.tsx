@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
-import Breadcrumb from "@/components/ui/Breadcrumb";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
 import type { Database } from "@/lib/supabase/types";
@@ -87,23 +86,20 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
   return (
     <>
-      <Breadcrumb items={[{ label: "Collections" }]} />
-
       {/* Hero */}
-      <section className="relative py-16 lg:py-20 text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
+      <section className="relative pt-12 pb-10 lg:pt-16 lg:pb-12 text-center">
         <div className="relative z-10 max-w-3xl mx-auto px-6">
           <p
-            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-4"
-            style={{ fontSize: "11px" }}
+            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-3"
+            style={{ fontSize: "10px" }}
           >
             Shop
           </p>
-          <h1 className="font-playfair text-forest font-bold text-4xl lg:text-5xl mb-4">
-            All Collections
+          <h1 className="font-playfair text-forest font-light text-3xl mb-3 tracking-wide">
+            {activeCategory === "All" ? "All Collections" : activeCategory}
           </h1>
-          <p className="text-text-muted font-dm text-lg max-w-xl mx-auto">
-            Browse our entire curated catalog of handpicked ethnic wear.
+          <p className="text-text-muted font-dm text-sm max-w-lg mx-auto">
+            Browse our curated catalog of handpicked ethnic wear.
           </p>
         </div>
       </section>
@@ -179,7 +175,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
               >
                 ✕
               </button>
-              <h3 className="font-playfair text-xl font-bold text-forest mb-1">Select Size</h3>
+              <h3 className="font-playfair text-xl font-medium text-forest mb-1">Select Size</h3>
               <p className="text-text-muted text-sm font-dm mb-6">{quickAddProduct.name}</p>
               
               <div className="flex flex-wrap gap-3 pb-2">
