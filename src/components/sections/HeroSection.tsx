@@ -74,14 +74,14 @@ export default function HeroSection() {
             The Heritage Collection
           </motion.p>
 
-          {/* Headline — Extremely light, refined scale */}
+          {/* Headline — High contrast, refined scale */}
           <motion.h1
             custom={1}
             variants={textReveal}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="font-playfair text-forest font-light mb-3 tracking-wide"
+            className="font-playfair text-forest font-semibold lg:font-medium mb-3 tracking-wide"
             style={{ lineHeight: 1.1, fontSize: "clamp(36px, 4.5vw, 56px)" }}
           >
             Timeless Elegance
@@ -93,7 +93,7 @@ export default function HeroSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="font-playfair text-gold font-light italic mb-8"
+            className="font-playfair text-gold font-semibold lg:font-medium italic mb-8"
             style={{ lineHeight: 1.1, fontSize: "clamp(30px, 3.5vw, 46px)" }}
           >
             Woven with Love.
@@ -106,7 +106,7 @@ export default function HeroSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mb-10 max-w-sm text-text-muted font-light"
+            className="mb-10 max-w-sm text-text-muted font-medium"
             style={{ lineHeight: 1.8, fontSize: "14px" }}
           >
             Discover handpicked sarees, elegant dress materials, and exquisite kids wear. A curated celebration of Indian heritage, crafted for the modern connoisseur.
@@ -123,7 +123,7 @@ export default function HeroSection() {
           >
             <Link
               href="/collections"
-              className="group relative px-10 py-4 uppercase font-bold overflow-hidden bg-transparent border border-forest/20 text-forest transition-colors duration-500 flex items-center gap-3"
+              className="group relative px-10 py-4 uppercase font-black overflow-hidden bg-transparent border border-forest/20 text-forest transition-colors duration-500 flex items-center gap-3"
               style={{ fontSize: "10px", letterSpacing: "0.3em" }}
             >
               <span className="relative z-10 group-hover:text-cream transition-colors duration-500">
@@ -140,7 +140,7 @@ export default function HeroSection() {
               href="https://www.instagram.com/mrudulavastra/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group px-8 py-4 uppercase font-bold transition-all duration-500 flex items-center gap-3 text-forest/60 hover:text-forest"
+              className="group px-8 py-4 uppercase font-black transition-all duration-500 flex items-center gap-3 text-forest/60 hover:text-forest"
               style={{
                 fontSize: "10px",
                 letterSpacing: "0.3em",
@@ -163,13 +163,13 @@ export default function HeroSection() {
             {pillars.map(([label, sub], idx) => (
               <div key={sub} className="relative">
                 <p
-                  className="font-playfair text-forest font-light"
+                  className="font-playfair text-forest font-bold lg:font-semibold"
                   style={{ fontSize: "16px" }}
                 >
                   {label}
                 </p>
                 <p
-                  className="text-text-muted font-semibold uppercase"
+                  className="text-forest/80 font-black uppercase"
                   style={{ fontSize: "8px", letterSpacing: "0.2em", marginTop: "4px" }}
                 >
                   {sub}
