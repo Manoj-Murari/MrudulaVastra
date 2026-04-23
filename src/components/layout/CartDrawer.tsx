@@ -289,7 +289,7 @@ export default function CartDrawer() {
                         <p className="text-[10px] uppercase tracking-wider text-text-muted mb-1">
                           {item.product.category}
                         </p>
-                        <h4 className="font-playfair text-forest font-medium text-lg leading-tight truncate">
+                        <h4 className="font-cormorant text-forest font-medium text-xl leading-tight truncate">
                           {item.product.name}
                         </h4>
                         

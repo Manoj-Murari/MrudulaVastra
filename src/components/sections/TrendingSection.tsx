@@ -207,7 +207,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                   {product.category}
                 </p>
                 <h3
-                  className="font-playfair text-text-primary font-normal mb-1 sm:mb-2 leading-snug text-[14px] sm:text-[17px]"
+                  className="font-cormorant text-text-primary font-medium mb-1 sm:mb-2 leading-snug text-[16px] sm:text-[19px]"
                 >
                   {product.name}
                 </h3>

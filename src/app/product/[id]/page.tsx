@@ -142,7 +142,7 @@ export default async function ProductPage({
           <p className="text-xs uppercase tracking-[0.2em] text-text-muted font-dm mb-2">
             {product.category}
           </p>
-          <h1 className="font-playfair text-forest font-black lg:font-bold text-3xl lg:text-[34px] leading-snug mb-4">
+          <h1 className="font-cormorant text-forest font-medium text-4xl lg:text-[42px] leading-snug mb-4">
             {product.name}
           </h1>
           <div className="flex items-center gap-4 mb-6">

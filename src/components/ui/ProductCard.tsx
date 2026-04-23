@@ -193,7 +193,7 @@ export default function ProductCard({
             >
               {product.category}
             </p>
-            <h3 className="font-playfair font-black lg:font-medium text-text-primary mb-2 leading-snug text-[14px] sm:text-[17px]">
+            <h3 className="font-cormorant font-medium text-text-primary mb-2 leading-snug text-[16px] sm:text-[19px]">
               {product.name}
             </h3>
 
@@ -338,7 +338,7 @@ export default function ProductCard({
           {product.category}
         </p>
         <Link href={`/product/${product.id}`} className="mb-2">
-          <h3 className="font-playfair text-forest font-black lg:font-medium text-lg leading-tight group-hover:text-gold transition-colors duration-500">
+          <h3 className="font-cormorant text-forest font-medium text-xl leading-tight group-hover:text-gold transition-colors duration-500">
             {product.name}
           </h3>
         </Link>
