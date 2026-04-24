@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/providers/CartProvider";
 import { ProgressBarProvider } from "@/components/providers/ProgressBarProvider";
 import JsonLd from "@/components/seo/JsonLd";
 import WelcomeModal from "@/components/ui/WelcomeModal";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -176,6 +177,7 @@ export default function RootLayout({
           <CartProvider>{children}</CartProvider>
         </ProgressBarProvider>
         <WelcomeModal />
+        <SpeedInsights />
       </body>
     </html>
   );
