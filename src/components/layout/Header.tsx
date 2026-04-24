@@ -13,8 +13,8 @@ function NavLink({ label, href }: { label: string; href: string }) {
     <Link
       href={href}
       prefetch={true}
-      className="relative py-1 text-text-nav font-medium font-dm group text-[12.5px] lg:text-[14.5px]"
-      style={{ letterSpacing: "0.08em" }}
+      className="relative py-1 text-text-nav font-medium font-dm group"
+      style={{ fontSize: "12.5px", letterSpacing: "0.08em" }}
     >
       {label}
       <span className="absolute left-0 right-0 bottom-0 h-[1.5px] bg-gold origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-400 ease-[cubic-bezier(0.25,0.4,0.25,1)]" />
@@ -45,7 +45,7 @@ function SearchBar() {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder="Search sarees, kurtas..."
-        className="w-full py-2 lg:py-2.5 pl-10 pr-4 bg-cream/40 border border-gold/10 rounded-full font-dm text-[11px] lg:text-[14px] tracking-wide text-forest placeholder:text-text-muted/50 focus:outline-none focus:border-gold/40 focus:bg-white transition-all duration-300"
+        className="w-full py-2 lg:py-2.5 pl-10 pr-4 bg-cream/40 border border-gold/10 rounded-full font-dm text-[11px] lg:text-[13px] tracking-wide text-forest placeholder:text-text-muted/50 focus:outline-none focus:border-gold/40 focus:bg-white transition-all duration-300"
       />
     </form>
   );
@@ -108,7 +108,7 @@ export default function Header() {
             <p
               className="font-playfair text-forest font-bold transition-all duration-300 whitespace-nowrap"
               style={{
-                fontSize: scrolled ? "clamp(16px, 2.5vw, 28px)" : "clamp(18px, 3.5vw, 36px)",
+                fontSize: scrolled ? "clamp(16px, 2.5vw, 24px)" : "clamp(18px, 3vw, 30px)",
                 letterSpacing: "0.08em",
                 lineHeight: 1.1,
               }}
@@ -116,8 +116,9 @@ export default function Header() {
               MRUDULA VASTRA
             </p>
             <p
-              className="uppercase text-gold font-dm font-medium overflow-hidden transition-all duration-300 text-[10px] lg:text-[12px]"
+              className="uppercase text-gold font-dm font-medium overflow-hidden transition-all duration-300"
               style={{
+                fontSize: "10px",
                 letterSpacing: "0.25em",
                 height: scrolled ? 0 : "auto",
                 opacity: scrolled ? 0 : 1,

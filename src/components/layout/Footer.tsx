@@ -91,8 +91,8 @@ export default function Footer() {
         {/* Brand */}
         <AnimatedSection delay={0}>
           <h3
-            className="font-playfair text-cream font-medium mb-2 text-[20px] lg:text-[24px]"
-            style={{ letterSpacing: "0.06em" }}
+            className="font-playfair text-cream font-medium mb-2"
+            style={{ fontSize: "20px", letterSpacing: "0.06em" }}
           >
             MRUDULA VASTRA
           </h3>
@@ -223,7 +223,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="px-6 lg:px-10 py-6" style={{ borderTop: "1px solid rgba(184,150,62,0.1)" }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-3 text-center sm:text-left">
-          <p className="text-[12px] lg:text-[14px]" style={{ color: "rgba(253,251,247,0.3)" }}>
+          <p style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}>
             © 2026 Mrudula Vastra. All Rights Reserved.
           </p>
           <div className="flex items-center gap-5">
@@ -235,14 +235,14 @@ export default function Footer() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="hover:text-amber-400/60 transition-colors text-[12px] lg:text-[14px]"
-                style={{ color: "rgba(253,251,247,0.3)" }}
+                className="hover:text-amber-400/60 transition-colors"
+                style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <p className="text-[11px] lg:text-[13px]" style={{ color: "rgba(253,251,247,0.25)" }}>
+          <p style={{ color: "rgba(253,251,247,0.25)", fontSize: "11px" }}>
             Made with ❤️ in India
           </p>
         </div>

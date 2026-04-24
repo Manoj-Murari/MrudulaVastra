@@ -31,22 +31,22 @@ export default function HeroSection() {
           {/* Headline */}
           <h1
             className="font-playfair text-forest font-semibold lg:font-medium mb-3 tracking-wide"
-            style={{ lineHeight: 1.1, fontSize: "clamp(36px, 4.5vw, 72px)" }}
+            style={{ lineHeight: 1.1, fontSize: "clamp(36px, 4.5vw, 56px)" }}
           >
             Timeless Elegance
           </h1>
 
           <p
             className="font-playfair text-gold font-semibold lg:font-medium italic mb-8"
-            style={{ lineHeight: 1.1, fontSize: "clamp(30px, 3.5vw, 58px)" }}
+            style={{ lineHeight: 1.1, fontSize: "clamp(30px, 3.5vw, 46px)" }}
           >
             Woven with Love.
           </p>
 
           {/* Body copy */}
           <p
-            className="mb-10 max-w-sm text-text-muted font-medium text-[14px] lg:text-[16px]"
-            style={{ lineHeight: 1.8 }}
+            className="mb-10 max-w-sm text-text-muted font-medium"
+            style={{ lineHeight: 1.8, fontSize: "14px" }}
           >
             Discover handpicked sarees, elegant dress materials, and exquisite kids wear. A curated celebration of Indian heritage, crafted for the modern connoisseur.
           </p>
@@ -55,8 +55,8 @@ export default function HeroSection() {
           <div className="flex flex-wrap gap-5">
             <Link
               href="/collections"
-              className="group relative px-10 py-4 uppercase font-black overflow-hidden bg-transparent border border-forest/20 text-forest transition-colors duration-500 flex items-center gap-3 text-[10px] lg:text-[12px]"
-              style={{ letterSpacing: "0.3em" }}
+              className="group relative px-10 py-4 uppercase font-black overflow-hidden bg-transparent border border-forest/20 text-forest transition-colors duration-500 flex items-center gap-3"
+              style={{ fontSize: "10px", letterSpacing: "0.3em" }}
             >
               <span className="relative z-10 group-hover:text-cream transition-colors duration-500">
                 Shop Collection
@@ -65,15 +65,16 @@ export default function HeroSection() {
                 size={12}
                 className="relative z-10 group-hover:translate-x-1.5 group-hover:text-cream transition-all duration-500"
               />
-              <span className="absolute inset-0 bg-forest translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+              <div className="absolute inset-0 bg-forest translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
             </Link>
-
+ 
             <Link
               href="https://www.instagram.com/mrudulavastra/"
               target="_blank"
               rel="noopener noreferrer"
-              className="group px-8 py-4 uppercase font-black transition-all duration-500 flex items-center gap-3 text-forest/60 hover:text-forest text-[10px] lg:text-[12px]"
+              className="group px-8 py-4 uppercase font-black transition-all duration-500 flex items-center gap-3 text-forest/60 hover:text-forest"
               style={{
+                fontSize: "10px",
                 letterSpacing: "0.3em",
               }}
             >
@@ -83,17 +84,18 @@ export default function HeroSection() {
           </div>
 
           {/* Pillar stats */}
-          <div className="flex items-center gap-10 mt-16">
+          <div className="mt-16 flex flex-wrap gap-12 lg:gap-16">
             {pillars.map(([label, sub], idx) => (
               <div key={sub} className="relative">
                 <p
-                  className="font-playfair text-forest font-bold lg:font-semibold text-[16px] lg:text-[18px]"
+                  className="font-playfair text-forest font-bold lg:font-semibold"
+                  style={{ fontSize: "16px" }}
                 >
                   {label}
                 </p>
                 <p
-                  className="text-forest/80 font-black uppercase text-[8px] lg:text-[10px]"
-                  style={{ letterSpacing: "0.2em", marginTop: "4px" }}
+                  className="text-forest/80 font-black uppercase"
+                  style={{ fontSize: "8px", letterSpacing: "0.2em", marginTop: "4px" }}
                 >
                   {sub}
                 </p>
