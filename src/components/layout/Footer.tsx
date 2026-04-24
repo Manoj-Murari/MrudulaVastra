@@ -49,10 +49,10 @@ export default function Footer() {
       <div className="bg-gold py-10 px-6 lg:px-10">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="text-center sm:text-left">
-            <p className="font-playfair font-normal" style={{ color: "#0E2219", fontSize: "20px" }}>
+            <p className="font-playfair font-normal text-[20px] lg:text-[24px]" style={{ color: "#0E2219" }}>
               Join the Mrudula Circle
             </p>
-            <p style={{ color: "rgba(14,34,25,0.7)", fontSize: "13px" }}>
+            <p className="text-[13px] lg:text-[15px]" style={{ color: "rgba(14,34,25,0.7)" }}>
               Get exclusive drops, early access &amp; festive offers.
             </p>
           </div>
@@ -63,21 +63,19 @@ export default function Footer() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 px-5 py-3.5 outline-none placeholder:text-emerald-900/40 w-full sm:w-56"
+              className="flex-1 px-5 py-3.5 outline-none placeholder:text-emerald-900/40 w-full sm:w-56 text-[13px] lg:text-[15px]"
               style={{
                 background: "rgba(14,34,25,0.1)",
                 border: "1.5px solid rgba(14,34,25,0.3)",
                 color: "#0E2219",
-                fontSize: "13px",
               }}
             />
             <button
               type="submit"
-              className="px-6 py-3.5 uppercase font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto"
+              className="px-6 py-3.5 uppercase font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto text-[12px] lg:text-[14px]"
               style={{
                 background: "#0E2219",
                 color: "#B8963E",
-                fontSize: "12px",
                 letterSpacing: "0.1em",
               }}
             >
@@ -93,20 +91,20 @@ export default function Footer() {
         {/* Brand */}
         <AnimatedSection delay={0}>
           <h3
-            className="font-playfair text-cream font-medium mb-2"
-            style={{ fontSize: "20px", letterSpacing: "0.06em" }}
+            className="font-playfair text-cream font-medium mb-2 text-[20px] lg:text-[24px]"
+            style={{ letterSpacing: "0.06em" }}
           >
             MRUDULA VASTRA
           </h3>
           <p
-            className="uppercase mb-5 text-gold"
-            style={{ fontSize: "10px", letterSpacing: "0.25em" }}
+            className="uppercase mb-5 text-gold text-[10px] lg:text-[12px]"
+            style={{ letterSpacing: "0.25em" }}
           >
             Elegance Woven in Every Thread
           </p>
           <p
-            className="mb-6"
-            style={{ color: "rgba(253,251,247,0.5)", fontSize: "13px", lineHeight: 1.8 }}
+            className="mb-6 text-[13px] lg:text-[15px]"
+            style={{ color: "rgba(253,251,247,0.5)", lineHeight: 1.8 }}
           >
             Handpicked ethnic wear that blends heritage craftsmanship with contemporary
             elegance — for women and children who deserve the finest.
@@ -131,8 +129,8 @@ export default function Footer() {
         {/* Quick Links */}
         <AnimatedSection delay={0.1}>
           <p
-            className="uppercase font-semibold mb-5 text-cream"
-            style={{ fontSize: "12px", letterSpacing: "0.2em" }}
+            className="uppercase font-semibold mb-5 text-cream text-[12px] lg:text-[14px]"
+            style={{ letterSpacing: "0.2em" }}
           >
             Quick Links
           </p>
@@ -140,8 +138,8 @@ export default function Footer() {
             <Link
               key={link.label}
               href={link.href}
-              className="block mb-3 hover:text-amber-400 transition-colors duration-200"
-              style={{ color: "rgba(253,251,247,0.45)", fontSize: "13px" }}
+              className="block mb-3 hover:text-amber-400 transition-colors duration-200 text-[13px] lg:text-[15px]"
+              style={{ color: "rgba(253,251,247,0.45)" }}
             >
               {link.label}
             </Link>
@@ -151,8 +149,8 @@ export default function Footer() {
         {/* Customer Care */}
         <AnimatedSection delay={0.2}>
           <p
-            className="uppercase font-semibold mb-5 text-cream"
-            style={{ fontSize: "12px", letterSpacing: "0.2em" }}
+            className="uppercase font-semibold mb-5 text-cream text-[12px] lg:text-[14px]"
+            style={{ letterSpacing: "0.2em" }}
           >
             Customer Care
           </p>
@@ -160,8 +158,8 @@ export default function Footer() {
             <Link
               key={link.label}
               href={link.href}
-              className="block mb-3 hover:text-amber-400 transition-colors duration-200"
-              style={{ color: "rgba(253,251,247,0.45)", fontSize: "13px" }}
+              className="block mb-3 hover:text-amber-400 transition-colors duration-200 text-[13px] lg:text-[15px]"
+              style={{ color: "rgba(253,251,247,0.45)" }}
             >
               {link.label}
             </Link>
@@ -171,8 +169,8 @@ export default function Footer() {
         {/* Contact */}
         <AnimatedSection delay={0.3}>
           <p
-            className="uppercase font-semibold mb-5 text-cream"
-            style={{ fontSize: "12px", letterSpacing: "0.2em" }}
+            className="uppercase font-semibold mb-5 text-cream text-[12px] lg:text-[14px]"
+            style={{ letterSpacing: "0.2em" }}
           >
             Reach Us
           </p>
@@ -187,13 +185,13 @@ export default function Footer() {
                 {href ? (
                   <a
                     href={href}
-                    className="hover:text-amber-400 transition-colors duration-200"
-                    style={{ color: "rgba(253,251,247,0.5)", fontSize: "13px", lineHeight: 1.5 }}
+                    className="hover:text-amber-400 transition-colors duration-200 text-[13px] lg:text-[15px]"
+                    style={{ color: "rgba(253,251,247,0.5)", lineHeight: 1.5 }}
                   >
                     {text}
                   </a>
                 ) : (
-                  <span style={{ color: "rgba(253,251,247,0.5)", fontSize: "13px", lineHeight: 1.5 }}>
+                  <span className="text-[13px] lg:text-[15px]" style={{ color: "rgba(253,251,247,0.5)", lineHeight: 1.5 }}>
                     {text}
                   </span>
                 )}
@@ -209,15 +207,15 @@ export default function Footer() {
             }}
           >
             <p
-              className="uppercase font-semibold mb-1 text-gold"
-              style={{ fontSize: "11px", letterSpacing: "0.1em" }}
+              className="uppercase font-semibold mb-1 text-gold text-[11px] lg:text-[13px]"
+              style={{ letterSpacing: "0.1em" }}
             >
               Business Hours
             </p>
-            <p style={{ color: "rgba(253,251,247,0.5)", fontSize: "12px" }}>
+            <p className="text-[12px] lg:text-[14px]" style={{ color: "rgba(253,251,247,0.5)" }}>
               Mon – Sat: 10am – 7pm
             </p>
-            <p style={{ color: "rgba(253,251,247,0.5)", fontSize: "12px" }}>Sunday: Closed</p>
+            <p className="text-[12px] lg:text-[14px]" style={{ color: "rgba(253,251,247,0.5)" }}>Sunday: Closed</p>
           </div>
         </AnimatedSection>
       </div>
@@ -225,7 +223,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="px-6 lg:px-10 py-6" style={{ borderTop: "1px solid rgba(184,150,62,0.1)" }}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-3 text-center sm:text-left">
-          <p style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}>
+          <p className="text-[12px] lg:text-[14px]" style={{ color: "rgba(253,251,247,0.3)" }}>
             © 2026 Mrudula Vastra. All Rights Reserved.
           </p>
           <div className="flex items-center gap-5">
@@ -237,14 +235,14 @@ export default function Footer() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="hover:text-amber-400/60 transition-colors"
-                style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}
+                className="hover:text-amber-400/60 transition-colors text-[12px] lg:text-[14px]"
+                style={{ color: "rgba(253,251,247,0.3)" }}
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <p style={{ color: "rgba(253,251,247,0.25)", fontSize: "11px" }}>
+          <p className="text-[11px] lg:text-[13px]" style={{ color: "rgba(253,251,247,0.25)" }}>
             Made with ❤️ in India
           </p>
         </div>
