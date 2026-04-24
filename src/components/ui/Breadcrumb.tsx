@@ -20,7 +20,7 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
 
         {/* Breadcrumb Trail */}
         <ol className="flex items-center gap-2 font-dm text-[11px] tracking-[0.15em] uppercase w-full">
-          <li>
+          <li className="shrink-0">
             <Link
               href="/"
               className="text-text-muted hover:text-forest transition-colors"
@@ -29,17 +29,17 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
             </Link>
           </li>
           {items.map((item, i) => (
-            <li key={i} className="flex items-center gap-2">
-              <span className="text-gold/40">/</span>
+            <li key={i} className={`flex items-center gap-2 ${!item.href ? "min-w-0 flex-1" : "shrink-0"}`}>
+              <span className="text-gold/40 shrink-0">/</span>
               {item.href ? (
                 <Link
                   href={item.href}
-                  className="text-text-muted hover:text-forest transition-colors"
+                  className="text-text-muted hover:text-forest transition-colors whitespace-nowrap"
                 >
                   {item.label}
                 </Link>
               ) : (
-                <span className="text-forest font-bold">
+                <span className="text-forest font-bold truncate block w-full">
                   {item.label}
                 </span>
               )}
