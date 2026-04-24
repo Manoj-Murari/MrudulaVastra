@@ -26,8 +26,13 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
-  const CATEGORIES = ["Sarees", "Dress Materials", "Kids Wear", "Lehengas", "Kurtas", "Accessories"];
-  const COLORS = ["Red", "Blue", "Green", "Yellow", "Pink", "Gold", "Black", "White", "Navy", "Maroon", "Silver", "Multicolor", "Grey", "Orange", "Purple"];
+  const CATEGORIES = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear", "Lehengas", "Accessories"];
+  const COLORS = [
+    "Red", "Blue", "Green", "Yellow", "Pink", "Gold", "Black", "White", "Navy", "Maroon", 
+    "Silver", "Multicolor", "Grey", "Orange", "Purple", "Teal", "Mustard", "Peach", 
+    "Lavender", "Emerald Green", "Olive", "Magenta", "Cream", "Beige", "Turquoise", 
+    "Rust", "Coral", "Indigo", "Mint", "Wine", "Copper", "Coffee"
+  ];
   const SIZES = ["Unstitched", "Free Size", "XS", "S", "M", "L", "XL", "XXL", "3XL", "1-2Y", "3-4Y", "5-6Y", "7-8Y"];
 
   const [formData, setFormData] = useState({
@@ -69,7 +74,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   };
 
   const handleDelete = async () => {
-    if (!deleteTarget || deleteConfirm !== deleteTarget.name) return;
+    const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (!deleteTarget || normalize(deleteConfirm) !== normalize(deleteTarget.name)) return;
     const id = deleteTarget.id;
     const targetProduct = deleteTarget;
     setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -86,13 +92,54 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const handleRemoveImage = (imgUrl: string) => {
     setFormData(prev => {
         if (prev.image === imgUrl) {
-            // Pick next from gallery as primary if exists
             const nextGallery = [...(prev.gallery_images || [])];
             const nextPrimary = nextGallery.length > 0 ? nextGallery.shift()! : "";
             return { ...prev, image: nextPrimary, gallery_images: nextGallery };
         } else {
             return { ...prev, gallery_images: (prev.gallery_images || []).filter(u => u !== imgUrl) };
         }
+    });
+  };
+
+  const handleSetPrimary = (url: string) => {
+    setFormData(prev => {
+      if (prev.image === url) return prev;
+      const oldPrimary = prev.image;
+      const newGallery = [oldPrimary, ...prev.gallery_images.filter(u => u !== url)].filter(Boolean);
+      return { ...prev, image: url, gallery_images: newGallery };
+    });
+  };
+
+  const handleMoveImage = (index: number, direction: 'left' | 'right') => {
+    setFormData(prev => {
+      const gallery = [...(prev.gallery_images || [])];
+      
+      if (direction === 'left') {
+        if (index === 0) {
+          // Swap with primary
+          const oldPrimary = prev.image;
+          const target = gallery[0];
+          const newGallery = [oldPrimary, ...gallery.slice(1)].filter(Boolean);
+          return { ...prev, image: target, gallery_images: newGallery };
+        }
+        [gallery[index], gallery[index-1]] = [gallery[index-1], gallery[index]];
+      } else {
+        if (index === gallery.length - 1) return prev;
+        [gallery[index], gallery[index+1]] = [gallery[index+1], gallery[index]];
+      }
+      
+      return { ...prev, gallery_images: gallery };
+    });
+  };
+
+  const handleMovePrimaryRight = () => {
+    setFormData(prev => {
+      const gallery = [...(prev.gallery_images || [])];
+      if (gallery.length === 0) return prev;
+      const oldPrimary = prev.image;
+      const newPrimary = gallery[0];
+      const newGallery = [oldPrimary, ...gallery.slice(1)].filter(Boolean);
+      return { ...prev, image: newPrimary, gallery_images: newGallery };
     });
   };
 
@@ -153,15 +200,18 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     };
 
     const res = await upsertProduct(newProduct);
-    if (!res.error) {
-       setProducts(prev => editId ? prev.map(p => p.id === editId ? { ...p, ...newProduct } : p) : [{ id: Math.random() * 1000000, ...newProduct }, ...prev]);
+    if (!res.error && res.data) {
+       setProducts(prev => editId 
+         ? prev.map(p => p.id === editId ? res.data : p) 
+         : [res.data, ...prev]
+       );
        setIsAdding(false);
        setEditId(null);
        setFormData({
         name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: []
        });
     } else {
-       alert("Failed to add product: " + res.error);
+       alert("Failed to save product: " + res.error);
     }
     setIsSaving(false);
   };
@@ -408,7 +458,12 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                 </button>
                 <button
                   onClick={handleDelete}
-                  disabled={deleteConfirm !== deleteTarget.name}
+                  disabled={
+                    (() => {
+                      const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+                      return normalize(deleteConfirm) !== normalize(deleteTarget?.name || "");
+                    })()
+                  }
                   className="flex-1 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors disabled:opacity-30"
                   style={{ background: "var(--admin-red)", color: "#fff", fontFamily: "'DM Sans', sans-serif" }}
                 >
@@ -511,18 +566,22 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                               className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border shrink-0 relative group"
                               style={{ borderColor: "var(--admin-accent)", background: "var(--admin-surface-elevated)" }}
                             >
-                              <Image src={formData.image} alt="Primary Preview" fill className="object-cover" />
+                              <Image src={formData.image} alt="Primary Preview" fill sizes="80px" className="object-cover" />
                               <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" style={{ background: "var(--admin-accent)", color: "#000" }}>
                                 Primary
                               </div>
-                              <button 
-                                type="button"
-                                onClick={() => handleRemoveImage(formData.image)}
-                                className="absolute top-1 right-1 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
-                                style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}
-                              >
-                                <X size={12} />
-                              </button>
+                              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                                <button type="button" onClick={handleMovePrimaryRight} className="p-1 rounded bg-white/20 text-white hover:bg-white/40">
+                                  <motion.span animate={{ x: 2 }} className="block">→</motion.span>
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleRemoveImage(formData.image)}
+                                  className="p-1 rounded bg-white/20 text-white hover:bg-white/40"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
                             </div>
                           )}
 
@@ -533,15 +592,25 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                               className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border shrink-0 relative group"
                               style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
                             >
-                              <Image src={url} alt={`Gallery Preview ${i+1}`} fill className="object-cover" />
-                              <button 
-                                type="button"
-                                onClick={() => handleRemoveImage(url)}
-                                className="absolute top-1 right-1 p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" 
-                                style={{ background: "rgba(0,0,0,0.6)", color: "#fff" }}
-                              >
-                                <X size={12} />
-                              </button>
+                              <Image src={url} alt={`Gallery Preview ${i+1}`} fill sizes="80px" className="object-cover" />
+                              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                                <button type="button" onClick={() => handleMoveImage(i, 'left')} className="p-1 rounded bg-white/20 text-white hover:bg-white/40">
+                                  ←
+                                </button>
+                                <button type="button" onClick={() => handleSetPrimary(url)} className="p-1 rounded bg-white/20 text-white hover:bg-white/40 text-[8px] font-bold uppercase">
+                                  ⭐
+                                </button>
+                                <button type="button" onClick={() => handleMoveImage(i, 'right')} className="p-1 rounded bg-white/20 text-white hover:bg-white/40">
+                                  →
+                                </button>
+                                <button 
+                                  type="button"
+                                  onClick={() => handleRemoveImage(url)}
+                                  className="p-1 rounded bg-white/20 text-white hover:bg-white/40"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
                             </div>
                           ))}
 

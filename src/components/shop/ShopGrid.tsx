@@ -12,7 +12,7 @@ import type { Database } from "@/lib/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
-const CATEGORIES = ["All", "Sarees", "Dress Materials", "Kids Wear"];
+const CATEGORIES = ["All", "Sarees", "Kurtas", "Dress Materials", "Kids Wear"];
 
 export default function ShopGrid({ products }: { products: Product[] }) {
   const searchParams = useSearchParams();

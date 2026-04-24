@@ -50,8 +50,12 @@ export default function ShopUtilityBar({
   const [sizeOpen, setSizeOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const MATERIAL_OPTS = ["All", "Silk", "Cotton", "Linen", "Chiffon"];
-  const COLOR_OPTS = ["All", "Red", "Blue", "Green", "Yellow", "Black", "White", "Pink"];
+  const MATERIAL_OPTS = ["All", "Silk", "Cotton", "Linen", "Chiffon", "Georgette", "Crepe"];
+  const COLOR_OPTS = [
+    "All", "Red", "Blue", "Green", "Yellow", "Black", "White", "Pink", "Gold", "Silver", 
+    "Maroon", "Teal", "Mustard", "Peach", "Lavender", "Emerald Green", "Olive", "Magenta", 
+    "Cream", "Beige", "Turquoise", "Rust", "Coral", "Indigo", "Mint", "Wine", "Copper", "Coffee"
+  ];
   const SIZE_OPTS = ["All", "Unstitched", "S", "M", "L", "XL"];
 
   const hasActiveFilters = 
@@ -124,7 +128,7 @@ export default function ShopUtilityBar({
                   />
                 </button>
                 {materialOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px]">
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px] max-h-72 overflow-y-auto admin-scroll">
                     {MATERIAL_OPTS.map((opt) => (
                       <button
                         key={opt}
@@ -166,7 +170,7 @@ export default function ShopUtilityBar({
                   />
                 </button>
                 {colorOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px]">
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px] max-h-72 overflow-y-auto admin-scroll">
                     {COLOR_OPTS.map((opt) => (
                       <button
                         key={opt}
@@ -208,7 +212,7 @@ export default function ShopUtilityBar({
                   />
                 </button>
                 {sizeOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px]">
+                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px] max-h-72 overflow-y-auto admin-scroll">
                     {SIZE_OPTS.map((opt) => (
                       <button
                         key={opt}
@@ -249,7 +253,7 @@ export default function ShopUtilityBar({
                 />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[180px]">
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[180px] max-h-72 overflow-y-auto admin-scroll">
                   {SORT_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}

@@ -167,13 +167,16 @@ export async function deleteProduct(productId: number) {
 
 export async function upsertProduct(product: Database["public"]["Tables"]["products"]["Insert"]) {
   const supabase = await createClient();
-  const { error } = await (supabase as any)
+  const { data, error } = await (supabase as any)
     .from("products")
-    .upsert(product);
+    .upsert(product)
+    .select()
+    .single();
+    
   if (error) return { error: error.message };
   revalidatePath("/admin/inventory");
   revalidatePath("/admin");
-  return { success: true };
+  return { success: true, data };
 }
 
 /* ─── Customer Data ───────────────────────────────────── */

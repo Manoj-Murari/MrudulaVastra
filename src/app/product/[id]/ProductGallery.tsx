@@ -36,6 +36,10 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
   }, [activeIndex, images]);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     if (!isLightboxOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIsLightboxOpen(false);
