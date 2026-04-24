@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
@@ -15,37 +13,12 @@ const posts = [
   { id: 5, img: "/images/insta-6.webp", alt: "Designer ethnic outfit for kids — adorable traditional wear from Mrudula Vastra" },
 ];
 
-const gridVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.5, ease: [0.25, 0.4, 0.25, 1] as const },
-  },
-};
-
 export default function InstagramBanner() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
-
   return (
     <section className="bg-sand py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center justify-center gap-3 mb-3"
-          >
+        <div className="text-center mb-12 animate-fade-up">
+          <div className="flex items-center justify-center gap-3 mb-3">
             <InstagramIcon size={18} className="text-gold" />
             <p
               className="uppercase font-semibold text-gold font-dm"
@@ -53,49 +26,36 @@ export default function InstagramBanner() {
             >
               Follow Our Journey
             </p>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          </div>
+          <h2
             className="font-playfair font-normal mb-2"
             style={{ fontSize: "clamp(24px, 3vw, 38px)" }}
           >
             <a href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="text-text-primary hover:text-gold transition-colors duration-300">
               @mrudulavastra
             </a>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+          </h2>
+          <p
             className="text-text-muted font-dm"
             style={{ fontSize: "14px" }}
           >
             Real women. Real elegance. Daily drops on Instagram.
-          </motion.p>
+          </p>
         </div>
 
-        <motion.div
-          ref={ref}
-          variants={gridVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-10"
-        >
-          {posts.map((post) => (
-            <motion.div
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-10">
+          {posts.map((post, idx) => (
+            <div
               key={post.id}
-              variants={itemVariants}
-              className="group relative overflow-hidden aspect-square cursor-pointer"
+              className="group relative overflow-hidden aspect-square cursor-pointer animate-fade-up"
+              style={{ animationDelay: `${idx * 0.05}s` }}
             >
               <Image
                 src={post.img}
                 alt={post.alt}
                 fill
-                sizes="(max-width: 640px) 33vw, 16vw"
+                sizes="(max-width: 640px) 50vw, 16vw"
+                loading="lazy"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div
@@ -104,17 +64,11 @@ export default function InstagramBanner() {
               >
                 <Heart size={20} className="text-white fill-white" />
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-center"
-        >
+        <div className="text-center animate-fade-up" style={{ animationDelay: "0.3s" }}>
           <a
             href="https://www.instagram.com/mrudulavastra/"
             target="_blank"
@@ -129,7 +83,7 @@ export default function InstagramBanner() {
             <InstagramIcon size={14} />
             Follow on Instagram
           </a>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Heart } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import StarRating from "@/components/ui/StarRating";
 import type { Database } from "@/lib/supabase/types";
@@ -19,31 +18,22 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
-/* ── Animation Variants ───────────────────────────────── */
-const luxuryEase = [0.16, 1, 0.3, 1] as const;
-
-const glassReveal = {
-  hidden: { y: "100%", opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { duration: 0.45, ease: luxuryEase },
-  },
-  exit: {
-    y: "100%",
-    opacity: 0,
-    transition: { duration: 0.3, ease: [0.4, 0, 1, 1] as const },
-  },
+/* ── Color hex lookup (shared) ─────────────────────── */
+const COLOR_HEX: Record<string, string> = {
+  "Red": "#D32F2F", "Blue": "#1976D2", "Green": "#388E3C", "Yellow": "#FBC02D",
+  "Pink": "#E91E63", "Gold": "#D4AF37", "Black": "#000000", "White": "#FFFFFF",
+  "Navy": "#000080", "Maroon": "#800000", "Silver": "#C0C0C0",
+  "Grey": "#808080", "Orange": "#FF9800", "Purple": "#9C27B0", "Teal": "#008080",
+  "Mustard": "#E1AD01", "Peach": "#FFDAB9", "Lavender": "#E6E6FA", "Emerald Green": "#50C878",
+  "Olive": "#808000", "Magenta": "#FF00FF", "Cream": "#FFFDD0", "Beige": "#F5F5DC",
+  "Turquoise": "#40E0D0", "Rust": "#B7410E", "Coral": "#FF7F50", "Indigo": "#4B0082",
+  "Mint": "#98FF98", "Wine": "#722F37", "Copper": "#B87333", "Coffee": "#6F4E37",
 };
 
-const priceReveal = {
-  hidden: { opacity: 0, y: 8 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: 0.1 + i * 0.06, duration: 0.35, ease: luxuryEase },
-  }),
-};
+function normalizeColor(color: string): string {
+  const c = color.trim();
+  return c.charAt(0).toUpperCase() + c.slice(1).toLowerCase();
+}
 
 export default function ProductCard({
   product,
@@ -56,22 +46,21 @@ export default function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const isSoldOut = product.inventory_count === 0;
 
-  // Badge Logic - Premium & Minimalist
+  // Badge Logic
   const isActuallyNew =
     (product as any).is_new === true ||
     ((product as any).created_at &&
       new Date((product as any).created_at).getTime() >
         Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-  // Determine the most relevant badge (Priority: Custom Tag > New Badge)
   const activeBadge = product.tag || (isActuallyNew ? "NEW" : null);
 
-  // Secondary Image Logic for Hover Effect
+  // Secondary Image
   const allImages = product.gallery_images || (product as any).images || [];
   const secondaryImage = allImages.length > 1
     ? allImages.find((img: string) => img !== product.image) || allImages[1]
     : null;
 
+  // ━━ Trending variant ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   if (variant === "trending") {
     return (
       <div
@@ -84,13 +73,13 @@ export default function ProductCard({
           <div className="relative aspect-[3/4] overflow-hidden mb-5 bg-sand">
             {product.image && !product.image.includes("/api/placeholder") ? (
               <>
-                <motion.div
-                  className="absolute inset-0"
-                  animate={{ 
-                    scale: isHovered ? 1.04 : 1,
-                    opacity: isHovered && secondaryImage ? 0 : 1
+                {/* Primary image — CSS transition for hover zoom */}
+                <div
+                  className="absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{
+                    transform: isHovered ? "scale(1.04)" : "scale(1)",
+                    opacity: isHovered && secondaryImage ? 0 : 1,
                   }}
-                  transition={{ duration: 0.7, ease: luxuryEase }}
                 >
                   <Image
                     src={product.image}
@@ -100,17 +89,15 @@ export default function ProductCard({
                     priority={priority}
                     className="object-cover"
                   />
-                </motion.div>
+                </div>
                 
                 {secondaryImage && (
-                  <motion.div
-                    className="absolute inset-0"
-                    initial={{ opacity: 0, scale: 1 }}
-                    animate={{ 
+                  <div
+                    className="absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                    style={{
                       opacity: isHovered ? 1 : 0,
-                      scale: isHovered ? 1.04 : 1
+                      transform: isHovered ? "scale(1.04)" : "scale(1)",
                     }}
-                    transition={{ duration: 0.7, ease: luxuryEase }}
                   >
                     <Image
                       src={secondaryImage}
@@ -119,26 +106,19 @@ export default function ProductCard({
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       className="object-cover"
                     />
-                  </motion.div>
+                  </div>
                 )}
               </>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p
-                  className="font-playfair text-forest/15 font-light"
-                  style={{ fontSize: "32px", letterSpacing: "0.15em" }}
-                >
-                  MV
-                </p>
-                <p className="text-forest/10 font-dm text-[9px] uppercase tracking-[0.4em] mt-1">
-                  Mrudula Vastra
-                </p>
+                <p className="font-playfair text-forest/15 font-light text-[32px] tracking-[0.15em]">MV</p>
+                <p className="text-forest/10 font-dm text-[9px] uppercase tracking-[0.4em] mt-1">Mrudula Vastra</p>
               </div>
             )}
 
-            {/* Sold out overlay */}
+            {/* Sold out overlay — NO backdrop-blur on mobile */}
             {isSoldOut && (
-              <div className="absolute inset-0 bg-cream/70 backdrop-blur-[3px] flex items-center justify-center z-10 pointer-events-none">
+              <div className="absolute inset-0 bg-cream/75 flex items-center justify-center z-10 pointer-events-none">
                 <span
                   className="px-5 py-2 text-text-primary font-dm uppercase font-medium"
                   style={{
@@ -152,83 +132,66 @@ export default function ProductCard({
               </div>
             )}
 
-            {/* Minimalist Badge */}
+            {/* Badge — NO backdrop-blur */}
             {activeBadge && (
               <div className="absolute top-4 left-4 z-20 pointer-events-none">
-                <span className="px-2.5 py-1 text-[9px] font-dm font-bold tracking-[0.2em] uppercase bg-white/95 backdrop-blur-md text-forest border border-gold/20 shadow-sm">
+                <span className="px-2.5 py-1 text-[9px] font-dm font-bold tracking-[0.2em] uppercase bg-white/95 text-forest border border-gold/20 shadow-sm">
                   {activeBadge}
                 </span>
               </div>
             )}
 
-            {/* Wishlist */}
+            {/* Wishlist — NO backdrop-blur, simpler button */}
             {onToggleWishlist && (
-              <motion.button
+              <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   onToggleWishlist(product.id);
                 }}
-                whileTap={{ scale: 0.85 }}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 z-20"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 z-20 active:scale-90"
                 style={{
-                  background: "rgba(253,251,247,0.8)",
-                  backdropFilter: "blur(8px)",
+                  background: "rgba(253,251,247,0.9)",
                   border: "1px solid rgba(253,251,247,0.5)",
                   opacity: isHovered || isInWishlist ? 1 : 0,
                 }}
                 aria-label={`Toggle wishlist for ${product.name}`}
               >
-                <motion.div
-                  animate={
-                    isInWishlist ? { scale: [1, 1.3, 1] } : { scale: 1 }
+                <Heart
+                  size={14}
+                  className={
+                    isInWishlist
+                      ? "fill-red-500 text-red-500"
+                      : "text-text-muted"
                   }
-                  transition={{ duration: 0.3 }}
-                >
-                  <Heart
-                    size={14}
-                    className={
-                      isInWishlist
-                        ? "fill-red-500 text-red-500"
-                        : "text-text-muted"
-                    }
-                  />
-                </motion.div>
-              </motion.button>
+                />
+              </button>
             )}
 
-            {/* ── Glass overlay on hover ── */}
-            <AnimatePresence>
-              {isHovered && !isSoldOut && onAddToCart && (
-                <motion.div
-                  variants={glassReveal}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="absolute bottom-0 left-0 right-0 z-20"
-                  style={{
-                    background: "rgba(14,34,25,0.75)",
-                    backdropFilter: "blur(16px) saturate(1.3)",
-                  }}
-                >
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onAddToCart(product);
-                    }}
-                    className="w-full py-3.5 flex items-center justify-center gap-2 text-cream/90 uppercase font-dm font-medium transition-colors hover:text-gold-soft"
-                    style={{ fontSize: "10px", letterSpacing: "0.2em" }}
-                  >
-                    <ShoppingBag size={12} />
-                    Add to Bag
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Glass overlay on hover — NO backdrop-blur */}
+            <div
+              className="absolute bottom-0 left-0 right-0 z-20 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{
+                background: "rgba(14,34,25,0.85)",
+                transform: isHovered && !isSoldOut && onAddToCart ? "translateY(0)" : "translateY(100%)",
+              }}
+            >
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onAddToCart?.(product);
+                }}
+                className="w-full py-3.5 flex items-center justify-center gap-2 text-cream/90 uppercase font-dm font-medium transition-colors hover:text-gold-soft"
+                style={{ fontSize: "10px", letterSpacing: "0.2em" }}
+              >
+                <ShoppingBag size={12} />
+                Add to Bag
+              </button>
+            </div>
           </div>
 
-          {/* ── Product Info — Clean, minimal ── */}
+          {/* ── Product Info ── */}
           <div className="mt-1 sm:mt-2">
             <p
               className="uppercase mb-1.5 font-normal text-text-muted text-[9px] sm:text-[10px]"
@@ -242,10 +205,7 @@ export default function ProductCard({
 
             <div className="flex items-center gap-2 mb-2">
               <StarRating rating={product.rating} />
-              <span
-                className="text-text-muted font-light"
-                style={{ fontSize: "11px" }}
-              >
+              <span className="text-text-muted font-light" style={{ fontSize: "11px" }}>
                 ({product.reviews})
               </span>
             </div>
@@ -261,25 +221,14 @@ export default function ProductCard({
               )}
             </div>
 
-            {/* Color Dots for Variants */}
+            {/* Color Dots */}
             {(product.variants as any)?.length > 0 && (
               <div className="flex items-center gap-1.5 mt-2.5">
                 {[product.color, ...(product.variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => (
                   <div 
                     key={i}
-                    className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border border-black/5"
-                    style={{ 
-                      background: {
-                        "Red": "#D32F2F", "Blue": "#1976D2", "Green": "#388E3C", "Yellow": "#FBC02D",
-                        "Pink": "#E91E63", "Gold": "#D4AF37", "Black": "#000000", "White": "#FFFFFF",
-                        "Navy": "#000080", "Maroon": "#800000", "Silver": "#C0C0C0", "Multicolor": "linear-gradient(to right, red, blue, green)",
-                        "Grey": "#808080", "Orange": "#FF9800", "Purple": "#9C27B0", "Teal": "#008080",
-                        "Mustard": "#E1AD01", "Peach": "#FFDAB9", "Lavender": "#E6E6FA", "Emerald Green": "#50C878",
-                        "Olive": "#808000", "Magenta": "#FF00FF", "Cream": "#FFFDD0", "Beige": "#F5F5DC",
-                        "Turquoise": "#40E0D0", "Rust": "#B7410E", "Coral": "#FF7F50", "Indigo": "#4B0082",
-                        "Mint": "#98FF98", "Wine": "#722F37", "Copper": "#B87333", "Coffee": "#6F4E37"
-                      }[color as string] || "#ddd"
-                    }}
+                    className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border border-black/10"
+                    style={{ background: COLOR_HEX[normalizeColor(color as string)] || "#ddd" }}
                   />
                 ))}
               </div>
@@ -303,32 +252,31 @@ export default function ProductCard({
       >
         {product.image && !product.image.includes("/api/placeholder") ? (
           <>
-            <motion.div
-              className="absolute inset-0"
-              animate={{ 
-                scale: isHovered ? 1.04 : 1,
-                opacity: isHovered && secondaryImage ? 0 : 1
+            {/* Primary image — pure CSS transition */}
+            <div
+              className="absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={{
+                transform: isHovered ? "scale(1.04)" : "scale(1)",
+                opacity: isHovered && secondaryImage ? 0 : 1,
               }}
-              transition={{ duration: 0.7, ease: luxuryEase }}
             >
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
                 sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                priority={priority}
                 className="object-cover"
               />
-            </motion.div>
+            </div>
             
             {secondaryImage && (
-              <motion.div
-                className="absolute inset-0"
-                initial={{ opacity: 0, scale: 1 }}
-                animate={{ 
+              <div
+                className="absolute inset-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{
                   opacity: isHovered ? 1 : 0,
-                  scale: isHovered ? 1.04 : 1
+                  transform: isHovered ? "scale(1.04)" : "scale(1)",
                 }}
-                transition={{ duration: 0.7, ease: luxuryEase }}
               >
                 <Image
                   src={secondaryImage}
@@ -337,25 +285,19 @@ export default function ProductCard({
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover"
                 />
-              </motion.div>
+              </div>
             )}
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p
-              className="font-playfair text-forest/15 font-light text-[32px] tracking-[0.15em]"
-            >
-              MV
-            </p>
-            <p className="text-forest/10 font-dm text-[9px] uppercase tracking-[0.4em] mt-1">
-              Mrudula Vastra
-            </p>
+            <p className="font-playfair text-forest/15 font-light text-[32px] tracking-[0.15em]">MV</p>
+            <p className="text-forest/10 font-dm text-[9px] uppercase tracking-[0.4em] mt-1">Mrudula Vastra</p>
           </div>
         )}
 
-        {/* Sold out */}
+        {/* Sold out — NO backdrop-blur */}
         {isSoldOut && (
-          <div className="absolute inset-0 bg-cream/70 backdrop-blur-[3px] flex items-center justify-center z-10 pointer-events-none">
+          <div className="absolute inset-0 bg-cream/75 flex items-center justify-center z-10 pointer-events-none">
             <span
               className="px-5 py-2 text-text-primary font-dm uppercase font-medium"
               style={{
@@ -369,50 +311,40 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Minimalist Badge */}
+        {/* Badge — NO backdrop-blur */}
         {activeBadge && (
           <div className="absolute top-4 left-4 z-20 pointer-events-none">
-            <span className="px-2.5 py-1 text-[9px] font-dm font-bold tracking-[0.2em] uppercase bg-white/95 backdrop-blur-md text-forest border border-gold/20 shadow-sm">
+            <span className="px-2.5 py-1 text-[9px] font-dm font-bold tracking-[0.2em] uppercase bg-white/95 text-forest border border-gold/20 shadow-sm">
               {activeBadge}
             </span>
           </div>
         )}
 
-        {/* ── Glass "Add to Bag" overlay ── */}
-        <AnimatePresence>
-          {isHovered && !isSoldOut && onAddToCart && (
-            <motion.div
-              variants={glassReveal}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute bottom-0 left-0 right-0 z-20"
-              style={{
-                background: "rgba(14,34,25,0.75)",
-                backdropFilter: "blur(16px) saturate(1.3)",
-              }}
-            >
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  onAddToCart(product);
-                }}
-                className="w-full py-4 flex items-center justify-center gap-2.5 text-cream/90 uppercase font-dm font-medium transition-colors hover:text-gold-soft"
-                style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-              >
-                <ShoppingBag size={13} />
-                Add to Bag
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Glass "Add to Bag" overlay — NO backdrop-blur, CSS-only animation */}
+        <div
+          className="absolute bottom-0 left-0 right-0 z-20 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          style={{
+            background: "rgba(14,34,25,0.85)",
+            transform: isHovered && !isSoldOut && onAddToCart ? "translateY(0)" : "translateY(100%)",
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              onAddToCart?.(product);
+            }}
+            className="w-full py-4 flex items-center justify-center gap-2.5 text-cream/90 uppercase font-dm font-medium transition-colors hover:text-gold-soft"
+            style={{ fontSize: "11px", letterSpacing: "0.2em" }}
+          >
+            <ShoppingBag size={13} />
+            Add to Bag
+          </button>
+        </div>
       </Link>
 
-      {/* ── Product Details — Progressive disclosure ── */}
+      {/* ── Product Details ── */}
       <div className="flex-1 flex flex-col">
-        <p
-          className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-dm font-normal mb-1 mt-auto"
-        >
+        <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-dm font-normal mb-1 mt-auto">
           {product.category}
         </p>
         <Link href={`/product/${product.id}`} className="mb-2">
@@ -431,30 +363,16 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* Color Dots for Variants */}
+        {/* Color Dots */}
         {((product as any).variants as any[])?.length > 0 && (
           <div className="flex items-center gap-1.5 mt-3">
-            {[product.color, ...((product as any).variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => {
-              const normalizedColor = (color as string).trim().charAt(0).toUpperCase() + (color as string).trim().slice(1).toLowerCase();
-              const hex = {
-                "Red": "#D32F2F", "Blue": "#1976D2", "Green": "#388E3C", "Yellow": "#FBC02D",
-                "Pink": "#E91E63", "Gold": "#D4AF37", "Black": "#000000", "White": "#FFFFFF",
-                "Navy": "#000080", "Maroon": "#800000", "Silver": "#C0C0C0", "Multicolor": "linear-gradient(to right, red, blue, green)",
-                "Grey": "#808080", "Orange": "#FF9800", "Purple": "#9C27B0", "Teal": "#008080",
-                "Mustard": "#E1AD01", "Peach": "#FFDAB9", "Lavender": "#E6E6FA", "Emerald Green": "#50C878",
-                "Olive": "#808000", "Magenta": "#FF00FF", "Cream": "#FFFDD0", "Beige": "#F5F5DC",
-                "Turquoise": "#40E0D0", "Rust": "#B7410E", "Coral": "#FF7F50", "Indigo": "#4B0082",
-                "Mint": "#98FF98", "Wine": "#722F37", "Copper": "#B87333", "Coffee": "#6F4E37"
-              }[normalizedColor] || "#ddd";
-              
-              return (
-                <div 
-                  key={i}
-                  className="w-2.5 h-2.5 rounded-full border border-black/10 shadow-sm"
-                  style={{ background: hex }}
-                />
-              );
-            })}
+            {[product.color, ...((product as any).variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => (
+              <div 
+                key={i}
+                className="w-2.5 h-2.5 rounded-full border border-black/10"
+                style={{ background: COLOR_HEX[normalizeColor(color as string)] || "#ddd" }}
+              />
+            ))}
             {((product as any).variants as any[]).length > 4 && (
               <span className="text-[10px] text-text-muted font-dm">+{ ((product as any).variants as any[]).length - 4 }</span>
             )}

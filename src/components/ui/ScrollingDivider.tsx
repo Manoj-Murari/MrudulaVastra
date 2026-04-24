@@ -1,7 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
-
 export default function ScrollingDivider() {
   const words = [
     "MRUDULA VASTRA",
@@ -16,23 +12,19 @@ export default function ScrollingDivider() {
     "✦"
   ];
 
-  // We create a sufficiently long repeating string to ensure it covers ultra-wide screens.
-  // 6 repetitions of the sequence ensures the content is wider than 4k monitors.
-  const repeatedWords = [...words, ...words, ...words, ...words, ...words, ...words];
+  // Two copies is enough for seamless looping with CSS translate
+  const repeatedWords = [...words, ...words];
 
   return (
     <div className="bg-forest py-4 lg:py-5 overflow-hidden flex whitespace-nowrap border-y border-gold/20">
-      <motion.div
+      <div
         className="flex gap-8 lg:gap-12 items-center min-w-max pr-8 lg:pr-12"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration: 35, // Slow, buttery smooth luxury pace
+        style={{
+          animation: "scroll-marquee 30s linear infinite",
+          willChange: "transform",
         }}
       >
-        {/* Render the massive array twice to ensure the -50% translation snaps back seamlessly */}
-        {[...repeatedWords, ...repeatedWords].map((word, i) => (
+        {repeatedWords.map((word, i) => (
           <span
             key={i}
             className="font-playfair text-[11px] lg:text-[13px] tracking-[0.25em] uppercase text-gold"
@@ -40,7 +32,7 @@ export default function ScrollingDivider() {
             {word}
           </span>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

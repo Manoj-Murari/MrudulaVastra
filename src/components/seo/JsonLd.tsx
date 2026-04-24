@@ -1,14 +1,45 @@
 /**
  * JSON-LD Structured Data — Organization, LocalBusiness & WebSite schema
  * Injected into the homepage layout to establish brand entity with Google.
+ * 
+ * The `alternateName` arrays are critical for search discoverability — they tell Google
+ * that all these name variations refer to the same business entity.
  */
 export default function JsonLd() {
+  /* ── All brand name variations & common misspellings ── */
+  const brandNames = [
+    "MrudulaVastra",
+    "Mrudula Vastra Boutique",
+    "Mrudula Vastra Sarees",
+    "Mrudula Vastram",
+    "Mrudula Vastra Online",
+    "Mrudula Vastra India",
+    "Mrudula Vastra Machilipatnam",
+    // Common misspellings & typos
+    "Mrudulavasthram",
+    "Mrudula Vasthram",
+    "Mrudula Vasthra",
+    "MrudulaVasthra",
+    "Mrudhula Vastra",
+    "Mrudhula Vasthram",
+    "Mrudula Vashtram",
+    "Mrudulavastra.in",
+    "mrudulavastra",
+    "mrudula vastra",
+    // Telugu variations
+    "మృదుల వస్త్ర",
+    // Partial searches people might do
+    "Mrudula sarees",
+    "Mrudula ethnic wear",
+    "Mrudula online sarees",
+  ];
+
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": "https://mrudulavastra.in/#organization",
     name: "Mrudula Vastra",
-    alternateName: ["MrudulaVastra", "Mrudula Vastra Boutique"],
+    alternateName: brandNames,
     url: "https://mrudulavastra.in",
     logo: {
       "@type": "ImageObject",
@@ -17,7 +48,7 @@ export default function JsonLd() {
       height: 630,
     },
     description:
-      "Mrudula Vastra is a premium Indian ethnic wear boutique based in Machilipatnam, offering handpicked sarees, dress materials, and kids wear sourced from India's finest weavers.",
+      "Mrudula Vastra (MrudulaVastra) is a premium Indian ethnic wear boutique based in Machilipatnam, Andhra Pradesh. Shop handpicked sarees, designer dress materials, kurtas, and kids wear sourced from India's finest weavers. Free shipping across India.",
     foundingDate: "2024",
     foundingLocation: {
       "@type": "Place",
@@ -43,12 +74,13 @@ export default function JsonLd() {
     "@type": "ClothingStore",
     "@id": "https://mrudulavastra.in/#localbusiness",
     name: "Mrudula Vastra",
+    alternateName: brandNames,
     image: "https://mrudulavastra.in/images/hero-saree.webp",
     url: "https://mrudulavastra.in",
     telephone: "+91-7208903117",
     email: "mrudulavastra@gmail.com",
     description:
-      "Premium Indian ethnic wear boutique in Machilipatnam specializing in handloom sarees, silk sarees, designer dress materials, and traditional kids wear. Nationwide delivery available.",
+      "MrudulaVastra — Premium Indian ethnic wear boutique in Machilipatnam specializing in handloom sarees, silk sarees, Kanjivaram sarees, Banarasi sarees, Pochampally sarees, designer dress materials, kurtas, and traditional kids wear. Nationwide delivery with free shipping on orders above ₹999.",
     address: {
       "@type": "PostalAddress",
       streetAddress: "Machilipatnam",
@@ -78,7 +110,7 @@ export default function JsonLd() {
       },
     ],
     priceRange: "₹₹-₹₹₹",
-    paymentAccepted: "Cash, UPI, Credit Card, Debit Card, Net Banking",
+    paymentAccepted: "Cash, UPI, Credit Card, Debit Card, Net Banking, Razorpay",
     currenciesAccepted: "INR",
     areaServed: {
       "@type": "Country",
@@ -92,7 +124,12 @@ export default function JsonLd() {
           "@type": "OfferCatalog",
           name: "Sarees",
           description:
-            "Handloom, Kanjivaram, Banarasi, Pochampally, Chanderi silk sarees",
+            "Handloom, Kanjivaram, Banarasi, Pochampally, Chanderi, Tussar, Linen, Cotton silk sarees",
+        },
+        {
+          "@type": "OfferCatalog",
+          name: "Kurtas",
+          description: "Designer kurta sets, ethnic kurtas for women",
         },
         {
           "@type": "OfferCatalog",
@@ -113,10 +150,10 @@ export default function JsonLd() {
     "@type": "WebSite",
     "@id": "https://mrudulavastra.in/#website",
     name: "Mrudula Vastra",
-    alternateName: "MrudulaVastra",
+    alternateName: ["MrudulaVastra", "mrudulavastra", "Mrudula Vastra Online Store", "mrudulavastra.in"],
     url: "https://mrudulavastra.in",
     description:
-      "Shop premium handpicked sarees, dress materials & kids wear from Machilipatnam. Authentic Indian ethnic wear delivered nationwide.",
+      "Shop premium handpicked sarees, kurtas, dress materials & kids wear from Machilipatnam at MrudulaVastra. Authentic Indian ethnic wear delivered nationwide with free shipping.",
     publisher: {
       "@id": "https://mrudulavastra.in/#organization",
     },

@@ -1,7 +1,5 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
 import { Star } from "lucide-react";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 import type { Database } from "@/lib/supabase/types";
@@ -12,75 +10,35 @@ interface TestimonialsSectionProps {
   testimonials: Testimonial[];
 }
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.15 },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: [0.25, 0.4, 0.25, 1] as const },
-  },
-};
-
 export default function TestimonialsSection({ testimonials }: TestimonialsSectionProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
   return (
     <section className="bg-forest font-dm py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+        <div className="text-center mb-14 animate-fade-up">
+          <p
             className="uppercase font-semibold mb-3 text-gold"
             style={{ fontSize: "11px", letterSpacing: "0.3em" }}
           >
             Customer Love
-          </motion.p>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          </p>
+          <h2
             className="font-playfair text-cream font-normal"
             style={{ fontSize: "clamp(26px, 3vw, 40px)" }}
           >
             What Our Community Says
-          </motion.h2>
-          <motion.div
-            initial={{ opacity: 0, scaleX: 0 }}
-            whileInView={{ opacity: 1, scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <OrnamentalDivider className="mt-4 max-w-[200px] mx-auto opacity-40" />
-          </motion.div>
+          </h2>
+          <OrnamentalDivider className="mt-4 max-w-[200px] mx-auto opacity-40" />
         </div>
 
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid sm:grid-cols-3 gap-6 lg:gap-8"
-        >
+        <div className="grid sm:grid-cols-3 gap-6 lg:gap-8">
           {testimonials.map((t, i) => (
-            <motion.div
+            <div
               key={i}
-              variants={cardVariants}
-              className="p-8 hover:border-amber-400/40 transition-colors duration-300"
+              className="p-8 hover:border-amber-400/40 transition-colors duration-300 animate-fade-up"
               style={{
                 background: "rgba(253,251,247,0.05)",
                 border: "1px solid rgba(184,150,62,0.2)",
+                animationDelay: `${i * 0.1}s`,
               }}
             >
               <div className="flex mb-4">
@@ -113,9 +71,9 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
                   {t.location}
                 </p>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

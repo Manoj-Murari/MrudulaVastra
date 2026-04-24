@@ -248,6 +248,13 @@ export default function Footer() {
             Made with ❤️ in India
           </p>
         </div>
+        
+        {/* SEO Hidden Block — Helps Google associate misspellings with our brand */}
+        <div className="max-w-7xl mx-auto mt-6 text-center" style={{ color: "rgba(253,251,247,0.05)", fontSize: "8px" }}>
+          <p>
+            Mrudula Vastra (also searched as MrudulaVastra, mrudulavastra, Mrudula Vasthram, MrudulaVasthra, Mrudhula Vastra, Mrudula Vastram, మృదుల వస్త్ర) is a premium ethnic wear destination.
+          </p>
+        </div>
       </div>
     </footer>
   );
