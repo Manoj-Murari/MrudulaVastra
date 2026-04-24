@@ -12,9 +12,19 @@ import {
   AlertTriangle,
   X,
   Package,
+  Star,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { updateProductField, deleteProduct, upsertProduct } from "@/actions/admin";
 import { createClient } from "@/lib/supabase/client";
+
+interface ProductVariant {
+  color: string;
+  image: string;
+  gallery_images: string[];
+  inventory_count: number;
+}
 
 export default function InventoryMatrix({ initialProducts }: { initialProducts: any[] }) {
   const [products, setProducts] = useState(initialProducts);
@@ -47,6 +57,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     material: "",
     sizes: [] as string[],
     gallery_images: [] as string[],
+    variants: [] as ProductVariant[],
   });
 
   const filtered = products.filter(
@@ -180,6 +191,107 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     setIsUploading(false);
   };
 
+  const handleVariantImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    const supabase = createClient();
+    const fileArray = Array.from(files);
+    const uploadedUrls: string[] = [];
+    
+    for (const file of fileArray) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        const { error } = await supabase.storage.from("product-images").upload(fileName, file);
+        if (!error) {
+            const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
+            uploadedUrls.push(publicUrl);
+        }
+    }
+
+    setFormData(prev => {
+        const newVariants = [...prev.variants];
+        const targetVariant = { ...newVariants[index] };
+        const allNewImages = [...uploadedUrls];
+        
+        if (!targetVariant.image && allNewImages.length > 0) {
+            targetVariant.image = allNewImages.shift()!;
+        }
+        
+        targetVariant.gallery_images = [...targetVariant.gallery_images, ...allNewImages];
+        newVariants[index] = targetVariant;
+        return { ...prev, variants: newVariants };
+    });
+    setIsUploading(false);
+  };
+
+  const handleSetVariantMainImage = (variantIndex: number, imageIndex: number) => {
+    setFormData(prev => {
+      const newVariants = [...prev.variants];
+      const targetVariant = { ...newVariants[variantIndex] };
+      const currentMain = targetVariant.image;
+      const selectedImage = targetVariant.gallery_images[imageIndex];
+      
+      const newGallery = [currentMain, ...targetVariant.gallery_images.filter((_, i) => i !== imageIndex)].filter(Boolean);
+      targetVariant.image = selectedImage;
+      targetVariant.gallery_images = newGallery;
+      
+      newVariants[variantIndex] = targetVariant;
+      return { ...prev, variants: newVariants };
+    });
+  };
+
+  const handleRemoveVariantImage = (variantIndex: number, imageIndex: number, isMain: boolean) => {
+    setFormData(prev => {
+      const newVariants = [...prev.variants];
+      const targetVariant = { ...newVariants[variantIndex] };
+      
+      if (isMain) {
+        const nextImage = targetVariant.gallery_images[0] || "";
+        targetVariant.image = nextImage;
+        targetVariant.gallery_images = targetVariant.gallery_images.slice(1);
+      } else {
+        targetVariant.gallery_images = targetVariant.gallery_images.filter((_, i) => i !== imageIndex);
+      }
+      
+      newVariants[variantIndex] = targetVariant;
+      return { ...prev, variants: newVariants };
+    });
+  };
+
+  const handleMoveVariantImage = (variantIndex: number, imageIndex: number, direction: 'left' | 'right') => {
+    setFormData(prev => {
+      const newVariants = [...prev.variants];
+      const targetVariant = { ...newVariants[variantIndex] };
+      const gallery = [...targetVariant.gallery_images];
+      
+      const newIdx = direction === 'left' ? imageIndex - 1 : imageIndex + 1;
+      if (newIdx < 0 || newIdx >= gallery.length) return prev;
+      
+      const temp = gallery[imageIndex];
+      gallery[imageIndex] = gallery[newIdx];
+      gallery[newIdx] = temp;
+      
+      targetVariant.gallery_images = gallery;
+      newVariants[variantIndex] = targetVariant;
+      return { ...prev, variants: newVariants };
+    });
+  };
+
+  const handleAddVariant = () => {
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, { color: "", image: "", gallery_images: [], inventory_count: 0 }]
+    }));
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -196,6 +308,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       material: formData.material || null,
       sizes: formData.sizes.length > 0 ? formData.sizes : null,
       gallery_images: formData.gallery_images.length > 0 ? formData.gallery_images : null,
+      variants: formData.variants.length > 0 ? (formData.variants as any) : [],
       ...(editId ? { id: editId } : { is_trending: false, rating: 5, reviews: 0, badge: "New" })
     };
 
@@ -208,7 +321,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
        setIsAdding(false);
        setEditId(null);
        setFormData({
-        name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: []
+        name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: []
        });
     } else {
        alert("Failed to save product: " + res.error);
@@ -231,7 +344,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
         <button
           onClick={() => {
             setEditId(null);
-            setFormData({ name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [] });
+            setFormData({ name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: [] });
             setIsAdding(true);
           }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors"
@@ -381,6 +494,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       material: product.material || "",
                       sizes: product.sizes || [],
                       gallery_images: product.gallery_images || [],
+                      variants: (product.variants as any) || []
                     });
                     setIsAdding(true);
                   }}
@@ -632,13 +746,160 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Color</label>
                       <select value={formData.color} onChange={e => setFormData({...formData, color: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] appearance-none" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
-                        <option value="">No Color</option>
-                        {COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>No Color</option>
+                        {COLORS.map(c => (
+                          <option key={c} value={c} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                            {c}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Material</label>
                       <input value={formData.material} onChange={e => setFormData({...formData, material: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
+                    </div>
+                  </div>
+
+                  {/* Color Variants Section */}
+                  <div className="space-y-4 pt-4 border-t border-gold/10">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] uppercase tracking-wider font-bold" style={{ color: "var(--admin-text-dim)" }}>Color Variants</label>
+                      <button 
+                        type="button" 
+                        onClick={handleAddVariant}
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                        style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-accent)" }}
+                      >
+                        + Add Variant
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {formData.variants.map((v, idx) => (
+                        <div key={idx} className="p-4 rounded-xl border space-y-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="block text-[10px] uppercase font-bold mb-2 opacity-60">Variant Color</label>
+                                  <select 
+                                    value={v.color} 
+                                    onChange={e => {
+                                      const newVariants = [...formData.variants];
+                                      newVariants[idx] = { ...newVariants[idx], color: e.target.value };
+                                      setFormData({...formData, variants: newVariants});
+                                    }}
+                                    className="w-full bg-transparent border rounded-lg px-2 py-1.5 outline-none text-[12px]" 
+                                    style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
+                                  >
+                                    <option value="" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select Color</option>
+                                    {COLORS.map(c => (
+                                      <option key={c} value={c} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                                        {c}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] uppercase font-bold mb-2 opacity-60">Stock</label>
+                                  <input 
+                                    type="number" 
+                                    value={v.inventory_count} 
+                                    onChange={e => {
+                                      const newVariants = [...formData.variants];
+                                      newVariants[idx] = { ...newVariants[idx], inventory_count: Number(e.target.value) };
+                                      setFormData({...formData, variants: newVariants});
+                                    }}
+                                    className="w-full bg-transparent border rounded-lg px-2 py-1.5 outline-none text-[12px]" 
+                                    style={{ borderColor: "var(--admin-border-active)" }}
+                                  />
+                                </div>
+                              </div>
+
+                               <div className="mt-4">
+                                <label className="block text-[10px] uppercase font-bold mb-3 opacity-60">Variant Photos</label>
+                                <div className="flex flex-col gap-3">
+                                  <input 
+                                    type="file" 
+                                    multiple
+                                    onChange={e => handleVariantImageUpload(idx, e)}
+                                    className="text-[10px] file:mr-4 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-forest file:text-white hover:file:bg-forest/80 cursor-pointer"
+                                  />
+                                  
+                                  <div className="flex flex-wrap gap-2">
+                                    {/* Main Variant Image */}
+                                    {v.image && (
+                                      <div className="relative w-16 h-20 border-2 border-forest rounded overflow-hidden group shadow-lg">
+                                        <Image src={v.image} alt="Main" fill className="object-cover" />
+                                        <div className="absolute top-0 left-0 bg-forest text-white text-[7px] px-1 font-bold">MAIN</div>
+                                        <button 
+                                          type="button"
+                                          onClick={() => handleRemoveVariantImage(idx, -1, true)}
+                                          className="absolute top-0 right-0 p-0.5 bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                          <X size={10} />
+                                        </button>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Gallery Images */}
+                                    {v.gallery_images.map((img, imgIdx) => (
+                                      <div key={imgIdx} className="relative w-16 h-20 border border-admin-border-active rounded overflow-hidden group hover:border-gold transition-colors">
+                                        <Image src={img} alt="Gallery" fill className="object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                                          <button 
+                                            type="button"
+                                            onClick={() => handleSetVariantMainImage(idx, imgIdx)}
+                                            className="p-1 bg-white/90 rounded-full text-gold hover:bg-white"
+                                            title="Set as Main"
+                                          >
+                                            <Star size={10} fill="currentColor" />
+                                          </button>
+                                          {imgIdx > 0 && (
+                                            <button 
+                                              type="button"
+                                              onClick={() => handleMoveVariantImage(idx, imgIdx, 'left')}
+                                              className="p-1 bg-white/90 rounded-full text-forest hover:bg-white"
+                                              title="Move Left"
+                                            >
+                                              <ArrowLeft size={10} />
+                                            </button>
+                                          )}
+                                          {imgIdx < v.gallery_images.length - 1 && (
+                                            <button 
+                                              type="button"
+                                              onClick={() => handleMoveVariantImage(idx, imgIdx, 'right')}
+                                              className="p-1 bg-white/90 rounded-full text-forest hover:bg-white"
+                                              title="Move Right"
+                                            >
+                                              <ArrowRight size={10} />
+                                            </button>
+                                          )}
+                                          <button 
+                                            type="button"
+                                            onClick={() => handleRemoveVariantImage(idx, imgIdx, false)}
+                                            className="p-1 bg-white/90 rounded-full text-red-500 hover:bg-white"
+                                            title="Remove"
+                                          >
+                                            <X size={10} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <button 
+                              type="button" 
+                              onClick={() => handleRemoveVariant(idx)}
+                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 

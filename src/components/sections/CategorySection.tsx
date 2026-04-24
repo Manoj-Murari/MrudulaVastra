@@ -31,7 +31,7 @@ const cardVariants = {
 export default function CategorySection({ categories }: CategorySectionProps) {
   return (
     <section className="bg-cream font-dm py-12 lg:py-16 px-6 sm:px-10 overflow-hidden w-full max-w-[100vw]">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl lg:max-w-7xl mx-auto">
         
         {/* Section Header */}
         <div className="text-center mb-16 lg:mb-20">
@@ -71,7 +71,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
-          className="flex md:grid md:grid-cols-3 gap-6 md:gap-10 lg:gap-14 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-6 px-6 md:mx-0 md:px-0"
+          className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10 lg:gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-8 -mx-6 px-6 md:mx-0 md:px-0"
         >
           {categories.map((cat, idx) => (
             <Link 
@@ -86,10 +86,10 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                 <div className="relative p-2 lg:p-3 bg-cream border border-gold/40 shadow-xl mb-6 w-full group-hover:border-gold transition-colors duration-700">
                   
                   {/* Decorative Corner Diamonds */}
-                  <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
-                  <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
-                  <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
-                  <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10" />
+                  <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
+                  <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
+                  <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
+                  <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
 
                   {/* Inner Fine Border */}
                   <div className="border-[0.5px] border-forest/30 p-1 lg:p-2">
@@ -101,6 +101,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                         alt={`${cat.title} collection at Mrudula Vastra`}
                         fill
                         sizes="(max-width: 768px) 80vw, 33vw"
+                        priority={idx < 2}
                         className="object-cover transition-transform duration-1000 group-hover:scale-105"
                       />
                       {/* Delicate inner vignette to ensure luxury feel */}

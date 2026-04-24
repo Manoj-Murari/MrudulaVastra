@@ -83,6 +83,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
+            className="self-end sm:self-auto"
           >
             <Link
               href="/collections"
@@ -106,7 +107,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
           animate={isInView ? "visible" : "hidden"}
           className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-10"
         >
-          {products.map((product) => (
+          {products.map((product, idx) => (
             <Link key={product.id} href={`/product/${product.id}`} className="block">
               <motion.div
                 variants={cardVariants}
@@ -126,6 +127,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                   alt={`${product.name} — ${product.category} by Mrudula Vastra, premium Indian ethnic wear`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  priority={idx < 2}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
 

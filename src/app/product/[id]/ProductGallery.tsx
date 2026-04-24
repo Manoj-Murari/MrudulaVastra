@@ -40,6 +40,12 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
   }, []);
 
   useEffect(() => {
+    if (primaryImage) {
+      setActiveImage(primaryImage);
+    }
+  }, [primaryImage]);
+
+  useEffect(() => {
     if (!isLightboxOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIsLightboxOpen(false);

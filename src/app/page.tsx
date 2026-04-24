@@ -64,7 +64,16 @@ export default async function HomePage() {
         )}
         <HeroSection />
         <ScrollingDivider />
-        <CategorySection categories={categories || []} />
+        <CategorySection categories={
+          (categories || []).sort((a, b) => {
+            const order = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear"];
+            const indexA = order.indexOf(a.title);
+            const indexB = order.indexOf(b.title);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          })
+        } />
         <ScrollingDivider />
         <TrendingSection products={products || []} />
         <InstagramBanner />

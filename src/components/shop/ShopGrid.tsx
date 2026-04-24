@@ -140,11 +140,12 @@ export default function ShopGrid({ products }: { products: Product[] }) {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {filtered.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onAddToCart={handleAddToCart} 
+            {filtered.map((product, idx) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                priority={idx < 4}
               />
             ))}
           </div>
@@ -181,7 +182,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
               </button>
               <h3 className="font-playfair text-xl font-medium text-forest mb-1">Select Size</h3>
               <p className="text-text-muted text-lg font-cormorant font-medium mb-6">{quickAddProduct.name}</p>
-              
+
               <div className="flex flex-wrap gap-3 pb-2">
                 {quickAddProduct.sizes?.map((size) => (
                   <button

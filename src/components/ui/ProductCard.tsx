@@ -16,6 +16,7 @@ interface ProductCardProps {
   onToggleWishlist?: (productId: number) => void;
   isInWishlist?: boolean;
   variant?: "default" | "trending";
+  priority?: boolean;
 }
 
 /* ── Animation Variants ───────────────────────────────── */
@@ -50,6 +51,7 @@ export default function ProductCard({
   onToggleWishlist,
   isInWishlist = false,
   variant = "default",
+  priority = false,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const isSoldOut = product.inventory_count === 0;
@@ -95,6 +97,7 @@ export default function ProductCard({
                     alt={product.name}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    priority={priority}
                     className="object-cover"
                   />
                 </motion.div>
@@ -257,6 +260,30 @@ export default function ProductCard({
                 </span>
               )}
             </div>
+
+            {/* Color Dots for Variants */}
+            {(product.variants as any)?.length > 0 && (
+              <div className="flex items-center gap-1.5 mt-2.5">
+                {[product.color, ...(product.variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => (
+                  <div 
+                    key={i}
+                    className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border border-black/5"
+                    style={{ 
+                      background: {
+                        "Red": "#D32F2F", "Blue": "#1976D2", "Green": "#388E3C", "Yellow": "#FBC02D",
+                        "Pink": "#E91E63", "Gold": "#D4AF37", "Black": "#000000", "White": "#FFFFFF",
+                        "Navy": "#000080", "Maroon": "#800000", "Silver": "#C0C0C0", "Multicolor": "linear-gradient(to right, red, blue, green)",
+                        "Grey": "#808080", "Orange": "#FF9800", "Purple": "#9C27B0", "Teal": "#008080",
+                        "Mustard": "#E1AD01", "Peach": "#FFDAB9", "Lavender": "#E6E6FA", "Emerald Green": "#50C878",
+                        "Olive": "#808000", "Magenta": "#FF00FF", "Cream": "#FFFDD0", "Beige": "#F5F5DC",
+                        "Turquoise": "#40E0D0", "Rust": "#B7410E", "Coral": "#FF7F50", "Indigo": "#4B0082",
+                        "Mint": "#98FF98", "Wine": "#722F37", "Copper": "#B87333", "Coffee": "#6F4E37"
+                      }[color as string] || "#ddd"
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </Link>
       </div>
@@ -403,6 +430,37 @@ export default function ProductCard({
             </span>
           )}
         </div>
+
+        {/* Color Dots for Variants */}
+        {((product as any).variants as any[])?.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-3">
+            {[product.color, ...((product as any).variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => {
+              const normalizedColor = (color as string).trim().charAt(0).toUpperCase() + (color as string).trim().slice(1).toLowerCase();
+              const hex = {
+                "Red": "#D32F2F", "Blue": "#1976D2", "Green": "#388E3C", "Yellow": "#FBC02D",
+                "Pink": "#E91E63", "Gold": "#D4AF37", "Black": "#000000", "White": "#FFFFFF",
+                "Navy": "#000080", "Maroon": "#800000", "Silver": "#C0C0C0", "Multicolor": "linear-gradient(to right, red, blue, green)",
+                "Grey": "#808080", "Orange": "#FF9800", "Purple": "#9C27B0", "Teal": "#008080",
+                "Mustard": "#E1AD01", "Peach": "#FFDAB9", "Lavender": "#E6E6FA", "Emerald Green": "#50C878",
+                "Olive": "#808000", "Magenta": "#FF00FF", "Cream": "#FFFDD0", "Beige": "#F5F5DC",
+                "Turquoise": "#40E0D0", "Rust": "#B7410E", "Coral": "#FF7F50", "Indigo": "#4B0082",
+                "Mint": "#98FF98", "Wine": "#722F37", "Copper": "#B87333", "Coffee": "#6F4E37"
+              }[normalizedColor] || "#ddd";
+              
+              return (
+                <div 
+                  key={i}
+                  className="w-2.5 h-2.5 rounded-full border border-black/10 shadow-sm"
+                  style={{ background: hex }}
+                />
+              );
+            })}
+            {((product as any).variants as any[]).length > 4 && (
+              <span className="text-[10px] text-text-muted font-dm">+{ ((product as any).variants as any[]).length - 4 }</span>
+            )}
+          </div>
+        )}
+
         {product.rating > 0 && (
           <div className="flex items-center gap-1.5 mt-2">
             <span className="text-gold text-sm">★</span>
