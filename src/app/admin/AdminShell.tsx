@@ -21,6 +21,7 @@ import {
   Layers,
   MessageSquare,
   Ticket,
+  ExternalLink,
 } from "lucide-react";
 import "./admin.css";
 
@@ -94,7 +95,7 @@ export default function AdminShell({
           style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
         >
           {/* Brand */}
-          <div className="flex items-center gap-3 px-5 h-16 border-b shrink-0" style={{ borderColor: "var(--admin-border)" }}>
+          <Link href="/" className="flex items-center gap-3 px-5 h-16 border-b shrink-0 hover:opacity-80 transition-opacity" style={{ borderColor: "var(--admin-border)" }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--admin-accent)" }}>
               <Layers size={16} className="text-black" />
             </div>
@@ -116,7 +117,7 @@ export default function AdminShell({
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </Link>
 
           {/* Navigation */}
           <nav className="flex-1 py-4 px-3 space-y-1 admin-scroll overflow-y-auto">
@@ -160,6 +161,17 @@ export default function AdminShell({
                 </Link>
               );
             })}
+
+            {/* View Store Divider */}
+            <div className="pt-4 mt-4 border-t" style={{ borderColor: "var(--admin-border)" }}>
+              <Link
+                href="/"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-amber-500/70 hover:text-amber-500 hover:bg-amber-500/5 transition-all duration-200"
+              >
+                <ExternalLink size={18} className="shrink-0" />
+                {!collapsed && <span className="text-[13px] font-medium">View Storefront</span>}
+              </Link>
+            </div>
           </nav>
 
           {/* Collapse Toggle (Desktop Only) */}

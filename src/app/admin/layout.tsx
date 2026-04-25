@@ -2,8 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import AdminShell from "./AdminShell";
 
-// The owner email — only this user can access /admin
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@mrudulavastra.com";
+// The owner emails — only these users can access /admin
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "manojmurari3577@gmail.com").split(",").map(e => e.trim().toLowerCase());
 
 export const metadata = {
   title: "Command Center — Mrudula Vastra",
@@ -20,7 +20,7 @@ export default async function AdminLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || user.email !== ADMIN_EMAIL) {
+  if (!user || !user.email || !ADMIN_EMAILS.includes(user.email.toLowerCase())) {
     redirect("/profile");
   }
 

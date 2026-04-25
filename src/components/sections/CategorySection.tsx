@@ -48,12 +48,6 @@ export default function CategorySection({ categories }: CategorySectionProps) {
                 {/* Premium Designer Frame */}
                 <div className="relative p-2 lg:p-[13px] bg-cream border border-gold/40 shadow-md mb-6 w-full group-hover:border-gold transition-colors duration-700">
                   
-                  {/* Decorative Corner Diamonds */}
-                  <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
-                  <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
-                  <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
-                  <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
-
                   {/* Inner Fine Border */}
                   <div className="border-[0.5px] border-forest/30 p-1 lg:p-2">
                     

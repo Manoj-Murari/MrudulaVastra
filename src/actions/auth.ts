@@ -119,3 +119,16 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function checkIsAdmin() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user || !user.email) return false;
+  
+  const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "manojmurari3577@gmail.com")
+    .split(",")
+    .map(e => e.trim().toLowerCase());
+    
+  return ADMIN_EMAILS.includes(user.email.toLowerCase());
+}

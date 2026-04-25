@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   AreaChart,
   Area,
@@ -76,7 +77,12 @@ function ChartTooltip({ active, payload, label }: any) {
 
 /* ─── MAIN COMPONENT ──────────────────────────────────────── */
 export default function OverviewDashboard({ data }: { data: OverviewData }) {
+  const [isMounted, setIsMounted] = useState(false);
   const { kpis, revenueByMonth, categories, actionItems, recentOrders } = data;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Calculate real month-over-month trend
   const calcTrend = (current: number, prev: number): { label: string | null; up: boolean } => {
@@ -240,52 +246,54 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
             </div>
           </div>
           <div className="h-[280px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <AreaChart data={revenueByMonth} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#B8963E" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#B8963E" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="emeraldGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#34D399" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#34D399" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(184,150,62,0.06)" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fill: "#4A473F", fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}
-                  axisLine={{ stroke: "rgba(184,150,62,0.08)" }}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: "#4A473F", fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#B8963E"
-                  strokeWidth={2}
-                  fill="url(#goldGrad)"
-                  dot={false}
-                  activeDot={{ r: 4, fill: "#B8963E", stroke: "#0B0F0D", strokeWidth: 2 }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="orders"
-                  stroke="#34D399"
-                  strokeWidth={2}
-                  fill="url(#emeraldGrad)"
-                  dot={false}
-                  activeDot={{ r: 4, fill: "#34D399", stroke: "#0B0F0D", strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                <AreaChart data={revenueByMonth} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#B8963E" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#B8963E" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="emeraldGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#34D399" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#34D399" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(184,150,62,0.06)" />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fill: "#4A473F", fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}
+                    axisLine={{ stroke: "rgba(184,150,62,0.08)" }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "#4A473F", fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#B8963E"
+                    strokeWidth={2}
+                    fill="url(#goldGrad)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "#B8963E", stroke: "#0B0F0D", strokeWidth: 2 }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="orders"
+                    stroke="#34D399"
+                    strokeWidth={2}
+                    fill="url(#emeraldGrad)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "#34D399", stroke: "#0B0F0D", strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </motion.div>
 
@@ -305,33 +313,35 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
             Product distribution
           </p>
           <div className="h-[200px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <PieChart>
-                <Pie
-                  data={categories}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={85}
-                  paddingAngle={3}
-                  dataKey="count"
-                  stroke="none"
-                >
-                  {categories.map((_: any, i: number) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--admin-surface-elevated)",
-                    border: "1px solid var(--admin-border-active)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                    color: "var(--admin-text)",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                <PieChart>
+                  <Pie
+                    data={categories}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={3}
+                    dataKey="count"
+                    stroke="none"
+                  >
+                    {categories.map((_: any, i: number) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--admin-surface-elevated)",
+                      border: "1px solid var(--admin-border-active)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      color: "var(--admin-text)",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
           {/* Legend */}
           <div className="grid grid-cols-2 gap-2 mt-2">

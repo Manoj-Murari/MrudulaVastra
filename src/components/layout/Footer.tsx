@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
-import { InstagramIcon, FacebookIcon, YoutubeIcon } from "@/components/ui/SocialIcons";
+import { InstagramIcon, WhatsappIcon } from "@/components/ui/SocialIcons";
 import Link from "next/link";
 import AnimatedSection from "@/components/ui/AnimatedSection";
 
@@ -24,8 +24,7 @@ const HELP_LINKS = [
 
 const SOCIAL_LINKS = [
   { Icon: InstagramIcon, href: "https://www.instagram.com/mrudulavastra/", label: "Instagram" },
-  { Icon: FacebookIcon, href: "/", label: "Facebook" },
-  { Icon: YoutubeIcon, href: "/", label: "YouTube" },
+  { Icon: WhatsappIcon, href: "https://api.whatsapp.com/send/?phone=917208903117&text&type=phone_number&app_absent=0&utm_source=ig", label: "WhatsApp" },
 ];
 
 const CONTACT_INFO = [

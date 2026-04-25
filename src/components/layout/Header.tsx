@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, User, Menu, X, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { NAV_LINKS } from "@/data/navigation";
 import { useCart } from "@/components/providers/CartProvider";
+import { checkIsAdmin } from "@/actions/auth";
 
 /* ── Simple underline link — pure CSS ────────────────── */
 function NavLink({ label, href }: { label: string; href: string }) {
@@ -55,8 +56,17 @@ function SearchBar() {
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { cartCount, toggleCart } = useCart();
   const ticking = useRef(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const admin = await checkIsAdmin();
+      setIsAdmin(admin);
+    };
+    checkAdmin();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -130,14 +140,24 @@ export default function Header() {
           </Link>
 
           {/* Right: User + Cart Icons */}
-          <div className="flex items-center gap-3 lg:gap-5 flex-1 justify-end">
-            <Link
-              href="/profile"
-              className="hidden sm:block text-text-nav hover:text-forest transition-colors p-1"
-              aria-label="My Account"
-            >
-              <User size={19} strokeWidth={1.3} />
-            </Link>
+            <div className="flex items-center gap-3 lg:gap-5 flex-1 justify-end">
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="hidden md:flex items-center gap-1.5 text-forest font-semibold transition-colors p-1"
+                  style={{ fontSize: "11px", letterSpacing: "0.05em" }}
+                >
+                  <Shield size={16} strokeWidth={1.5} className="text-gold" />
+                  ADMIN
+                </Link>
+              )}
+              <Link
+                href="/profile"
+                className="hidden sm:block text-text-nav hover:text-forest transition-colors p-1"
+                aria-label="My Account"
+              >
+                <User size={19} strokeWidth={1.3} />
+              </Link>
             <button
               onClick={() => toggleCart()}
               className="text-text-nav hover:text-forest transition-colors p-1 relative"
@@ -200,6 +220,16 @@ export default function Header() {
               <User size={16} strokeWidth={1.3} />
               My Account
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 py-3.5 text-gold font-bold font-dm text-[15px]"
+              >
+                <Shield size={16} strokeWidth={1.5} />
+                Admin Dashboard
+              </Link>
+            )}
           </div>
         </div>
       )}
