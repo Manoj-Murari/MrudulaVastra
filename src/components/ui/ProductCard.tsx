@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Heart } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import StarRating from "@/components/ui/StarRating";
 import type { Database } from "@/lib/supabase/types";
@@ -12,8 +12,6 @@ type Product = Database["public"]["Tables"]["products"]["Row"];
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
-  onToggleWishlist?: (productId: number) => void;
-  isInWishlist?: boolean;
   variant?: "default" | "trending";
   priority?: boolean;
 }
@@ -38,8 +36,6 @@ function normalizeColor(color: string): string {
 export default function ProductCard({
   product,
   onAddToCart,
-  onToggleWishlist,
-  isInWishlist = false,
   variant = "default",
   priority = false,
 }: ProductCardProps) {
@@ -141,32 +137,7 @@ export default function ProductCard({
               </div>
             )}
 
-            {/* Wishlist — NO backdrop-blur, simpler button */}
-            {onToggleWishlist && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onToggleWishlist(product.id);
-                }}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 z-20 active:scale-90"
-                style={{
-                  background: "rgba(253,251,247,0.9)",
-                  border: "1px solid rgba(253,251,247,0.5)",
-                  opacity: isHovered || isInWishlist ? 1 : 0,
-                }}
-                aria-label={`Toggle wishlist for ${product.name}`}
-              >
-                <Heart
-                  size={14}
-                  className={
-                    isInWishlist
-                      ? "fill-red-500 text-red-500"
-                      : "text-text-muted"
-                  }
-                />
-              </button>
-            )}
+
 
             {/* Glass overlay on hover — NO backdrop-blur */}
             <div

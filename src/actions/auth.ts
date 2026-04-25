@@ -25,6 +25,7 @@ export async function loginWithEmail(formData: FormData) {
   redirect("/profile");
 }
 
+/* ── Signup WITH password (optional path) ────────────── */
 export async function signupWithEmail(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
@@ -50,9 +51,38 @@ export async function signupWithEmail(formData: FormData) {
     },
   });
 
-  // Supabase will now naturally catch real duplicates here!
   if (error) {
-    return { error: error.message }; // Will output "User already registered"
+    return { error: error.message };
+  }
+
+  return { success: "Check your email for the verification code!" };
+}
+
+/* ── Signup WITHOUT password (OTP-only, primary path) ── */
+export async function signupWithOtpOnly(formData: FormData) {
+  const email = formData.get("email") as string;
+  const fullName = formData.get("fullName") as string;
+
+  if (!email || !fullName) {
+    return { error: "Name and email are required." };
+  }
+
+  const supabase = await createClient();
+
+  // signInWithOtp with shouldCreateUser: true will create the account
+  // if it doesn't exist, and send a magic link / OTP code
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      data: {
+        full_name: fullName,
+      },
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
   }
 
   return { success: "Check your email for the verification code!" };
@@ -68,14 +98,23 @@ export async function verifySignupOtp(formData: FormData) {
 
   const supabase = await createClient();
 
+  // Try 'email' type first (for OTP-only signup via signInWithOtp)
   const { error } = await supabase.auth.verifyOtp({
     email,
     token,
-    type: 'signup',
+    type: 'email',
   });
 
   if (error) {
-    return { error: error.message };
+    // Fallback to 'signup' type (for password-based signup)
+    const { error: error2 } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+    if (error2) {
+      return { error: error2.message };
+    }
   }
 
   redirect("/profile");
@@ -107,7 +146,7 @@ export async function verifyLoginOtp(formData: FormData) {
   const { error } = await supabase.auth.verifyOtp({
     email,
     token,
-    type: 'magiclink',
+    type: 'email',
   });
 
   if (error) return { error: error.message };
@@ -131,4 +170,11 @@ export async function checkIsAdmin() {
     .map(e => e.trim().toLowerCase());
     
   return ADMIN_EMAILS.includes(user.email.toLowerCase());
+}
+
+/* ── Helper: Check if current user is logged in (for cart gate) ── */
+export async function checkIsLoggedIn() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return !!user;
 }

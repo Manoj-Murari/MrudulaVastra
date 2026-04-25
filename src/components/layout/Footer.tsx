@@ -44,188 +44,165 @@ export default function Footer() {
 
   return (
     <footer className="bg-forest-deep font-dm overflow-hidden w-full max-w-[100vw]">
-      {/* Newsletter Strip */}
-      <div className="bg-gold py-10 px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="text-center sm:text-left">
-            <p className="font-playfair font-normal text-[20px] lg:text-[24px]" style={{ color: "#0E2219" }}>
-              Join the Mrudula Circle
+      {/* Newsletter Strip — Compact Horizontal on LG */}
+      <div className="bg-gold py-8 lg:py-6 px-6 lg:px-10 border-b border-black/5">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 lg:gap-12">
+          {/* Text Content */}
+          <div className="text-center lg:text-left flex-1">
+            <p className="uppercase font-bold text-forest/40 tracking-[0.5em] text-[9px] mb-2">
+              The Newsletter
             </p>
-            <p className="text-[13px] lg:text-[15px]" style={{ color: "rgba(14,34,25,0.7)" }}>
-              Get exclusive drops, early access &amp; festive offers.
+            <h2 className="font-playfair text-forest font-medium text-[24px] lg:text-[28px] mb-1 leading-tight">
+              Join the Mrudula Circle
+            </h2>
+            <p className="text-[13px] lg:text-[14px] text-forest/70 max-w-md mx-auto lg:mx-0">
+              Discover exclusive drops and curated festive offers.
             </p>
           </div>
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 sm:gap-0 w-full sm:w-auto max-w-sm">
-            <input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="flex-1 px-5 py-3.5 outline-none placeholder:text-emerald-900/40 w-full sm:w-56 text-[13px] lg:text-[15px]"
-              style={{
-                background: "rgba(14,34,25,0.1)",
-                border: "1.5px solid rgba(14,34,25,0.3)",
-                color: "#0E2219",
-              }}
-            />
-            <button
-              type="submit"
-              className="px-6 py-3.5 uppercase font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 whitespace-nowrap w-full sm:w-auto text-[12px] lg:text-[14px]"
-              style={{
-                background: "#0E2219",
-                color: "#B8963E",
-                letterSpacing: "0.1em",
-              }}
-            >
-              <Mail size={13} />
-              Subscribe
-            </button>
-          </form>
+
+          {/* Form Content */}
+          <div className="w-full lg:w-auto lg:min-w-[450px]">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 w-full">
+              <input
+                type="email"
+                placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1 px-5 py-3 outline-none placeholder:text-forest/30 w-full text-[13px] transition-all bg-white/30 border-b-2 border-forest/10 focus:border-forest/40 focus:bg-white/50"
+              />
+              <button
+                type="submit"
+                className="px-8 py-3 uppercase font-black bg-forest text-gold transition-all duration-300 hover:bg-forest/90 text-[10px] tracking-[0.2em]"
+              >
+                Subscribe
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-12">
-        {/* Brand */}
-        <AnimatedSection delay={0}>
-          <h3
-            className="font-playfair text-cream font-medium mb-2"
-            style={{ fontSize: "20px", letterSpacing: "0.06em" }}
-          >
-            MRUDULA VASTRA
-          </h3>
-          <p
-            className="uppercase mb-5 text-gold text-[10px] lg:text-[12px]"
-            style={{ letterSpacing: "0.25em" }}
-          >
-            Elegance Woven in Every Thread
-          </p>
-          <p
-            className="mb-6 text-[13px] lg:text-[15px]"
-            style={{ color: "rgba(253,251,247,0.5)", lineHeight: 1.8 }}
-          >
-            Handpicked ethnic wear that blends heritage craftsmanship with contemporary
-            elegance — for women and children who deserve the finest.
-          </p>
-          <div className="flex items-center gap-4">
-            {SOCIAL_LINKS.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                target={social.href !== "#" ? "_blank" : undefined}
-                rel={social.href !== "#" ? "noopener noreferrer" : undefined}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-amber-400/60 hover:text-amber-400 hover:border-amber-400 transition-all duration-200"
-                style={{ border: "1px solid rgba(184,150,62,0.3)" }}
-                aria-label={social.label}
-              >
-                <social.Icon size={15} />
-              </a>
-            ))}
-          </div>
-        </AnimatedSection>
-
-        {/* Quick Links */}
-        <AnimatedSection delay={0.1}>
-          <p
-            className="uppercase font-semibold mb-5 text-cream text-[12px] lg:text-[14px]"
-            style={{ letterSpacing: "0.2em" }}
-          >
-            Quick Links
-          </p>
-          {QUICK_LINKS.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="block mb-3 hover:text-amber-400 transition-colors duration-200 text-[13px] lg:text-[15px]"
-              style={{ color: "rgba(253,251,247,0.45)" }}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </AnimatedSection>
-
-        {/* Customer Care */}
-        <AnimatedSection delay={0.2}>
-          <p
-            className="uppercase font-semibold mb-5 text-cream text-[12px] lg:text-[14px]"
-            style={{ letterSpacing: "0.2em" }}
-          >
-            Customer Care
-          </p>
-          {HELP_LINKS.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="block mb-3 hover:text-amber-400 transition-colors duration-200 text-[13px] lg:text-[15px]"
-              style={{ color: "rgba(253,251,247,0.45)" }}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </AnimatedSection>
-
-        {/* Contact */}
-        <AnimatedSection delay={0.3}>
-          <p
-            className="uppercase font-semibold mb-5 text-cream text-[12px] lg:text-[14px]"
-            style={{ letterSpacing: "0.2em" }}
-          >
-            Reach Us
-          </p>
-          <div className="space-y-4">
-            {CONTACT_INFO.map(({ Icon, text, href }) => (
-              <div key={text} className="flex items-start gap-3">
-                <Icon
-                  size={14}
-                  className="text-gold flex-shrink-0"
-                  style={{ marginTop: "2px" }}
-                />
-                {href ? (
-                  <a
-                    href={href}
-                    className="hover:text-amber-400 transition-colors duration-200 text-[13px] lg:text-[15px]"
-                    style={{ color: "rgba(253,251,247,0.5)", lineHeight: 1.5 }}
-                  >
-                    {text}
-                  </a>
-                ) : (
-                  <span className="text-[13px] lg:text-[15px]" style={{ color: "rgba(253,251,247,0.5)", lineHeight: 1.5 }}>
-                    {text}
+      {/* Main Footer Content */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16 lg:py-10">
+        <div className="flex flex-col items-center text-center mb-16 lg:mb-6">
+          <AnimatedSection delay={0}>
+            <h3 className="font-playfair text-cream font-medium mb-3 text-[24px] lg:text-[32px] tracking-[0.05em]">
+              MRUDULA VASTRA
+            </h3>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="h-px w-8 bg-gold/30" />
+              <p className="uppercase text-gold font-bold text-[10px] lg:text-[11px] tracking-[0.4em]">
+                Elegance Woven in Every Thread
+              </p>
+              <div className="h-px w-8 bg-gold/30" />
+            </div>
+            <p className="mb-8 text-[14px] lg:text-[16px] max-w-2xl mx-auto text-cream/40 leading-[1.8] italic font-cormorant">
+              Handpicked ethnic wear that blends heritage craftsmanship with contemporary
+              elegance — for women and children who deserve the finest. Sourced directly from India's finest weavers.
+            </p>
+            <div className="flex items-center justify-center gap-6">
+              {SOCIAL_LINKS.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col items-center gap-2"
+                >
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center border border-gold/20 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-forest">
+                    <social.Icon size={16} />
+                  </div>
+                  <span className="text-[9px] uppercase tracking-widest text-gold/40 group-hover:text-gold transition-colors">
+                    {social.label}
                   </span>
-                )}
-              </div>
-            ))}
-          </div>
+                </a>
+              ))}
+            </div>
+          </AnimatedSection>
+        </div>
 
-          <div
-            className="mt-6 p-4"
-            style={{
-              background: "rgba(184,150,62,0.1)",
-              border: "1px solid rgba(184,150,62,0.2)",
-            }}
-          >
-            <p
-              className="uppercase font-semibold mb-1 text-gold text-[11px] lg:text-[13px]"
-              style={{ letterSpacing: "0.1em" }}
-            >
-              Business Hours
+        {/* Links Grid — Side-by-side on Mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-12 gap-x-6 lg:gap-x-16 lg:gap-y-8 pt-12 lg:pt-6 border-t border-gold/5 text-left sm:text-left">
+          {/* Quick Links */}
+          <AnimatedSection delay={0.1}>
+            <p className="uppercase font-black mb-8 lg:mb-4 text-cream text-[11px] tracking-[0.3em]">
+              Quick Links
             </p>
-            <p className="text-[12px] lg:text-[14px]" style={{ color: "rgba(253,251,247,0.5)" }}>
-              Mon – Sat: 10am – 7pm
+            <div className="space-y-4 lg:space-y-2">
+              {QUICK_LINKS.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="block hover:text-gold transition-all duration-300 text-[14px] text-cream/40 hover:translate-x-1"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </AnimatedSection>
+
+          {/* Customer Care */}
+          <AnimatedSection delay={0.2}>
+            <p className="uppercase font-black mb-8 lg:mb-4 text-cream text-[11px] tracking-[0.3em]">
+              Customer Care
             </p>
-            <p className="text-[12px] lg:text-[14px]" style={{ color: "rgba(253,251,247,0.5)" }}>Sunday: Closed</p>
-          </div>
-        </AnimatedSection>
+            <div className="space-y-4 lg:space-y-2">
+              {HELP_LINKS.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="block hover:text-gold transition-all duration-300 text-[14px] text-cream/40 hover:translate-x-1"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </AnimatedSection>
+
+          {/* Contact — Spans full width on mobile below the 2 columns */}
+          <AnimatedSection delay={0.3} className="col-span-2 lg:col-span-1 mt-4 lg:mt-0">
+            <p className="uppercase font-black mb-8 lg:mb-4 text-cream text-[11px] tracking-[0.3em]">
+              Reach Us
+            </p>
+            <div className="space-y-5 lg:space-y-3 mb-8">
+              {CONTACT_INFO.map(({ Icon, text, href }) => (
+                <div key={text} className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-gold/5 flex items-center justify-center shrink-0">
+                    <Icon size={14} className="text-gold" />
+                  </div>
+                  {href ? (
+                    <a href={href} className="hover:text-gold transition-all text-[14px] text-cream/40 leading-snug">
+                      {text}
+                    </a>
+                  ) : (
+                    <span className="text-[14px] text-cream/40 leading-snug">
+                      {text}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-6 border-t border-gold/10">
+              <p className="uppercase font-bold mb-3 text-gold text-[10px] tracking-widest">
+                Business Hours
+              </p>
+              <p className="text-[13px] text-cream/30">
+                Mon – Sat: 10am – 7pm <br />
+                Sunday: Closed
+              </p>
+            </div>
+          </AnimatedSection>
+        </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="px-6 lg:px-10 py-6" style={{ borderTop: "1px solid rgba(184,150,62,0.1)" }}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-3 text-center sm:text-left">
-          <p style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}>
-            © 2026 Mrudula Vastra. All Rights Reserved.
+      {/* Final Bottom Bar */}
+      <div className="px-6 lg:px-10 py-6 lg:py-3 bg-black/20">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+          <p className="text-cream/20 text-[11px] uppercase tracking-widest">
+            © 2026 Mrudula Vastra. Elegance Woven in Every Thread.
           </p>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-8">
             {[
               { label: "Terms", href: "/" },
               { label: "Privacy", href: "/privacy-policy" },
@@ -234,20 +211,19 @@ export default function Footer() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="hover:text-amber-400/60 transition-colors"
-                style={{ color: "rgba(253,251,247,0.3)", fontSize: "12px" }}
+                className="hover:text-gold transition-colors text-cream/20 text-[11px] uppercase tracking-widest"
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <p style={{ color: "rgba(253,251,247,0.25)", fontSize: "11px" }}>
-            Made with ❤️ in India
+          <p className="text-cream/20 text-[10px] uppercase tracking-[0.3em]">
+            Crafted in India
           </p>
         </div>
-        
-        {/* SEO Hidden Block — Helps Google associate misspellings with our brand */}
-        <div className="max-w-7xl mx-auto mt-6 text-center" style={{ color: "rgba(253,251,247,0.05)", fontSize: "8px" }}>
+
+        {/* SEO Hidden Block */}
+        <div className="max-w-7xl mx-auto mt-8 text-center text-[8px] text-cream/5 uppercase tracking-tighter">
           <p>
             Mrudula Vastra (also searched as MrudulaVastra, mrudulavastra, Mrudula Vasthram, MrudulaVasthra, Mrudhula Vastra, Mrudula Vastram, మృదుల వస్త్ర) is a premium ethnic wear destination.
           </p>

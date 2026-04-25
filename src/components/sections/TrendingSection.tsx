@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Heart, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import StarRating from "@/components/ui/StarRating";
+import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
+import ScrollingDivider from "@/components/ui/ScrollingDivider";
 import { useCart } from "@/components/providers/CartProvider";
 import type { Database } from "@/lib/supabase/types";
 
@@ -20,53 +22,50 @@ function discount(price: number, original: number) {
 }
 
 export default function TrendingSection({ products }: TrendingSectionProps) {
-  const [wishlist, setWishlist] = useState<number[]>([]);
   const { addToCart } = useCart();
-
-  const toggleWishlist = (id: number) => {
-    setWishlist((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
 
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="bg-cream font-dm py-20 sm:py-28 lg:py-36 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
+    <section className="bg-cream font-dm py-10 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
+      {/* Mobile-Only Scrolling Bar */}
+      <div className="sm:hidden -mx-4 mb-10">
+        <ScrollingDivider />
+      </div>
+
       <div className="max-w-7xl lg:max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16 lg:mb-20 gap-4 animate-fade-up">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-7 h-7 rounded-full bg-forest flex items-center justify-center">
-                <InstagramIcon size={13} className="text-white" />
-              </div>
-              <p
-                className="uppercase font-medium text-gold"
-                style={{ fontSize: "11px", letterSpacing: "0.35em" }}
-              >
-                As Seen on Reels
-              </p>
-            </div>
-            <h2
-              className="font-playfair text-text-primary font-light"
-              style={{ fontSize: "clamp(22px, 2.8vw, 36px)" }}
-            >
-              Trending Right Now
-            </h2>
+        <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-up">
+          <p
+            className="hidden sm:block uppercase font-bold mb-4 text-gold tracking-[0.5em] text-[9px]"
+          >
+            The Viral Edit
+          </p>
+          <h2
+            className="font-playfair text-forest font-medium tracking-wide text-[24px] sm:text-[clamp(24px,3.2vw,40px)]"
+          >
+            Trending Right Now
+          </h2>
+          <div className="hidden sm:flex items-center justify-center gap-4 mt-6 opacity-60">
+            <div className="h-px w-12 bg-gold/40" />
+            <OrnamentalDivider className="max-w-[120px]" />
+            <div className="h-px w-12 bg-gold/40" />
           </div>
-
-          <div className="self-end sm:self-auto">
+          
+          <div className="mt-8 flex justify-center">
             <Link
               href="/collections"
-              className="flex items-center gap-2 uppercase font-semibold text-forest hover:text-amber-700 transition-colors group"
-              style={{ fontSize: "13px", letterSpacing: "0.08em" }}
+              className="relative py-2 uppercase font-bold text-forest transition-all group overflow-hidden inline-block"
+              style={{ fontSize: "11px", letterSpacing: "0.2em" }}
             >
-              View All
-              <ArrowRight
-                size={14}
-                className="group-hover:translate-x-1 transition-transform"
-              />
+              <span className="relative z-10 flex items-center gap-2">
+                Explore All
+                <ArrowRight
+                  size={14}
+                  className="group-hover:translate-x-1.5 transition-transform duration-300"
+                />
+              </span>
+              <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gold/30 group-hover:bg-gold transition-colors duration-300" />
             </Link>
           </div>
         </div>
@@ -81,75 +80,47 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
               style={{ animationDelay: `${idx * 0.1}s` }}
             >
               <div className="group cursor-pointer h-full">
-                {/* Image Container */}
                 <div
-                  className="relative overflow-hidden mb-4"
+                  className="relative overflow-hidden mb-5 transition-all duration-700 ease-out group-hover:shadow-[0_20px_60px_rgba(14,34,25,0.12)] group-hover:-translate-y-2"
                   style={{
-                    aspectRatio: "4/5",
-                    background: "#F0EBE1",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+                    aspectRatio: "3.5/4.5",
+                    background: "#F5F0E8",
                   }}
                 >
                   <Image
                     src={product.image}
-                    alt={`${product.name} — ${product.category} by Mrudula Vastra, premium Indian ethnic wear`}
+                    alt={`${product.name} — ${product.category} by Mrudula Vastra`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     priority={idx < 4}
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
                   />
 
-                  {/* Top badges */}
-                  <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                  {/* High-End Badges */}
+                  <div className="absolute top-4 left-4 z-10">
                     <span
-                      className="text-white px-2.5 py-1 font-semibold bg-forest"
-                      style={{ fontSize: "10px", letterSpacing: "0.05em" }}
+                      className="text-white px-3 py-1.5 font-bold bg-forest shadow-lg"
+                      style={{ fontSize: "9px", letterSpacing: "0.15em", textTransform: 'uppercase' }}
                     >
                       {product.badge}
                     </span>
                   </div>
 
-                  {/* Wishlist */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleWishlist(product.id);
-                    }}
-                    className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-90"
-                    style={{ background: "rgba(253,251,247,0.9)" }}
-                    aria-label={`Toggle wishlist for ${product.name}`}
-                  >
-                    <Heart
-                      size={14}
-                      className={
-                        wishlist.includes(product.id)
-                          ? "fill-red-500 text-red-500"
-                          : "text-gray-400"
-                      }
-                    />
-                  </button>
-
-                  {/* Reel tag */}
+                  {/* Instagram Reel Tag (Slide and Blur) */}
                   <div
-                    className="absolute flex items-center justify-center gap-1.5 py-2 text-amber-200 uppercase font-semibold translate-y-full group-hover:translate-y-0 transition-transform duration-400"
+                    className="absolute flex items-center justify-center gap-2 py-3 text-cream uppercase font-bold translate-y-full group-hover:translate-y-0 transition-all duration-500 z-10"
                     style={{
-                      background: "rgba(26,60,46,0.9)",
+                      background: "rgba(14,34,25,0.85)",
+                      backdropFilter: 'blur(8px)',
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      fontSize: "10px",
-                      letterSpacing: "0.1em",
+                      fontSize: "9px",
+                      letterSpacing: "0.2em",
                     }}
                   >
-                    <InstagramIcon size={11} /> {product.tag}
+                    <InstagramIcon size={12} className="text-gold" /> {product.tag}
                   </div>
-
-                  {/* Gold accent line on hover */}
-                  <div
-                    className="absolute w-0 group-hover:w-full transition-all duration-500"
-                    style={{ background: "#B8963E", height: "3px", bottom: 0, left: 0 }}
-                  />
                 </div>
 
                 {/* Product Info */}
@@ -171,17 +142,13 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                       ({product.reviews})
                     </span>
                   </div>
-                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2 mt-2 sm:mt-0">
-                    <div className="flex items-baseline gap-1.5 sm:gap-2">
-                      <span
-                        className="font-playfair text-forest font-medium text-[15px] sm:text-[18px]"
-                      >
-                        ₹{product.price.toLocaleString("en-IN")}
-                      </span>
-                      <span
-                        className="text-gold line-through text-[10px] sm:text-[12px]"
-                      >
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gold/10">
+                    <div className="flex flex-col">
+                      <span className="text-gold line-through text-[10px]" style={{ letterSpacing: '0.05em' }}>
                         ₹{product.original_price.toLocaleString("en-IN")}
+                      </span>
+                      <span className="font-playfair text-forest font-bold text-[18px]">
+                        ₹{product.price.toLocaleString("en-IN")}
                       </span>
                     </div>
                     <button
@@ -190,15 +157,9 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                         e.stopPropagation();
                         addToCart(product);
                       }}
-                      className="px-2 sm:px-3 py-1.5 sm:py-2 uppercase font-semibold hover:bg-emerald-900 hover:text-white transition-all duration-300 flex items-center justify-center gap-1 sm:gap-1.5 text-[9px] sm:text-[10px] w-full xl:w-auto active:scale-95"
-                      style={{
-                        border: "1.5px solid #1A3C2E",
-                        color: "#1A3C2E",
-                        letterSpacing: "0.1em",
-                      }}
+                      className="px-5 py-2.5 bg-forest text-cream uppercase font-black text-[9px] tracking-[0.2em] transition-all duration-300 hover:bg-forest/90 active:scale-95 shadow-md"
                     >
-                      <ShoppingBag size={11} className="hidden sm:block" />
-                      Add
+                      Add to Bag
                     </button>
                   </div>
                 </div>

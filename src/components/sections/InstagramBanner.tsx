@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
+import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 
 const posts = [
   { id: 0, img: "/images/insta-1.webp", alt: "Premium silk saree styling — elegant draping by Mrudula Vastra customer" },
@@ -15,29 +16,36 @@ const posts = [
 
 export default function InstagramBanner() {
   return (
-    <section className="bg-sand py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
+    <section className="bg-sand py-12 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12 animate-fade-up">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <InstagramIcon size={18} className="text-gold" />
+        <div className="text-center mb-10 lg:mb-16 animate-fade-up">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <InstagramIcon size={16} className="text-gold" />
             <p
-              className="uppercase font-semibold text-gold font-dm"
-              style={{ fontSize: "11px", letterSpacing: "0.3em" }}
+              className="uppercase font-bold text-gold tracking-[0.5em] text-[9px]"
             >
               Follow Our Journey
             </p>
           </div>
+          
           <h2
-            className="font-playfair font-normal mb-2"
-            style={{ fontSize: "clamp(24px, 3vw, 38px)" }}
+            className="font-playfair text-forest font-medium tracking-wide mb-4"
+            style={{ fontSize: "clamp(24px, 3.2vw, 40px)" }}
           >
-            <a href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="text-text-primary hover:text-gold transition-colors duration-300">
+            <a href="https://www.instagram.com/mrudulavastra/" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors duration-300">
               @mrudulavastra
             </a>
           </h2>
+
+          <div className="hidden sm:flex items-center justify-center gap-4 mb-6 opacity-60">
+            <div className="h-px w-12 bg-gold/40" />
+            <OrnamentalDivider className="max-w-[120px]" />
+            <div className="h-px w-12 bg-gold/40" />
+          </div>
+
           <p
-            className="text-text-muted font-dm"
-            style={{ fontSize: "14px" }}
+            className="hidden sm:block text-text-muted font-dm max-w-md mx-auto"
+            style={{ fontSize: "14px", lineHeight: 1.6 }}
           >
             Real women. Real elegance. Daily drops on Instagram.
           </p>
@@ -73,15 +81,12 @@ export default function InstagramBanner() {
             href="https://www.instagram.com/mrudulavastra/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 px-10 py-3.5 uppercase font-semibold text-forest hover:bg-emerald-900 hover:text-white transition-all duration-300 font-dm"
-            style={{
-              border: "1.5px solid #1A3C2E",
-              fontSize: "12px",
-              letterSpacing: "0.15em",
-            }}
+            className="group relative inline-flex items-center gap-3 px-12 py-4 uppercase font-black overflow-hidden bg-forest text-cream transition-all duration-500 shadow-lg shadow-forest/10 hover:shadow-forest/20"
+            style={{ fontSize: "10px", letterSpacing: "0.3em" }}
           >
-            <InstagramIcon size={14} />
-            Follow on Instagram
+            <InstagramIcon size={14} className="relative z-10" />
+            <span className="relative z-10">Follow on Instagram</span>
+            <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
           </a>
         </div>
       </div>

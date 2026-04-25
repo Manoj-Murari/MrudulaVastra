@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
+import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 import type { Database } from "@/lib/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -23,6 +25,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
   const [colorFilter, setColorFilter] = useState("All");
   const [sizeFilter, setSizeFilter] = useState("All");
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
+  const [visibleCount, setVisibleCount] = useState(8);
   const { addToCart } = useCart();
 
   const handleAddToCart = (product: Product) => {
@@ -68,7 +71,10 @@ export default function ShopGrid({ products }: { products: Product[] }) {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          p.tag?.toLowerCase().includes(q)
+          p.tag?.toLowerCase().includes(q) ||
+          p.material?.toLowerCase().includes(q) ||
+          p.color?.toLowerCase().includes(q) ||
+          p.badge?.toLowerCase().includes(q)
       );
     }
 
@@ -88,22 +94,29 @@ export default function ShopGrid({ products }: { products: Product[] }) {
     return result;
   }, [products, search, activeCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
 
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [activeCategory, search, sortBy, materialFilter, colorFilter, sizeFilter]);
+
+  const visibleProducts = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
   return (
     <>
-      {/* Hero */}
-      <section className="relative pt-12 pb-10 lg:pt-16 lg:pb-12 text-center">
-        <div className="relative z-10 max-w-3xl mx-auto px-6">
-          <p
-            className="hidden sm:block uppercase text-gold font-dm font-medium tracking-[0.35em] mb-3"
-            style={{ fontSize: "10px" }}
-          >
-            Shop
-          </p>
-          <h1 className="font-playfair text-forest font-light text-3xl mb-3 tracking-wide">
-            {activeCategory === "All" ? "All Collections" : activeCategory}
-          </h1>
-          <p className="hidden sm:block text-text-muted font-dm text-sm max-w-lg mx-auto">
-            Browse our curated catalog of handpicked ethnic wear.
+      {/* Hero — Compact Horizontal Strip */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-10 pt-6 pb-4 sm:pt-8 sm:pb-6 lg:pt-10 lg:pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-6">
+          <div className="min-w-0">
+            <p className="hidden lg:block uppercase font-bold text-gold tracking-[0.5em] text-[9px] mb-2">
+              Shop
+            </p>
+            <h1 className="font-playfair text-forest font-medium tracking-wide text-[22px] sm:text-[28px] lg:text-[34px] leading-tight">
+              {activeCategory === "All" ? "Curated Collections" : activeCategory}
+            </h1>
+          </div>
+          <p className="hidden lg:block text-text-muted/60 font-dm text-[13px] italic whitespace-nowrap pb-1">
+            Heritage weaves, timeless elegance
           </p>
         </div>
       </section>
@@ -140,7 +153,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {filtered.map((product, idx) => (
+            {visibleProducts.map((product, idx) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -150,6 +163,24 @@ export default function ShopGrid({ products }: { products: Product[] }) {
             ))}
           </div>
         )}
+
+        {/* View More Button */}
+        {hasMore && (
+          <div className="text-center mt-10 sm:mt-14">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 8)}
+              className="group inline-flex items-center gap-2 px-10 py-3.5 uppercase font-bold font-dm text-forest border border-forest/20 hover:bg-forest hover:text-cream transition-all duration-500 active:scale-[0.97]"
+              style={{ fontSize: "11px", letterSpacing: "0.15em" }}
+            >
+              View More
+              <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
+            </button>
+            <p className="text-text-muted/50 font-dm text-[11px] mt-3 tracking-wider">
+              Showing {visibleProducts.length} of {filtered.length} products
+            </p>
+          </div>
+        )}
+
       </section>
 
       {/* Quick Add Modal — Bottom sheet on mobile, centered modal on desktop */}

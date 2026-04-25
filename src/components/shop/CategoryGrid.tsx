@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
@@ -24,6 +25,7 @@ export default function CategoryGrid({
   const [colorFilter, setColorFilter] = useState("All");
   const [sizeFilter, setSizeFilter] = useState("All");
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
+  const [visibleCount, setVisibleCount] = useState(8);
   const { addToCart } = useCart();
 
   const handleAddToCart = (product: Product) => {
@@ -55,7 +57,10 @@ export default function CategoryGrid({
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
-          p.tag?.toLowerCase().includes(q)
+          p.tag?.toLowerCase().includes(q) ||
+          p.material?.toLowerCase().includes(q) ||
+          p.color?.toLowerCase().includes(q) ||
+          p.badge?.toLowerCase().includes(q)
       );
     }
 
@@ -74,6 +79,14 @@ export default function CategoryGrid({
 
     return result;
   }, [products, search, sortBy, materialFilter, colorFilter, sizeFilter]);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(8);
+  }, [search, sortBy, materialFilter, colorFilter, sizeFilter]);
+
+  const visibleProducts = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   return (
     <>
@@ -106,13 +119,30 @@ export default function CategoryGrid({
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {filtered.map((product) => (
+            {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onAddToCart={handleAddToCart}
               />
             ))}
+          </div>
+        )}
+
+        {/* View More Button */}
+        {hasMore && (
+          <div className="text-center mt-10 sm:mt-14">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 8)}
+              className="group inline-flex items-center gap-2 px-10 py-3.5 uppercase font-bold font-dm text-forest border border-forest/20 hover:bg-forest hover:text-cream transition-all duration-500 active:scale-[0.97]"
+              style={{ fontSize: "11px", letterSpacing: "0.15em" }}
+            >
+              View More
+              <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
+            </button>
+            <p className="text-text-muted/50 font-dm text-[11px] mt-3 tracking-wider">
+              Showing {visibleProducts.length} of {filtered.length} products
+            </p>
           </div>
         )}
       </section>

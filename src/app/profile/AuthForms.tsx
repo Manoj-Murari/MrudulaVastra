@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { loginWithEmail, signupWithEmail, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
+import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
 
 export default function AuthForms() {
   const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
-  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
+  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("otp"); // OTP is now primary
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailForVerification, setEmailForVerification] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // For optional password in signup
+  const [verifyContext, setVerifyContext] = useState<"signup" | "login">("login");
 
   async function handleLogin(formData: FormData) {
     setIsLoading(true);
@@ -27,6 +29,7 @@ export default function AuthForms() {
       setError(result.error);
     } else if (result && (result as any).success) {
       setMessage((result as any).success);
+      setVerifyContext("login");
       setMode("verify");
     }
     setIsLoading(false);
@@ -36,12 +39,21 @@ export default function AuthForms() {
     setIsLoading(true);
     setError("");
     setMessage("");
-    const result = await signupWithEmail(formData);
+
+    const password = formData.get("password")?.toString() || "";
+
+    // If password is provided and meets minimum length, use password signup
+    // Otherwise, use OTP-only signup
+    const result = password && password.length >= 8
+      ? await signupWithEmail(formData)
+      : await signupWithOtpOnly(formData);
+
     if (result && result.error) {
       setError(result.error);
     } else if (result && result.success) {
       setEmailForVerification(formData.get("email")?.toString() || "");
       setMessage(result.success);
+      setVerifyContext("signup");
       setMode("verify");
     }
     setIsLoading(false);
@@ -51,10 +63,9 @@ export default function AuthForms() {
     setIsLoading(true);
     setError("");
     
-    // Ensure email is passed back to verify
     formData.append("email", emailForVerification);
 
-    const result = mode === "verify" && loginMethod === "otp"
+    const result = verifyContext === "login"
       ? await verifyLoginOtp(formData)
       : await verifySignupOtp(formData);
 
@@ -69,15 +80,16 @@ export default function AuthForms() {
       </h2>
       <p className="text-text-muted font-dm text-sm mb-8">
         {mode === "login" 
-          ? "Login to access your orders and saved details." 
+          ? "Enter your email and we'll send a secure login code." 
           : mode === "signup" 
-          ? "Sign up to track orders and save your shipping details safely."
+          ? "Sign up to track orders and save your shipping details."
           : `We sent a 6-digit code to ${emailForVerification}`}
       </p>
 
       {error && <p className="text-red-500 font-dm text-sm mb-4 bg-red-50 p-3">{error}</p>}
       {message && <p className="text-forest font-dm text-sm mb-4 bg-emerald-50 p-3">{message}</p>}
 
+      {/* ── LOGIN FORM ─────────────────────────── */}
       {mode === "login" && (
         <form action={handleLogin} className="space-y-5">
           <div>
@@ -85,48 +97,45 @@ export default function AuthForms() {
             <input type="email" name="email" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
           </div>
           
-          {loginMethod === "password" ? (
+          {loginMethod === "otp" ? (
+            /* OTP Mode (Primary) */
+            <div className="py-2">
+              <p className="text-[11px] text-text-muted font-dm italic">
+                We'll send a secure 6-digit code to your email.
+              </p>
+            </div>
+          ) : (
+            /* Password Mode (Secondary) */
             <div>
               <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Password</label>
               <input type="password" name="password" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-              <div className="mt-2 text-right">
-                <button
-                  type="button"
-                  onClick={() => setLoginMethod("otp")}
-                  className="text-[10px] text-forest/50 hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
-                >
-                  Sign in with OTP code instead
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="py-2">
-              <p className="text-[11px] text-text-muted font-dm italic">
-                No password? No problem. We'll send a secure code to your email.
-              </p>
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => setLoginMethod("password")}
-                  className="text-[10px] text-forest/50 hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
-                >
-                  Sign in with password instead
-                </button>
-              </div>
             </div>
           )}
 
           <button type="submit" disabled={isLoading} className="w-full py-4 mt-6 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold transition-all disabled:opacity-70 hover:bg-forest/90">
             {isLoading ? "Loading..." : loginMethod === "otp" ? "Send Login Code" : "Secure Login"}
           </button>
-          <div className="text-center mt-6">
-            <button type="button" onClick={() => { setMode("signup"); setError(""); }} className="text-sm font-dm text-text-muted hover:text-gold transition-colors">
+
+          {/* Toggle login method */}
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => setLoginMethod(loginMethod === "otp" ? "password" : "otp")}
+              className="text-[10px] text-forest/50 hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
+            >
+              {loginMethod === "otp" ? "Sign in with password instead" : "Sign in with OTP code instead"}
+            </button>
+          </div>
+
+          <div className="text-center mt-4">
+            <button type="button" onClick={() => { setMode("signup"); setError(""); setMessage(""); }} className="text-sm font-dm text-text-muted hover:text-gold transition-colors">
               Don't have an account? <span className="font-bold underline underline-offset-4">Sign up</span>
             </button>
           </div>
         </form>
       )}
 
+      {/* ── SIGNUP FORM ────────────────────────── */}
       {mode === "signup" && (
         <form action={handleSignup} className="space-y-5">
           <div>
@@ -137,21 +146,45 @@ export default function AuthForms() {
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Email Address</label>
             <input type="email" name="email" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
           </div>
-          <div>
-            <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Password</label>
-            <input type="password" name="password" required minLength={8} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-          </div>
+
+          {/* Optional Password Toggle */}
+          {showPassword ? (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm">Password (Optional)</label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(false)}
+                  className="text-[9px] text-red-400 hover:text-red-500 font-dm uppercase tracking-widest transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+              <input type="password" name="password" minLength={8} placeholder="Min 8 characters" className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/40 font-dm transition-colors" />
+              <p className="text-[10px] text-text-muted/60 font-dm mt-1 italic">You can also log in with OTP anytime.</p>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowPassword(true)}
+              className="text-[10px] text-forest/50 hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
+            >
+              + Add a password (optional)
+            </button>
+          )}
+
           <button type="submit" disabled={isLoading} className="w-full py-4 mt-6 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold transition-all disabled:opacity-70 hover:bg-forest/90">
             {isLoading ? "Creating..." : "Create Account"}
           </button>
-          <div className="text-center mt-6">
-            <button type="button" onClick={() => { setMode("login"); setError(""); }} className="text-sm font-dm text-text-muted hover:text-gold transition-colors">
+          <div className="text-center mt-4">
+            <button type="button" onClick={() => { setMode("login"); setError(""); setMessage(""); }} className="text-sm font-dm text-text-muted hover:text-gold transition-colors">
               Already have an account? <span className="font-bold underline underline-offset-4">Log in</span>
             </button>
           </div>
         </form>
       )}
 
+      {/* ── VERIFY OTP FORM ────────────────────── */}
       {mode === "verify" && (
         <form action={handleVerify} className="space-y-5">
           <input type="hidden" name="email" value={emailForVerification} />

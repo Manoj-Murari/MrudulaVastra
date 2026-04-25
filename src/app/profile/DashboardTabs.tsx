@@ -1,8 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { Package, User, ChevronRight } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Package, MapPin, ChevronRight, Plus, Star, Trash2, Edit3, Home, Briefcase, Users, Heart, MoreHorizontal } from "lucide-react";
 import { updateProfile } from "@/actions/profile";
+import { addAddress, updateAddress, deleteAddress, setDefaultAddress, type Address } from "@/actions/addresses";
+
+/* ── Constants ──────────────────────────────────────── */
+
+const LABEL_OPTIONS = [
+  { value: "Home", icon: Home },
+  { value: "Office", icon: Briefcase },
+  { value: "Parents", icon: Users },
+  { value: "Partner", icon: Heart },
+  { value: "Other", icon: MoreHorizontal },
+];
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+  "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+];
 
 /* ── Component Types ─────────────────────────────────── */
 
@@ -43,21 +62,214 @@ interface DashboardTabsProps {
   profile: UserProfile;
   orders: UserOrder[];
   userEmail: string;
+  addresses?: Address[];
 }
 
-export default function DashboardTabs({ profile, orders, userEmail }: DashboardTabsProps) {
-  const [activeTab, setActiveTab] = useState<"orders" | "shipping">("orders");
+/* ── Address Form Component ──────────────────────────── */
+
+function AddressForm({
+  address,
+  onCancel,
+  onSaved,
+}: {
+  address?: Address | null;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState("");
+
+  async function handleSubmit(formData: FormData) {
+    startTransition(async () => {
+      setMessage("");
+      const result = address
+        ? await updateAddress(formData)
+        : await addAddress(formData);
+
+      if (result.error) {
+        setMessage("Error: " + result.error);
+      } else if (result.success) {
+        setMessage(result.success);
+        setTimeout(() => onSaved(), 800);
+      }
+    });
+  }
+
+  return (
+    <form action={handleSubmit} className="space-y-5 bg-cream/50 border border-gold/10 p-6">
+      {address && <input type="hidden" name="addressId" value={address.id} />}
+
+      <h4 className="font-playfair text-forest font-bold text-lg">
+        {address ? "Edit Address" : "Add New Address"}
+      </h4>
+
+      {message && (
+        <p className={`p-3 font-dm text-sm ${message.includes("Error") ? "bg-red-50 text-red-600" : "bg-emerald-50 text-forest"}`}>
+          {message}
+        </p>
+      )}
+
+      {/* Label selector */}
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-3">Address Label</label>
+        <div className="flex flex-wrap gap-2">
+          {LABEL_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            return (
+              <label key={opt.value} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name="label"
+                  value={opt.value}
+                  defaultChecked={address ? address.label === opt.value : opt.value === "Home"}
+                  className="peer sr-only"
+                />
+                <div className="flex items-center gap-1.5 px-3 py-2 border border-gold/20 text-text-muted text-xs font-dm uppercase tracking-wider peer-checked:bg-forest peer-checked:text-white peer-checked:border-forest transition-all">
+                  <Icon size={12} />
+                  {opt.value}
+                </div>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Full Name</label>
+          <input type="text" name="fullName" defaultValue={address?.full_name || ""} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+        </div>
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Phone</label>
+          <input type="text" name="phone" defaultValue={address?.phone || ""} onChange={(e) => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 15)} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Full Delivery Address</label>
+        <textarea name="fullAddress" defaultValue={address?.full_address || ""} required rows={2} className="w-full bg-transparent border border-gold/30 p-3 focus:outline-none focus:border-forest text-forest font-dm transition-colors resize-none" />
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">City</label>
+          <input type="text" name="city" defaultValue={address?.city || ""} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+        </div>
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">State</label>
+          <select name="state" defaultValue={address?.state || ""} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors">
+            <option value="" disabled>Select</option>
+            {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Pincode</label>
+          <input type="text" name="pincode" defaultValue={address?.pincode || ""} onChange={(e) => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6)} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+        </div>
+      </div>
+
+      {/* Default checkbox */}
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="isDefault" value="true" defaultChecked={address?.is_default || false} className="accent-forest w-4 h-4" />
+        <span className="text-xs font-dm text-text-muted">Set as default address</span>
+      </label>
+
+      <div className="flex gap-3">
+        <button type="submit" disabled={isPending} className="flex-1 py-3 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold transition-all disabled:opacity-70 hover:bg-forest/90">
+          {isPending ? "Saving..." : address ? "Update Address" : "Save Address"}
+        </button>
+        <button type="button" onClick={onCancel} className="px-6 py-3 border border-gold/20 text-text-muted uppercase tracking-[0.15em] text-sm font-bold font-dm hover:bg-cream transition-colors">
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/* ── Address Card Component ──────────────────────────── */
+
+function AddressCard({
+  address,
+  onEdit,
+  onDelete,
+  onSetDefault,
+}: {
+  address: Address;
+  onEdit: () => void;
+  onDelete: () => void;
+  onSetDefault: () => void;
+}) {
+  const LabelIcon = LABEL_OPTIONS.find(o => o.value === address.label)?.icon || Home;
+
+  return (
+    <div className={`relative border p-5 transition-all ${address.is_default ? "border-forest/30 bg-forest/[0.02]" : "border-gold/15 hover:border-gold/30"}`}>
+      {/* Label badge */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <LabelIcon size={14} className="text-forest" />
+          <span className="text-xs font-dm font-bold uppercase tracking-wider text-forest">{address.label}</span>
+          {address.is_default && (
+            <span className="flex items-center gap-1 text-[9px] bg-forest text-white px-2 py-0.5 uppercase tracking-wider font-bold">
+              <Star size={8} fill="currentColor" /> Default
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={onEdit} className="p-1.5 hover:bg-forest/5 transition-colors rounded" title="Edit">
+            <Edit3 size={13} className="text-text-muted" />
+          </button>
+          <button onClick={onDelete} className="p-1.5 hover:bg-red-50 transition-colors rounded" title="Delete">
+            <Trash2 size={13} className="text-red-400" />
+          </button>
+        </div>
+      </div>
+
+      <p className="font-dm text-forest text-sm font-medium">{address.full_name}</p>
+      <p className="font-dm text-text-muted text-xs mt-1 leading-relaxed">
+        {address.full_address}, {address.city}, {address.state} — {address.pincode}
+      </p>
+      <p className="font-dm text-text-muted text-xs mt-1">{address.phone}</p>
+
+      {!address.is_default && (
+        <button onClick={onSetDefault} className="mt-3 text-[10px] text-forest/60 hover:text-forest font-dm uppercase tracking-widest underline underline-offset-4 transition-colors">
+          Set as default
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Component ──────────────────────────────────── */
+
+export default function DashboardTabs({ profile, orders, userEmail, addresses: initialAddresses = [] }: DashboardTabsProps) {
+  const [activeTab, setActiveTab] = useState<"orders" | "addresses">("orders");
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
-  async function handleProfileUpdate(formData: FormData) {
-    setIsUpdating(true);
-    setMessage("");
-    const result = await updateProfile(formData);
-    if (result.error) setMessage("Error: " + result.error);
-    if (result.success) setMessage(result.success);
-    setIsUpdating(false);
+  // Address state
+  const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
+  const [showForm, setShowForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+
+  async function refreshAddresses() {
+    // Re-fetch from server
+    const { getUserAddresses } = await import("@/actions/addresses");
+    const fresh = await getUserAddresses();
+    setAddresses(fresh);
+    setShowForm(false);
+    setEditingAddress(null);
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this address?")) return;
+    const result = await deleteAddress(id);
+    if (result.success) refreshAddresses();
+  }
+
+  async function handleSetDefault(id: string) {
+    const result = await setDefaultAddress(id);
+    if (result.success) refreshAddresses();
   }
 
   return (
@@ -73,17 +285,18 @@ export default function DashboardTabs({ profile, orders, userEmail }: DashboardT
           My Orders
         </button>
         <button
-          onClick={() => setActiveTab("shipping")}
+          onClick={() => setActiveTab("addresses")}
           className={`flex-1 py-4 font-dm text-sm uppercase tracking-wider font-bold transition-colors ${
-            activeTab === "shipping" ? "bg-forest text-white" : "text-forest hover:bg-forest/5"
+            activeTab === "addresses" ? "bg-forest text-white" : "text-forest hover:bg-forest/5"
           }`}
         >
-          Shipping Details
+          Saved Addresses
         </button>
       </div>
 
       {/* Tab Content */}
-      <div className="p-8">
+      <div className="p-6 sm:p-8">
+        {/* ── ORDERS TAB ──────────────────────────── */}
         {activeTab === "orders" && (
           <div>
             <div className="flex items-center justify-between mb-6">
@@ -207,73 +420,59 @@ export default function DashboardTabs({ profile, orders, userEmail }: DashboardT
           </div>
         )}
 
-        {activeTab === "shipping" && (
+        {/* ── ADDRESSES TAB ────────────────────────── */}
+        {activeTab === "addresses" && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <p className="uppercase text-gold font-dm font-medium tracking-[0.3em] text-[10px]">
-                Profile & Shipping
+                Saved Addresses ({addresses.length}/5)
               </p>
-              <User size={18} className="text-gold" />
+              <MapPin size={18} className="text-gold" />
             </div>
 
-            {message && (
-              <p className={`p-3 mb-6 font-dm text-sm ${message.includes("Error") ? "bg-red-50 text-red-600" : "bg-emerald-50 text-forest"}`}>
-                {message}
-              </p>
+            {/* Address Cards */}
+            {addresses.length > 0 && !showForm && !editingAddress && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {addresses.map((addr) => (
+                  <AddressCard
+                    key={addr.id}
+                    address={addr}
+                    onEdit={() => { setEditingAddress(addr); setShowForm(false); }}
+                    onDelete={() => handleDelete(addr.id)}
+                    onSetDefault={() => handleSetDefault(addr.id)}
+                  />
+                ))}
+              </div>
             )}
 
-            <form action={handleProfileUpdate} className="space-y-5">
+            {/* Add / Edit Form */}
+            {(showForm || editingAddress) ? (
+              <AddressForm
+                address={editingAddress}
+                onCancel={() => { setShowForm(false); setEditingAddress(null); }}
+                onSaved={refreshAddresses}
+              />
+            ) : (
               <div>
-                <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Email Address</label>
-                <input type="email" disabled value={userEmail} className="w-full bg-cream border-b border-gold/10 py-2 focus:outline-none text-text-muted cursor-not-allowed font-dm" />
-                <p className="text-[10px] text-text-muted/60 mt-1">Email cannot be changed.</p>
+                {addresses.length === 0 && (
+                  <div className="text-center py-8 mb-6">
+                    <MapPin size={40} strokeWidth={1} className="text-gold/30 mx-auto mb-4" />
+                    <p className="text-text-muted font-dm text-sm">No saved addresses yet.</p>
+                    <p className="text-text-muted/60 font-dm text-xs mt-1">Add an address for faster checkout.</p>
+                  </div>
+                )}
+
+                {addresses.length < 5 && (
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="w-full py-4 border-2 border-dashed border-gold/20 text-forest hover:border-forest/30 hover:bg-forest/[0.02] transition-all flex items-center justify-center gap-2 font-dm text-sm uppercase tracking-wider font-bold"
+                  >
+                    <Plus size={16} />
+                    Add New Address
+                  </button>
+                )}
               </div>
-
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Full Name</label>
-                <input type="text" name="fullName" defaultValue={profile?.full_name || ""} onChange={(e) => e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, '')} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">WhatsApp Number</label>
-                  <input type="text" name="phone" defaultValue={profile?.phone || ""} onChange={(e) => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 15)} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-                </div>
-                
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">State</label>
-                  <select name="state" defaultValue={profile?.state || ""} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors border-0">
-                    <option value="" disabled>Select State</option>
-                    {[
-                      "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
-                      "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
-                      "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
-                      "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
-                      "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
-                    ].map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">City</label>
-                  <input type="text" name="city" defaultValue={profile?.city || ""} onChange={(e) => e.target.value = e.target.value.replace(/[^A-Za-z\s]/g, '')} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Pincode</label>
-                  <input type="text" name="pincode" defaultValue={profile?.pincode || ""} onChange={(e) => e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6)} required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Full Delivery Address</label>
-                <textarea name="fullAddress" defaultValue={profile?.full_address || ""} required rows={3} className="w-full bg-transparent border border-gold/30 p-3 focus:outline-none focus:border-forest text-forest font-dm transition-colors resize-none" />
-              </div>
-
-              <button type="submit" disabled={isUpdating} className="w-full py-4 mt-2 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold transition-all disabled:opacity-70 hover:bg-forest/90">
-                {isUpdating ? "Saving..." : "Save Details"}
-              </button>
-            </form>
+            )}
           </div>
         )}
       </div>

@@ -66,48 +66,50 @@ export default function ShopUtilityBar({
 
   return (
     <>
-      <section className="max-w-7xl mx-auto px-6 md:px-10 mb-8 md:mb-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 py-4 md:border-y border-gold/15 mb-2">
+      <section className="max-w-7xl mx-auto px-6 md:px-10 mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4 border-y border-gold/20">
           
-          {/* Categories - Horizontal scrolling on mobile */}
+          {/* Categories - Editorial Navigation Style */}
           {categories && onCategoryChange && (
-            <div className="flex overflow-x-auto no-scrollbar pb-1 md:pb-0 -mx-6 px-6 md:mx-0 md:px-0 gap-2 w-[calc(100%+3rem)] md:w-auto snap-x">
+            <div className="flex items-center overflow-x-auto no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 gap-8 md:gap-10">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => onCategoryChange(cat)}
-                  className={`snap-start whitespace-nowrap flex-shrink-0 px-5 py-2 md:px-4 text-[11px] uppercase tracking-wider font-bold font-dm transition-all duration-300 rounded-full md:rounded-none md:border ${
+                  className={`group relative whitespace-nowrap flex-shrink-0 py-1 text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
                     activeCategory === cat
-                      ? "bg-forest text-white border-forest"
-                      : "bg-white text-forest border border-gold/30 md:border-gold/15 hover:border-gold/50 shadow-sm md:shadow-none"
+                      ? "text-forest"
+                      : "text-text-muted hover:text-forest"
                   }`}
                 >
                   {cat}
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-gold transition-all duration-500 ${
+                    activeCategory === cat ? "w-full" : "w-0 group-hover:w-full"
+                  }`} />
                 </button>
               ))}
             </div>
           )}
 
           {/* Mobile Filter Button */}
-          <div className={`flex justify-between items-center w-full md:hidden ${categories ? 'pt-2 border-t border-gold/15' : ''}`}>
+          <div className="flex items-center justify-between w-full md:hidden pt-4 border-t border-gold/10">
             <button
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gold/30 text-forest font-dm text-[11px] uppercase tracking-wider rounded-full shadow-sm"
+              className="flex items-center gap-3 px-6 py-3 bg-forest text-cream font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-forest/10"
             >
               <SlidersHorizontal size={14} />
-              Filter & Sort
+              Refine
               {hasActiveFilters && (
-                <span className="w-2 h-2 rounded-full bg-gold ml-1" />
+                <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
               )}
             </button>
-            
-            <p className="text-text-muted font-dm text-[11px] uppercase tracking-wider">
-              {resultCount} Results
+            <p className="text-forest font-bold text-[10px] uppercase tracking-widest opacity-40">
+              {resultCount} Items
             </p>
           </div>
 
           {/* Desktop Filters */}
-          <div className="hidden md:flex flex-wrap items-center gap-4">
+          <div className="hidden md:flex flex-wrap items-center gap-8">
             {onMaterialChange && (
               <div className="relative">
                 <button
@@ -117,29 +119,20 @@ export default function ShopUtilityBar({
                     setSizeOpen(false);
                     setSortOpen(false);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gold/15 hover:border-gold/30 transition-colors font-dm text-[11px] uppercase tracking-wider text-forest"
+                  className="flex items-center gap-2 px-1 py-2 bg-transparent hover:text-gold transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em] text-forest group"
                 >
-                  Material: {materialFilter !== "All" ? materialFilter : "All"}
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${
-                      materialOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <span className="opacity-40 group-hover:opacity-100 transition-opacity">Material:</span>
+                  <span>{materialFilter !== "All" ? materialFilter : "All"}</span>
+                  <ChevronDown size={10} className={`transition-transform duration-500 ${materialOpen ? "rotate-180" : ""}`} />
                 </button>
                 {materialOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px] max-h-72 overflow-y-auto admin-scroll">
+                  <div className="absolute right-0 top-full mt-2 bg-white border border-gold/10 shadow-2xl z-20 min-w-[180px] py-2 animate-fade-in">
                     {MATERIAL_OPTS.map((opt) => (
                       <button
                         key={opt}
-                        onClick={() => {
-                          onMaterialChange(opt);
-                          setMaterialOpen(false);
-                        }}
-                        className={`block w-full text-left px-4 py-3 font-dm text-sm transition-colors ${
-                          materialFilter === opt
-                            ? "bg-forest/5 text-forest font-semibold"
-                            : "text-text-muted hover:bg-cream"
+                        onClick={() => { onMaterialChange(opt); setMaterialOpen(false); }}
+                        className={`block w-full text-left px-6 py-3 font-dm text-[12px] uppercase tracking-widest transition-colors ${
+                          materialFilter === opt ? "bg-forest/5 text-forest font-bold" : "text-text-muted hover:bg-cream"
                         }`}
                       >
                         {opt}
@@ -159,29 +152,20 @@ export default function ShopUtilityBar({
                     setSizeOpen(false);
                     setSortOpen(false);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gold/15 hover:border-gold/30 transition-colors font-dm text-[11px] uppercase tracking-wider text-forest"
+                  className="flex items-center gap-2 px-1 py-2 bg-transparent hover:text-gold transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em] text-forest group"
                 >
-                  Color: {colorFilter !== "All" ? colorFilter : "All"}
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${
-                      colorOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <span className="opacity-40 group-hover:opacity-100 transition-opacity">Color:</span>
+                  <span>{colorFilter !== "All" ? colorFilter : "All"}</span>
+                  <ChevronDown size={10} className={`transition-transform duration-500 ${colorOpen ? "rotate-180" : ""}`} />
                 </button>
                 {colorOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px] max-h-72 overflow-y-auto admin-scroll">
+                  <div className="absolute right-0 top-full mt-2 bg-white border border-gold/10 shadow-2xl z-20 min-w-[180px] py-2 animate-fade-in max-h-80 overflow-y-auto no-scrollbar">
                     {COLOR_OPTS.map((opt) => (
                       <button
                         key={opt}
-                        onClick={() => {
-                          onColorChange(opt);
-                          setColorOpen(false);
-                        }}
-                        className={`block w-full text-left px-4 py-3 font-dm text-sm transition-colors ${
-                          colorFilter === opt
-                            ? "bg-forest/5 text-forest font-semibold"
-                            : "text-text-muted hover:bg-cream"
+                        onClick={() => { onColorChange(opt); setColorOpen(false); }}
+                        className={`block w-full text-left px-6 py-3 font-dm text-[12px] uppercase tracking-widest transition-colors ${
+                          colorFilter === opt ? "bg-forest/5 text-forest font-bold" : "text-text-muted hover:bg-cream"
                         }`}
                       >
                         {opt}
@@ -201,29 +185,20 @@ export default function ShopUtilityBar({
                     setColorOpen(false);
                     setSortOpen(false);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-white border border-gold/15 hover:border-gold/30 transition-colors font-dm text-[11px] uppercase tracking-wider text-forest"
+                  className="flex items-center gap-2 px-1 py-2 bg-transparent hover:text-gold transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em] text-forest group"
                 >
-                  Size: {sizeFilter !== "All" ? sizeFilter : "All"}
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-200 ${
-                      sizeOpen ? "rotate-180" : ""
-                    }`}
-                  />
+                  <span className="opacity-40 group-hover:opacity-100 transition-opacity">Size:</span>
+                  <span>{sizeFilter !== "All" ? sizeFilter : "All"}</span>
+                  <ChevronDown size={10} className={`transition-transform duration-500 ${sizeOpen ? "rotate-180" : ""}`} />
                 </button>
                 {sizeOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[150px] max-h-72 overflow-y-auto admin-scroll">
+                  <div className="absolute right-0 top-full mt-2 bg-white border border-gold/10 shadow-2xl z-20 min-w-[180px] py-2 animate-fade-in">
                     {SIZE_OPTS.map((opt) => (
                       <button
                         key={opt}
-                        onClick={() => {
-                          onSizeChange(opt);
-                          setSizeOpen(false);
-                        }}
-                        className={`block w-full text-left px-4 py-3 font-dm text-sm transition-colors ${
-                          sizeFilter === opt
-                            ? "bg-forest/5 text-forest font-semibold"
-                            : "text-text-muted hover:bg-cream"
+                        onClick={() => { onSizeChange(opt); setSizeOpen(false); }}
+                        className={`block w-full text-left px-6 py-3 font-dm text-[12px] uppercase tracking-widest transition-colors ${
+                          sizeFilter === opt ? "bg-forest/5 text-forest font-bold" : "text-text-muted hover:bg-cream"
                         }`}
                       >
                         {opt}
@@ -242,29 +217,20 @@ export default function ShopUtilityBar({
                   setColorOpen(false);
                   setSizeOpen(false);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gold/15 hover:border-gold/30 transition-colors font-dm text-[11px] uppercase tracking-wider text-forest"
+                className="flex items-center gap-2 px-1 py-2 bg-transparent hover:text-gold transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em] text-forest group"
               >
-                Sort: {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform duration-200 ${
-                    sortOpen ? "rotate-180" : ""
-                  }`}
-                />
+                <span className="opacity-40 group-hover:opacity-100 transition-opacity">Sort:</span>
+                <span>{SORT_OPTIONS.find((o) => o.value === sortBy)?.label}</span>
+                <ChevronDown size={10} className={`transition-transform duration-500 ${sortOpen ? "rotate-180" : ""}`} />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gold/15 shadow-lg z-20 min-w-[180px] max-h-72 overflow-y-auto admin-scroll">
+                <div className="absolute right-0 top-full mt-2 bg-white border border-gold/10 shadow-2xl z-20 min-w-[200px] py-2 animate-fade-in">
                   {SORT_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
-                      onClick={() => {
-                        onSortChange(opt.value);
-                        setSortOpen(false);
-                      }}
-                      className={`block w-full text-left px-4 py-3 font-dm text-sm transition-colors ${
-                        sortBy === opt.value
-                          ? "bg-forest/5 text-forest font-semibold"
-                          : "text-text-muted hover:bg-cream"
+                      onClick={() => { onSortChange(opt.value); setSortOpen(false); }}
+                      className={`block w-full text-left px-6 py-3 font-dm text-[12px] uppercase tracking-widest transition-colors ${
+                        sortBy === opt.value ? "bg-forest/5 text-forest font-bold" : "text-text-muted hover:bg-cream"
                       }`}
                     >
                       {opt.label}

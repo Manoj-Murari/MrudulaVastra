@@ -26,25 +26,29 @@ export default function ContactPage() {
     <>
       <AnnouncementBar />
       <Header />
-      <main className="min-h-screen bg-cream">
-        {/* ── Hero ─────────────────────────────────────── */}
-        <section className="relative pt-16 pb-12 lg:pt-24 lg:pb-16 text-center">
-          <div className="relative z-10 max-w-3xl mx-auto px-6">
-            <h1 className="font-playfair text-forest font-light text-4xl lg:text-5xl mb-6 tracking-wide">
-              Reach Us
-            </h1>
-            <p className="text-text-muted font-dm text-sm lg:text-base max-w-xl mx-auto leading-relaxed">
-              Whether you have a question about our collections, need styling advice,
-              or want to arrange a private viewing — we&apos;re here to assist.
+      <main className="bg-cream">
+        {/* ── Hero — Compact Horizontal Strip ─────────── */}
+        <section className="max-w-5xl mx-auto px-6 lg:px-10 pt-6 pb-4 sm:pt-8 sm:pb-6 lg:pt-10 lg:pb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <p className="hidden lg:block uppercase font-bold text-gold tracking-[0.5em] text-[9px] mb-2">
+                Contact
+              </p>
+              <h1 className="font-playfair text-forest font-medium tracking-wide text-[22px] sm:text-[28px] lg:text-[34px] leading-tight">
+                Reach Us
+              </h1>
+            </div>
+            <p className="hidden sm:block text-text-muted/60 font-dm text-[13px] italic whitespace-nowrap pb-1">
+              We&apos;re here to assist
             </p>
           </div>
         </section>
 
       {/* ── Content ──────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 lg:px-10 pb-24">
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-16">
+      <section className="max-w-5xl mx-auto px-6 lg:px-10 pb-14 sm:pb-20">
+        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 lg:gap-16">
           {/* Contact Details */}
-          <div className="space-y-10">
+          <div className="space-y-6 sm:space-y-10">
             <div>
               <p className="uppercase text-gold font-dm font-medium tracking-[0.3em] mb-6 text-[10px]">
                 Contact Details
@@ -116,7 +120,7 @@ export default function ContactPage() {
 
           {/* Contact Form */}
           <div className="lg:pl-10">
-            <h2 className="font-playfair text-forest font-light text-3xl mb-8">
+            <h2 className="font-playfair text-forest font-light text-2xl sm:text-3xl mb-6 sm:mb-8">
               Send an Inquiry
             </h2>
 

@@ -14,18 +14,20 @@ function NavLink({ label, href }: { label: string; href: string }) {
     <Link
       href={href}
       prefetch={true}
-      className="relative py-1 text-text-nav font-medium font-dm group"
-      style={{ fontSize: "12.5px", letterSpacing: "0.08em" }}
+      className="relative py-1 text-text-nav font-medium font-dm group flex items-center gap-1"
+      style={{ fontSize: "12px", letterSpacing: "0.1em" }}
     >
-      {label}
-      <span className="absolute left-0 right-0 bottom-0 h-[1.5px] bg-gold origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-400 ease-[cubic-bezier(0.25,0.4,0.25,1)]" />
+      <span className="relative z-10 group-hover:text-forest transition-colors duration-300 uppercase">
+        {label}
+      </span>
+      <span className="absolute left-0 right-0 bottom-0 h-[1px] bg-gold/60 origin-right scale-x-0 group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-out" />
     </Link>
   );
 }
 
-/* ── Lightweight Search Bar (no typewriter on mobile) ─── */
-function SearchBar() {
+function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   const [inputValue, setInputValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,20 +35,30 @@ function SearchBar() {
     if (inputValue.trim()) {
       router.push(`/collections?q=${encodeURIComponent(inputValue.trim())}`);
       setInputValue("");
+      onSubmitCallback?.();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative group w-full flex items-center">
-      <div className="absolute left-3.5 text-forest/40 group-focus-within:text-gold transition-colors duration-300 pointer-events-none">
-        <Search size={16} strokeWidth={1.5} />
+    <form 
+      onSubmit={handleSubmit} 
+      className={`relative group flex items-center transition-all duration-500 ease-in-out ${
+        isFocused ? "w-full max-w-[380px]" : "w-full max-w-[280px]"
+      }`}
+    >
+      <div className={`absolute left-4 transition-colors duration-300 pointer-events-none ${
+        isFocused ? "text-gold" : "text-forest/30"
+      }`}>
+        <Search size={15} strokeWidth={1.5} />
       </div>
       <input
         type="text"
         value={inputValue}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Search sarees, kurtas..."
-        className="w-full py-2 lg:py-2.5 pl-10 pr-4 bg-cream/40 border border-gold/10 rounded-full font-dm text-[11px] lg:text-[13px] tracking-wide text-forest placeholder:text-text-muted/50 focus:outline-none focus:border-gold/40 focus:bg-white transition-all duration-300"
+        placeholder="Search our collections..."
+        className="w-full py-2.5 pl-11 pr-5 bg-white/40 border border-gold/10 rounded-full font-dm text-[12px] tracking-wide text-forest placeholder:text-text-muted/40 focus:outline-none focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)] transition-all duration-500"
       />
     </form>
   );
@@ -108,7 +120,7 @@ export default function Header() {
                 {menuOpen ? <X size={22} strokeWidth={1.3} /> : <Menu size={22} strokeWidth={1.3} />}
               </button>
 
-              <div className="hidden md:block w-full max-w-[240px] lg:max-w-[320px]">
+              <div className="hidden lg:block w-full">
                 <SearchBar />
               </div>
             </div>
@@ -192,31 +204,80 @@ export default function Header() {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-center gap-10 h-full">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.filter(link => link.href !== "/").map((link) => (
             <NavLink key={link.href} label={link.label} href={link.href} />
           ))}
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu — Full-screen overlay */}
       {menuOpen && (
         <div
-          className="overflow-hidden lg:hidden animate-fade-in"
-          style={{ background: "rgba(253,251,247,0.98)", borderTop: "1px solid rgba(184,150,62,0.1)" }}
+          className="fixed inset-0 top-0 lg:hidden z-[60] animate-fade-in flex flex-col"
+          style={{ background: "rgba(253,251,247,0.99)" }}
         >
-          <div className="px-8 py-5 space-y-0.5">
-            {NAV_LINKS.map((link) => (
-              <div key={link.href}>
-                <Link
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block py-3.5 text-forest font-medium font-dm text-[14px] border-bottom border-gold/10"
+          {/* Menu Header — mirrors the real header */}
+          <div className="px-4 flex items-center justify-between" style={{ paddingTop: "18px", paddingBottom: "12px" }}>
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="text-text-nav hover:text-forest transition-colors p-1"
+              aria-label="Close menu"
+            >
+              <X size={22} strokeWidth={1.3} />
+            </button>
+            <Link href="/" onClick={() => setMenuOpen(false)} className="text-center flex-shrink-0">
+              <p
+                className="font-playfair text-forest font-bold whitespace-nowrap"
+                style={{ fontSize: "clamp(18px, 3vw, 30px)", letterSpacing: "0.08em", lineHeight: 1.1 }}
+              >
+                MRUDULA VASTRA
+              </p>
+              <p
+                className="uppercase text-gold font-dm font-medium"
+                style={{ fontSize: "10px", letterSpacing: "0.25em", marginTop: 4 }}
+              >
+                Elegance Woven in Every Thread
+              </p>
+            </Link>
+            <button
+              onClick={() => toggleCart()}
+              className="text-text-nav hover:text-forest transition-colors p-1 relative"
+              aria-label="Shopping bag"
+            >
+              <ShoppingBag size={19} strokeWidth={1.3} />
+              {cartCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 bg-forest text-white rounded-full flex items-center justify-center font-bold font-dm"
+                  style={{ width: "17px", height: "17px", fontSize: "9px" }}
                 >
-                  {link.label}
-                </Link>
-              </div>
+                  {cartCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="px-6 py-3">
+            <SearchBar onSubmitCallback={() => setMenuOpen(false)} />
+          </div>
+
+          {/* Nav Links */}
+          <nav className="flex-1 px-8 pt-4 overflow-y-auto">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="block py-4 text-forest font-medium font-dm text-[15px] border-b border-gold/10"
+              >
+                {link.label}
+              </Link>
             ))}
-            <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 py-3.5 text-forest font-medium font-dm text-[14px]">
+            <Link
+              href="/profile"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 py-4 text-forest font-medium font-dm text-[15px] border-b border-gold/10"
+            >
               <User size={16} strokeWidth={1.3} />
               My Account
             </Link>
@@ -224,12 +285,19 @@ export default function Header() {
               <Link
                 href="/admin"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-3.5 text-gold font-bold font-dm text-[14px]"
+                className="flex items-center gap-3 py-4 text-gold font-bold font-dm text-[15px] border-b border-gold/10"
               >
                 <Shield size={16} strokeWidth={1.5} />
                 Admin Dashboard
               </Link>
             )}
+          </nav>
+
+          {/* Bottom Branding */}
+          <div className="px-8 py-6 text-center border-t border-gold/10">
+            <p className="text-text-muted/40 font-dm text-[11px] tracking-wider uppercase">
+              Handpicked Ethnic Elegance
+            </p>
           </div>
         </div>
       )}

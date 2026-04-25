@@ -18,6 +18,13 @@ const CATEGORY_MAP: Record<string, { dbName: string; title: string; subtitle: st
     seoDescription:
       "Shop premium sarees at Mrudula Vastra — handpicked Kanjivaram, Banarasi, Pochampally & Chanderi silk sarees from Machilipatnam. Authentic handloom sarees with nationwide delivery.",
   },
+  kurtas: {
+    dbName: "Kurtas",
+    title: "Kurtas",
+    subtitle: "Contemporary silhouettes rooted in tradition",
+    seoDescription:
+      "Shop designer kurtas at Mrudula Vastra — premium ethnic kurtas for women with elegant embroidery and luxurious fabrics. Free delivery across India from Machilipatnam.",
+  },
   "dress-materials": {
     dbName: "Dress Materials",
     title: "Dress Materials",
@@ -89,19 +96,18 @@ export default async function CategoryPage({
       <AnnouncementBar />
       <Header />
       <main className="min-h-screen bg-cream">
-      {/* Hero Banner */}
-      <section className="relative pt-12 pb-10 lg:pt-16 lg:pb-12 text-center">
-        <div className="relative z-10 max-w-3xl mx-auto px-6">
-          <p
-            className="hidden sm:block uppercase text-gold font-dm font-medium tracking-[0.35em] mb-3"
-            style={{ fontSize: "10px" }}
-          >
-            Collection
-          </p>
-          <h1 className="font-playfair text-forest font-light text-3xl mb-3 tracking-wide">
-            {cat.title}
-          </h1>
-          <p className="hidden sm:block text-text-muted font-dm text-sm max-w-lg mx-auto">
+      {/* Hero — Compact Horizontal Strip */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-10 pt-6 pb-4 sm:pt-8 sm:pb-6 lg:pt-10 lg:pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-6">
+          <div className="min-w-0">
+            <p className="hidden lg:block uppercase font-bold text-gold tracking-[0.5em] text-[9px] mb-2">
+              Collection
+            </p>
+            <h1 className="font-playfair text-forest font-medium tracking-wide text-[22px] sm:text-[28px] lg:text-[34px] leading-tight">
+              {cat.title}
+            </h1>
+          </div>
+          <p className="hidden lg:block text-text-muted/60 font-dm text-[13px] italic whitespace-nowrap pb-1">
             {cat.subtitle}
           </p>
         </div>

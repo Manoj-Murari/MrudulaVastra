@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { loginWithEmail, signupWithEmail, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
+import { useSearchParams } from "next/navigation";
+import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
 
-export default function LoginPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const [isSignUp, setIsSignUp] = useState(searchParams?.get("view") === "signup");
+  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("otp");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [savedEmail, setSavedEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.get("view") === "signup") {
+      setIsSignUp(true);
+    } else {
+      setIsSignUp(false);
+    }
+  }, [searchParams]);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -21,7 +32,10 @@ export default function LoginPage() {
 
     let result;
     if (isSignUp) {
-      result = await signupWithEmail(formData);
+      const password = formData.get("password")?.toString() || "";
+      result = password && password.length >= 8
+        ? await signupWithEmail(formData)
+        : await signupWithOtpOnly(formData);
     } else if (loginMethod === "otp") {
       result = await sendLoginOtp(formData);
     } else {
@@ -179,6 +193,21 @@ export default function LoginPage() {
                   />
                 </div>
 
+                {!isSignUp && loginMethod === "otp" && (
+                  <div className="text-center py-2">
+                    <p className="text-[12px] text-text-muted font-dm mb-4">
+                      We'll send a secure 6-digit code to your email.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setLoginMethod("password")}
+                      className="text-[11px] text-forest/60 hover:text-forest font-dm uppercase tracking-wider transition-colors underline underline-offset-4"
+                    >
+                      Sign in with password instead
+                    </button>
+                  </div>
+                )}
+
                 {!isSignUp && loginMethod === "password" && (
                   <div>
                     <label
@@ -208,38 +237,22 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {!isSignUp && loginMethod === "otp" && (
-                  <div className="text-center py-2">
-                    <p className="text-[12px] text-text-muted font-dm mb-4">
-                      No password? No problem. We'll send a secure code to your email.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setLoginMethod("password")}
-                      className="text-[11px] text-forest/60 hover:text-forest font-dm uppercase tracking-wider transition-colors underline underline-offset-4"
-                    >
-                      Sign in with password instead
-                    </button>
-                  </div>
-                )}
-
                 {isSignUp && (
                   <div>
-                    <label
-                      htmlFor="login-password"
-                      className="block text-forest font-dm font-medium text-sm mb-2"
-                    >
-                      Password
-                    </label>
-                    <input
-                      id="login-password"
-                      name="password"
-                      type="password"
-                      required
-                      minLength={8}
-                      placeholder="••••••••"
-                      className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
-                    />
+                    {showPassword ? (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label htmlFor="login-password" className="block text-forest font-dm font-medium text-sm">Password (Optional)</label>
+                          <button type="button" onClick={() => setShowPassword(false)} className="text-[9px] text-red-400 hover:text-red-500 font-dm uppercase tracking-widest transition-colors">Remove</button>
+                        </div>
+                        <input id="login-password" name="password" type="password" minLength={8} placeholder="Min 8 characters" className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50" />
+                        <p className="text-[10px] text-text-muted/60 font-dm mt-1 italic">You can also log in with OTP anytime.</p>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => setShowPassword(true)} className="text-[11px] text-forest/60 hover:text-forest font-dm uppercase tracking-wider transition-colors underline underline-offset-4">
+                        + Add a password (optional)
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -294,5 +307,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-cream flex items-center justify-center"><div className="w-8 h-8 border-4 border-forest/30 border-t-forest rounded-full animate-spin"></div></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

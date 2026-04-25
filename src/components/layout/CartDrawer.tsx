@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trash2, ShoppingBag, CheckCircle } from "lucide-react";
+import { X, Trash2, ShoppingBag, CheckCircle, LogIn } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCart } from "@/components/providers/CartProvider";
 import Script from "next/script";
 import { createRazorpayOrder, processOrderAfterPayment } from "@/actions/checkout";
 import { getUserProfile } from "@/actions/profile";
 import { validateCoupon, getActiveCouponsCount } from "@/actions/coupons";
+import { checkIsLoggedIn } from "@/actions/auth";
+import { getUserAddresses, saveAddressFromCheckout, type Address } from "@/actions/addresses";
 
 /* ── Razorpay Types ──────────────────────────────────── */
 
@@ -42,8 +45,8 @@ export default function CartDrawer() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [checkoutStep, setCheckoutStep] = useState<"cart" | "address">("cart");
-  const [addressData, setAddressData] = useState({ fullName: "", phone: "", email: "", pincode: "", city: "", state: "", fullAddress: "" });
+  const [checkoutStep, setCheckoutStep] = useState<"cart" | "address" | "login">("cart");
+  const [addressData, setAddressData] = useState({ fullName: "", phone: "", pincode: "", city: "", state: "", fullAddress: "" });
   const [hasProfileFetched, setHasProfileFetched] = useState(false);
   
   // Coupon State
@@ -53,31 +56,58 @@ export default function CartDrawer() {
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [hasActiveCoupons, setHasActiveCoupons] = useState(false);
 
+  // Address selection state
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [useNewAddress, setUseNewAddress] = useState(false);
+  const [saveNewAddress, setSaveNewAddress] = useState(false);
+
   useEffect(() => {
-    async function preloadProfile() {
+    async function preloadAddressData() {
       if (checkoutStep === "address" && !hasProfileFetched) {
         try {
-          const profile = await getUserProfile();
-          if (profile) {
-            setAddressData(prev => ({
-              ...prev,
-              fullName: prev.fullName || profile.full_name || "",
-              phone: prev.phone || profile.phone || "",
-              email: prev.email || profile.email || "",
-              pincode: prev.pincode || profile.pincode || "",
-              city: prev.city || profile.city || "",
-              state: prev.state || profile.state || "",
-              fullAddress: prev.fullAddress || profile.full_address || ""
-            }));
+          // Fetch saved addresses
+          const addrs = await getUserAddresses();
+          setSavedAddresses(addrs);
+
+          if (addrs.length > 0) {
+            // Auto-select default or first address
+            const defaultAddr = addrs.find(a => a.is_default) || addrs[0];
+            setSelectedAddressId(defaultAddr.id);
+            setAddressData({
+              fullName: defaultAddr.full_name,
+              phone: defaultAddr.phone,
+              pincode: defaultAddr.pincode,
+              city: defaultAddr.city,
+              state: defaultAddr.state,
+              fullAddress: defaultAddr.full_address,
+            });
+            setUseNewAddress(false);
+          } else {
+            // No saved addresses — fall back to profile
+            setUseNewAddress(true);
+            const profile = await getUserProfile();
+            if (profile) {
+              setAddressData(prev => ({
+                ...prev,
+                fullName: prev.fullName || profile.full_name || "",
+                phone: prev.phone || profile.phone || "",
+                pincode: prev.pincode || profile.pincode || "",
+                city: prev.city || profile.city || "",
+                state: prev.state || profile.state || "",
+                fullAddress: prev.fullAddress || profile.full_address || ""
+              }));
+            }
           }
         } catch (e) {
           // silent fail
+          setUseNewAddress(true);
         } finally {
           setHasProfileFetched(true);
         }
       }
     }
-    preloadProfile();
+    preloadAddressData();
   }, [checkoutStep, hasProfileFetched]);
 
   // Check for active coupons
@@ -91,8 +121,8 @@ export default function CartDrawer() {
 
   const handleCheckout = async () => {
     // Make sure they filled everything out
-    if (!addressData.fullName || !addressData.phone || !addressData.email || !addressData.pincode || !addressData.city || !addressData.state || !addressData.fullAddress) {
-      alert("Please fill out all address fields including your Email to receive the receipt.");
+    if (!addressData.fullName || !addressData.phone || !addressData.pincode || !addressData.city || !addressData.state || !addressData.fullAddress) {
+      alert("Please fill out all shipping details.");
       return;
     }
 
@@ -144,6 +174,19 @@ export default function CartDrawer() {
           setSuccess(true);
           setOrderId(verifyResult.orderId || orderResult.orderId);
           resetCart();
+
+          // Save address if user opted in
+          if (saveNewAddress && useNewAddress) {
+            saveAddressFromCheckout({
+              label: "Home",
+              fullName: addressData.fullName,
+              phone: addressData.phone,
+              fullAddress: addressData.fullAddress,
+              city: addressData.city,
+              state: addressData.state,
+              pincode: addressData.pincode,
+            }).catch(() => {}); // silent — don't block success
+          }
         } else {
           alert("Order processing failed: " + verifyResult.message);
         }
@@ -151,7 +194,6 @@ export default function CartDrawer() {
       prefill: {
         name: addressData.fullName,
         contact: addressData.phone,
-        email: addressData.email,
       },
       theme: {
         color: "#183226" // Forest
@@ -201,7 +243,7 @@ export default function CartDrawer() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             onClick={closeDrawer}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
           />
 
           {/* Drawer */}
@@ -210,7 +252,7 @@ export default function CartDrawer() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full sm:max-w-[420px] bg-cream shadow-2xl z-[101] flex flex-col"
+            className="fixed top-0 right-0 h-full w-full sm:max-w-[420px] bg-cream shadow-2xl z-[101] flex flex-col border-l-2 border-gold/30"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gold/20">
@@ -226,8 +268,8 @@ export default function CartDrawer() {
               </button>
             </div>
 
-            {/* Content Body */}
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col">
+            {/* Content Body — Fixed scrolling for multiple items */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col lg:max-h-[calc(100vh-320px)]">
               {success ? (
                 /* Success State */
                 <motion.div 
@@ -255,36 +297,107 @@ export default function CartDrawer() {
                   </button>
                 </motion.div>
               ) : checkoutStep === "address" ? (
-                /* Address Form */
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full space-y-6">
-                  <div className="flex items-center gap-2 mb-2">
+                /* Address Step */
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col h-full space-y-5">
+                  <div className="flex items-center gap-2 mb-1">
                     <button onClick={() => setCheckoutStep("cart")} className="text-text-muted hover:text-forest text-sm font-dm transition-colors">
                       &larr; Back to Cart
                     </button>
                   </div>
                   <h3 className="font-playfair text-2xl font-normal text-forest">Shipping Details</h3>
-                  <div className="space-y-4">
-                    <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    <input type="email" placeholder="Email Address (for receipt)" value={addressData.email} onChange={e => setAddressData({...addressData, email: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    <input type="tel" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({...addressData, phone: e.target.value.replace(/\D/g, '').slice(0, 15)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <select required value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors border-0">
-                        <option value="" disabled>Select State</option>
-                        {[
-                          "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
-                          "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
-                          "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
-                          "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
-                          "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
-                        ].map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                      <input type="text" placeholder="City" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    </div>
 
-                    <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({...addressData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                    <textarea placeholder="House No, Building, Street Area" value={addressData.fullAddress} onChange={e => setAddressData({...addressData, fullAddress: e.target.value})} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
-                  </div>
+                  {/* Saved Address Picker */}
+                  {savedAddresses.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-text-muted font-dm">Saved Addresses</p>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {savedAddresses.map(addr => (
+                          <label
+                            key={addr.id}
+                            className={`block p-3 border cursor-pointer transition-all ${
+                              selectedAddressId === addr.id && !useNewAddress
+                                ? "border-forest bg-forest/[0.03]"
+                                : "border-gold/15 hover:border-gold/30"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="savedAddr"
+                              className="sr-only"
+                              checked={selectedAddressId === addr.id && !useNewAddress}
+                              onChange={() => {
+                                setSelectedAddressId(addr.id);
+                                setUseNewAddress(false);
+                                setAddressData({
+                                  fullName: addr.full_name,
+                                  phone: addr.phone,
+                                  pincode: addr.pincode,
+                                  city: addr.city,
+                                  state: addr.state,
+                                  fullAddress: addr.full_address,
+                                });
+                              }}
+                            />
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-forest font-dm">{addr.label}</span>
+                              {addr.is_default && <span className="text-[8px] bg-forest text-white px-1.5 py-0.5 uppercase tracking-wider font-bold">Default</span>}
+                            </div>
+                            <p className="text-xs font-dm text-text-muted truncate">{addr.full_name} • {addr.full_address}</p>
+                          </label>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUseNewAddress(true);
+                          setSelectedAddressId(null);
+                          setAddressData({ fullName: "", phone: "", pincode: "", city: "", state: "", fullAddress: "" });
+                        }}
+                        className={`w-full py-2.5 text-xs font-dm uppercase tracking-wider font-bold border-2 border-dashed transition-all ${
+                          useNewAddress ? "border-forest text-forest bg-forest/[0.03]" : "border-gold/20 text-text-muted hover:border-forest/30"
+                        }`}
+                      >
+                        + Use a Different Address
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Manual Address Form (shown when no saved addresses or "Use a Different Address" is selected) */}
+                  {(useNewAddress || savedAddresses.length === 0) && (
+                    <div className="space-y-4">
+                      {savedAddresses.length > 0 && <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-text-muted font-dm">New Address</p>}
+                      <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                      <input type="tel" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({...addressData, phone: e.target.value.replace(/\D/g, '').slice(0, 15)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <select required value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors border-0">
+                          <option value="" disabled>Select State</option>
+                          {[
+                            "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
+                            "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+                            "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
+                            "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+                            "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+                          ].map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <input type="text" placeholder="City" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                      </div>
+
+                      <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({...addressData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                      <textarea placeholder="House No, Building, Street Area" value={addressData.fullAddress} onChange={e => setAddressData({...addressData, fullAddress: e.target.value})} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
+
+                      {/* Save this address checkbox */}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={saveNewAddress}
+                          onChange={(e) => setSaveNewAddress(e.target.checked)}
+                          className="accent-forest w-4 h-4"
+                        />
+                        <span className="text-xs font-dm text-text-muted">Save this address for future orders</span>
+                      </label>
+                    </div>
+                  )}
                 </motion.div>
               ) : items.length === 0 ? (
                 /* Empty Cart State */
@@ -314,7 +427,7 @@ export default function CartDrawer() {
                         <p className="text-[10px] uppercase tracking-wider text-text-muted mb-1">
                           {item.product.category}
                         </p>
-                        <h4 className="font-cormorant text-forest font-medium text-xl leading-tight truncate">
+                        <h4 className="font-cormorant text-forest font-medium text-xl leading-tight line-clamp-2">
                           {item.product.name}
                         </h4>
                         
@@ -443,9 +556,36 @@ export default function CartDrawer() {
                   </div>
                 </div>
                 
-                {checkoutStep === "cart" ? (
+                {checkoutStep === "login" ? (
+                  /* Login Gate */
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <LogIn size={20} className="text-forest" />
+                      <p className="font-playfair text-forest text-lg font-medium">Sign in to continue</p>
+                    </div>
+                    <p className="text-text-muted font-dm text-xs">
+                      Please login or create an account to place your order.
+                    </p>
+                    <Link
+                      href="/profile"
+                      onClick={() => toggleCart(false)}
+                      className="block w-full py-4 uppercase bg-forest text-white tracking-[0.15em] text-sm font-bold hover:bg-forest/90 transition-all text-center"
+                    >
+                      Login / Sign Up
+                    </Link>
+                    <button
+                      onClick={() => setCheckoutStep("cart")}
+                      className="text-[10px] text-text-muted hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
+                    >
+                      ← Back to Cart
+                    </button>
+                  </div>
+                ) : checkoutStep === "cart" ? (
                   <button
-                    onClick={() => setCheckoutStep("address")}
+                    onClick={async () => {
+                      const loggedIn = await checkIsLoggedIn();
+                      setCheckoutStep(loggedIn ? "address" : "login");
+                    }}
                     className="w-full py-4 uppercase bg-forest text-white tracking-[0.15em] text-sm font-bold hover:bg-forest/90 transition-all active:scale-[0.98] flex justify-center items-center gap-2"
                   >
                     Proceed to Checkout
@@ -467,9 +607,7 @@ export default function CartDrawer() {
                   </button>
                 )}
                 
-                <p className="text-center text-[10px] text-text-muted uppercase mt-3 tracking-widest">
-                  Shipping & Taxes calculated at checkout
-                </p>
+                {/* Removed Shipping & Taxes message */}
               </div>
             )}
           </motion.div>
