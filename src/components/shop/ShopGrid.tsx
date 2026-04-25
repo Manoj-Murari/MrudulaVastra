@@ -94,7 +94,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
       <section className="relative pt-12 pb-10 lg:pt-16 lg:pb-12 text-center">
         <div className="relative z-10 max-w-3xl mx-auto px-6">
           <p
-            className="uppercase text-gold font-dm font-medium tracking-[0.35em] mb-3"
+            className="hidden sm:block uppercase text-gold font-dm font-medium tracking-[0.35em] mb-3"
             style={{ fontSize: "10px" }}
           >
             Shop
@@ -102,7 +102,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
           <h1 className="font-playfair text-forest font-light text-3xl mb-3 tracking-wide">
             {activeCategory === "All" ? "All Collections" : activeCategory}
           </h1>
-          <p className="text-text-muted font-dm text-sm max-w-lg mx-auto">
+          <p className="hidden sm:block text-text-muted font-dm text-sm max-w-lg mx-auto">
             Browse our curated catalog of handpicked ethnic wear.
           </p>
         </div>

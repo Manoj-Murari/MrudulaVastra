@@ -113,7 +113,7 @@ export default function HeroSection() {
       </div>
 
       {/* ━━ Right: Framed Gallery Image ━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:py-12 lg:px-20 order-1 lg:order-2">
+      <div className="hidden lg:flex w-full lg:w-1/2 items-center justify-center p-8 lg:py-12 lg:px-20 order-1 lg:order-2">
         <div
           className="relative w-full max-w-sm lg:max-w-[420px] aspect-[3/4] shadow-lg shadow-forest/5 animate-fade-up"
           style={{ animationDelay: "0.2s" }}

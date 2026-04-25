@@ -47,10 +47,12 @@ export default async function ProfilePage() {
       <AnnouncementBar />
       <Header />
       <main className="min-h-screen bg-cream">
-        <Breadcrumb items={[{ label: "My Account" }]} />
+        <div className="hidden lg:block">
+          <Breadcrumb items={[{ label: "My Account" }]} />
+        </div>
       
       {/* ── Hero ─────────────────────────────────────── */}
-      <section className="relative py-16 lg:py-24 text-center">
+      <section className={`relative py-16 lg:py-24 text-center ${!user ? 'hidden lg:block' : ''}`}>
         <div className="absolute inset-0 bg-gradient-to-b from-forest/5 to-transparent" />
         <div className="relative z-10 max-w-3xl mx-auto px-6">
           <div className="w-20 h-20 mx-auto mb-6 bg-forest/10 rounded-full flex items-center justify-center shadow-inner">
@@ -59,9 +61,14 @@ export default async function ProfilePage() {
           <h1 className="font-playfair text-forest font-bold text-2xl lg:text-4xl mb-2">
             {user ? `Welcome, ${displayName.split(" ")[0]}` : "My Account"}
           </h1>
-          <p className="text-text-muted font-dm text-sm">
+          <p className="hidden lg:block text-text-muted font-dm text-sm">
             {user ? user.email : "Sign in to elevate your shopping experience."}
           </p>
+          {user && (
+            <p className="lg:hidden text-text-muted font-dm text-sm">
+              {user.email}
+            </p>
+          )}
         </div>
       </section>
 

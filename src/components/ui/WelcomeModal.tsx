@@ -14,17 +14,12 @@ export default function WelcomeModal() {
     let timer: NodeJS.Timeout;
 
     const checkStatus = async () => {
-      // Check if user has already seen the modal
-      const hasSeen = localStorage.getItem("hasSeenWelcomeModal");
-      if (hasSeen) return;
-
       // Check if user is already authenticated
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // If they are logged in, never show the modal and mark it as seen
-        localStorage.setItem("hasSeenWelcomeModal", "true");
+        // If they are logged in, never show the modal
         return;
       }
 
@@ -43,7 +38,6 @@ export default function WelcomeModal() {
 
   const handleClose = () => {
     setIsOpen(false);
-    localStorage.setItem("hasSeenWelcomeModal", "true");
   };
 
   // Prevent hydration mismatch by not rendering anything until mounted
