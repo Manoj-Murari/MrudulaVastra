@@ -14,16 +14,25 @@ export default function WelcomeModal() {
     let timer: NodeJS.Timeout;
 
     const checkStatus = async () => {
-      // Check if user is already authenticated
+      // 1. Check if user has dismissed it recently (last 7 days)
+      const dismissedAt = localStorage.getItem("mv-welcome-dismissed");
+      if (dismissedAt) {
+        const lastDismissed = parseInt(dismissedAt, 10);
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        if (Date.now() - lastDismissed < sevenDays) {
+          return;
+        }
+      }
+
+      // 2. Check if user is already authenticated
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // If they are logged in, never show the modal
         return;
       }
 
-      // Wait 5 seconds before showing
+      // Show after delay
       timer = setTimeout(() => {
         setIsOpen(true);
       }, 5000);
@@ -38,6 +47,8 @@ export default function WelcomeModal() {
 
   const handleClose = () => {
     setIsOpen(false);
+    // Save dismissal time
+    localStorage.setItem("mv-welcome-dismissed", Date.now().toString());
   };
 
   // Prevent hydration mismatch by not rendering anything until mounted
