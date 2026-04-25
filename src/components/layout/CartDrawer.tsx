@@ -8,7 +8,7 @@ import { useCart } from "@/components/providers/CartProvider";
 import Script from "next/script";
 import { createRazorpayOrder, processOrderAfterPayment } from "@/actions/checkout";
 import { getUserProfile } from "@/actions/profile";
-import { validateCoupon } from "@/actions/coupons";
+import { validateCoupon, getActiveCouponsCount } from "@/actions/coupons";
 
 /* ── Razorpay Types ──────────────────────────────────── */
 
@@ -51,6 +51,7 @@ export default function CartDrawer() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [hasActiveCoupons, setHasActiveCoupons] = useState(false);
 
   useEffect(() => {
     async function preloadProfile() {
@@ -78,6 +79,15 @@ export default function CartDrawer() {
     }
     preloadProfile();
   }, [checkoutStep, hasProfileFetched]);
+
+  // Check for active coupons
+  useEffect(() => {
+    async function checkCoupons() {
+      const count = await getActiveCouponsCount();
+      setHasActiveCoupons(count > 0);
+    }
+    checkCoupons();
+  }, []);
 
   const handleCheckout = async () => {
     // Make sure they filled everything out
@@ -358,59 +368,61 @@ export default function CartDrawer() {
               <div className="p-6 border-t border-gold/20 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
                 
                 {/* Coupon Code Section */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] uppercase tracking-widest font-bold text-text-muted">Apply Coupon</span>
-                    {appliedCoupon && (
-                      <button 
-                        onClick={() => { setAppliedCoupon(null); setCouponError(""); }}
-                        className="text-[10px] text-red-500 font-bold uppercase tracking-wider hover:underline"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                  
-                  {!appliedCoupon ? (
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value={couponInput}
-                        onChange={(e) => { setCouponInput(e.target.value); setCouponError(""); }}
-                        placeholder="Enter Code (e.g. MRUDULA10)"
-                        className="flex-1 bg-sand/50 border border-gold/20 rounded px-3 py-2 text-sm font-dm focus:outline-none focus:border-forest transition-colors"
-                      />
-                      <button 
-                        disabled={!couponInput || isApplyingCoupon}
-                        onClick={async () => {
-                          setIsApplyingCoupon(true);
-                          const res = await validateCoupon(couponInput, cartTotal);
-                          if (res.success && res.discountAmount) {
-                            setAppliedCoupon({ code: res.code!, discountAmount: res.discountAmount });
-                            setCouponError("");
-                            setCouponInput("");
-                          } else {
-                            setCouponError(res.message);
-                          }
-                          setIsApplyingCoupon(false);
-                        }}
-                        className="px-4 py-2 bg-forest text-white text-xs font-bold uppercase tracking-wider rounded hover:bg-forest/90 transition-colors disabled:opacity-50"
-                      >
-                        {isApplyingCoupon ? "..." : "Apply"}
-                      </button>
+                {hasActiveCoupons && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] uppercase tracking-widest font-bold text-text-muted">Apply Coupon</span>
+                      {appliedCoupon && (
+                        <button 
+                          onClick={() => { setAppliedCoupon(null); setCouponError(""); }}
+                          className="text-[10px] text-red-500 font-bold uppercase tracking-wider hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    <div className="bg-emerald-50 border border-emerald-100 rounded px-3 py-2 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle size={14} className="text-emerald-600" />
-                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-tight">{appliedCoupon.code} Applied</span>
+                    
+                    {!appliedCoupon ? (
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={couponInput}
+                          onChange={(e) => { setCouponInput(e.target.value); setCouponError(""); }}
+                          placeholder="Enter Code (e.g. MRUDULA10)"
+                          className="flex-1 bg-sand/50 border border-gold/20 rounded px-3 py-2 text-sm font-dm focus:outline-none focus:border-forest transition-colors"
+                        />
+                        <button 
+                          disabled={!couponInput || isApplyingCoupon}
+                          onClick={async () => {
+                            setIsApplyingCoupon(true);
+                            const res = await validateCoupon(couponInput, cartTotal);
+                            if (res.success && res.discountAmount) {
+                              setAppliedCoupon({ code: res.code!, discountAmount: res.discountAmount });
+                              setCouponError("");
+                              setCouponInput("");
+                            } else {
+                              setCouponError(res.message);
+                            }
+                            setIsApplyingCoupon(false);
+                          }}
+                          className="px-4 py-2 bg-forest text-white text-xs font-bold uppercase tracking-wider rounded hover:bg-forest/90 transition-colors disabled:opacity-50"
+                        >
+                          {isApplyingCoupon ? "..." : "Apply"}
+                        </button>
                       </div>
-                      <span className="text-xs font-bold text-emerald-700">- ₹{appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
-                    </div>
-                  )}
-                  
-                  {couponError && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{couponError}</p>}
-                </div>
+                    ) : (
+                      <div className="bg-emerald-50 border border-emerald-100 rounded px-3 py-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={14} className="text-emerald-600" />
+                          <span className="text-xs font-bold text-emerald-800 uppercase tracking-tight">{appliedCoupon.code} Applied</span>
+                        </div>
+                        <span className="text-xs font-bold text-emerald-700">- ₹{appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
+                      </div>
+                    )}
+                    
+                    {couponError && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{couponError}</p>}
+                  </div>
+                )}
 
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between items-center text-sm text-text-muted">

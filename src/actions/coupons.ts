@@ -82,3 +82,14 @@ export async function toggleCouponStatus(id: string, currentStatus: boolean) {
   if (error) return { error: error.message };
   return { success: true };
 }
+
+export async function getActiveCouponsCount(): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await (supabase as any)
+    .from("coupons")
+    .select("*", { count: "exact", head: true })
+    .eq("is_active", true);
+
+  if (error) return 0;
+  return count || 0;
+}
