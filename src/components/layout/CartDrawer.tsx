@@ -8,6 +8,7 @@ import { useCart } from "@/components/providers/CartProvider";
 import Script from "next/script";
 import { createRazorpayOrder, processOrderAfterPayment } from "@/actions/checkout";
 import { getUserProfile } from "@/actions/profile";
+import { validateCoupon } from "@/actions/coupons";
 
 /* ── Razorpay Types ──────────────────────────────────── */
 
@@ -44,6 +45,12 @@ export default function CartDrawer() {
   const [checkoutStep, setCheckoutStep] = useState<"cart" | "address">("cart");
   const [addressData, setAddressData] = useState({ fullName: "", phone: "", email: "", pincode: "", city: "", state: "", fullAddress: "" });
   const [hasProfileFetched, setHasProfileFetched] = useState(false);
+  
+  // Coupon State
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   useEffect(() => {
     async function preloadProfile() {
@@ -109,8 +116,9 @@ export default function CartDrawer() {
       order_id: orderResult.orderId,
       handler: async function (response: RazorpaySuccessResponse) {
         // Step 3: Handle success, process order and save to DB
+        const finalTotal = appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal;
         const verifyResult = await processOrderAfterPayment(
-          cartTotal,
+          finalTotal,
           checkoutItems,
           addressData,
           {
@@ -137,8 +145,12 @@ export default function CartDrawer() {
       },
       theme: {
         color: "#183226" // Forest
-      } // The modal close is handled correctly by Razorpay internally
+      }
     };
+
+    // Calculate final amount for Razorpay (In Paise)
+    const finalAmountInRs = appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal;
+    options.amount = finalAmountInRs * 100;
 
     const rzp = new window.Razorpay(options);
     
@@ -161,6 +173,9 @@ export default function CartDrawer() {
     setTimeout(() => {
       setSuccess(false);
       setCheckoutStep("cart");
+      setAppliedCoupon(null);
+      setCouponInput("");
+      setCouponError("");
     }, 500); 
   };
 
@@ -341,11 +356,79 @@ export default function CartDrawer() {
             {/* Footer / Checkout Button */}
             {!success && items.length > 0 && (
               <div className="p-6 border-t border-gold/20 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
-                <div className="flex justify-between items-end mb-6">
-                  <span className="text-text-primary font-medium tracking-wide">Subtotal</span>
-                  <span className="font-playfair text-forest font-medium text-2xl">
-                    ₹{cartTotal.toLocaleString("en-IN")}
-                  </span>
+                
+                {/* Coupon Code Section */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] uppercase tracking-widest font-bold text-text-muted">Apply Coupon</span>
+                    {appliedCoupon && (
+                      <button 
+                        onClick={() => { setAppliedCoupon(null); setCouponError(""); }}
+                        className="text-[10px] text-red-500 font-bold uppercase tracking-wider hover:underline"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value); setCouponError(""); }}
+                        placeholder="Enter Code (e.g. MRUDULA10)"
+                        className="flex-1 bg-sand/50 border border-gold/20 rounded px-3 py-2 text-sm font-dm focus:outline-none focus:border-forest transition-colors"
+                      />
+                      <button 
+                        disabled={!couponInput || isApplyingCoupon}
+                        onClick={async () => {
+                          setIsApplyingCoupon(true);
+                          const res = await validateCoupon(couponInput, cartTotal);
+                          if (res.success && res.discountAmount) {
+                            setAppliedCoupon({ code: res.code!, discountAmount: res.discountAmount });
+                            setCouponError("");
+                            setCouponInput("");
+                          } else {
+                            setCouponError(res.message);
+                          }
+                          setIsApplyingCoupon(false);
+                        }}
+                        className="px-4 py-2 bg-forest text-white text-xs font-bold uppercase tracking-wider rounded hover:bg-forest/90 transition-colors disabled:opacity-50"
+                      >
+                        {isApplyingCoupon ? "..." : "Apply"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-emerald-50 border border-emerald-100 rounded px-3 py-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle size={14} className="text-emerald-600" />
+                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-tight">{appliedCoupon.code} Applied</span>
+                      </div>
+                      <span className="text-xs font-bold text-emerald-700">- ₹{appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  
+                  {couponError && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{couponError}</p>}
+                </div>
+
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center text-sm text-text-muted">
+                    <span>Bag Total</span>
+                    <span>₹{cartTotal.toLocaleString("en-IN")}</span>
+                  </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between items-center text-sm text-emerald-600 font-medium">
+                      <span>Coupon Discount</span>
+                      <span>- ₹{appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-end pt-2 border-t border-gold/10">
+                    <span className="text-text-primary font-bold tracking-wide">Final Total</span>
+                    <span className="font-playfair text-forest font-bold text-2xl">
+                      ₹{(appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal).toLocaleString("en-IN")}
+                    </span>
+                  </div>
                 </div>
                 
                 {checkoutStep === "cart" ? (

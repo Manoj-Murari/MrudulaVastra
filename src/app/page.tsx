@@ -33,7 +33,7 @@ export default async function HomePage() {
     { data: { user } }
   ] = await Promise.all([
     supabase.from("categories").select("*").order("id", { ascending: true }),
-    supabase.from("products").select("*").order("id", { ascending: true }).limit(4),
+    supabase.from("products").select("*").eq("is_trending", true).order("id", { ascending: false }).limit(8),
     supabase.from("testimonials").select("*").order("id", { ascending: true }),
     supabase.auth.getUser()
   ]);

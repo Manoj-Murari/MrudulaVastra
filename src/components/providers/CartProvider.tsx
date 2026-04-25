@@ -1,8 +1,6 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import CartDrawer from "@/components/layout/CartDrawer";
-
 import type { Database } from "@/lib/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -108,7 +106,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         isHydrated,
       }}
     >
-      <CartDrawer />
       {children}
     </CartContext.Provider>
   );

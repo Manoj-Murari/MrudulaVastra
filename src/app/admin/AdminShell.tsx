@@ -20,6 +20,7 @@ import {
   BarChart3,
   Layers,
   MessageSquare,
+  Ticket,
 } from "lucide-react";
 import "./admin.css";
 
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { label: "Customers", icon: Users, href: "/admin/customers" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
   { label: "Enquiries", icon: MessageSquare, href: "/admin/enquiries" },
+  { label: "Coupons", icon: Ticket, href: "/admin/coupons" },
 ];
 
 /* ─── Main Shell ──────────────────────────────────────────── */

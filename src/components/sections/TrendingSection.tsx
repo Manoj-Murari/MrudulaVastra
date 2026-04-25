@@ -29,6 +29,8 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
     );
   };
 
+  if (!products || products.length === 0) return null;
+
   return (
     <section className="bg-cream font-dm py-20 sm:py-28 lg:py-36 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl lg:max-w-6xl mx-auto">
@@ -93,7 +95,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                     alt={`${product.name} — ${product.category} by Mrudula Vastra, premium Indian ethnic wear`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    priority={idx < 2}
+                    priority={idx < 4}
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
 
@@ -104,12 +106,6 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                       style={{ fontSize: "10px", letterSpacing: "0.05em" }}
                     >
                       {product.badge}
-                    </span>
-                    <span
-                      className="text-white px-2 py-1 font-bold bg-gold"
-                      style={{ fontSize: "10px" }}
-                    >
-                      -{discount(product.price, product.original_price)}%
                     </span>
                   </div>
 
