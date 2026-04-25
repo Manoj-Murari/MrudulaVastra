@@ -210,13 +210,13 @@ export default function Header() {
                 <Link
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
-                  className="block py-3.5 text-forest font-medium font-dm text-[15px] border-bottom border-gold/10"
+                  className="block py-3.5 text-forest font-medium font-dm text-[14px] border-bottom border-gold/10"
                 >
                   {link.label}
                 </Link>
               </div>
             ))}
-            <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 py-3.5 text-forest font-medium font-dm text-[15px]">
+            <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 py-3.5 text-forest font-medium font-dm text-[14px]">
               <User size={16} strokeWidth={1.3} />
               My Account
             </Link>
@@ -224,7 +224,7 @@ export default function Header() {
               <Link
                 href="/admin"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-3.5 text-gold font-bold font-dm text-[15px]"
+                className="flex items-center gap-3 py-3.5 text-gold font-bold font-dm text-[14px]"
               >
                 <Shield size={16} strokeWidth={1.5} />
                 Admin Dashboard

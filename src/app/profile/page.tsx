@@ -56,7 +56,7 @@ export default async function ProfilePage() {
           <div className="w-20 h-20 mx-auto mb-6 bg-forest/10 rounded-full flex items-center justify-center shadow-inner">
             <User size={32} className="text-forest" />
           </div>
-          <h1 className="font-playfair text-forest font-bold text-3xl lg:text-4xl mb-2">
+          <h1 className="font-playfair text-forest font-bold text-2xl lg:text-4xl mb-2">
             {user ? `Welcome, ${displayName.split(" ")[0]}` : "My Account"}
           </h1>
           <p className="text-text-muted font-dm text-sm">

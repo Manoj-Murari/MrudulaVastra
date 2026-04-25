@@ -56,7 +56,7 @@ export default async function HomePage() {
         {profile?.full_name && (
           <div className="w-full bg-cream py-3.5 border-b border-gold/15 overflow-hidden">
             <div className="max-w-7xl mx-auto px-6 text-center animate-fade-in">
-              <p className="font-cormorant text-[1.1rem] lg:text-xl text-forest italic tracking-wide">
+              <p className="font-cormorant text-[1rem] lg:text-xl text-forest italic tracking-wide">
                 Welcome back to Mrudula Vastra, {profile.full_name.split(' ')[0]} ✨
               </p>
             </div>
