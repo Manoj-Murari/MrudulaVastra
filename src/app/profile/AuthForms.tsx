@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { loginWithEmail, signupWithEmail, verifySignupOtp } from "@/actions/auth";
+import { loginWithEmail, signupWithEmail, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
 
 export default function AuthForms() {
   const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
+  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -13,8 +14,21 @@ export default function AuthForms() {
   async function handleLogin(formData: FormData) {
     setIsLoading(true);
     setError("");
-    const result = await loginWithEmail(formData);
-    if (result && result.error) setError(result.error);
+    setMessage("");
+    
+    const email = formData.get("email")?.toString() || "";
+    setEmailForVerification(email);
+
+    const result = loginMethod === "password" 
+      ? await loginWithEmail(formData)
+      : await sendLoginOtp(formData);
+
+    if (result && result.error) {
+      setError(result.error);
+    } else if (result && (result as any).success) {
+      setMessage((result as any).success);
+      setMode("verify");
+    }
     setIsLoading(false);
   }
 
@@ -36,7 +50,14 @@ export default function AuthForms() {
   async function handleVerify(formData: FormData) {
     setIsLoading(true);
     setError("");
-    const result = await verifySignupOtp(formData);
+    
+    // Ensure email is passed back to verify
+    formData.append("email", emailForVerification);
+
+    const result = mode === "verify" && loginMethod === "otp"
+      ? await verifyLoginOtp(formData)
+      : await verifySignupOtp(formData);
+
     if (result && result.error) setError(result.error);
     setIsLoading(false);
   }
@@ -63,12 +84,40 @@ export default function AuthForms() {
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Email Address</label>
             <input type="email" name="email" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
           </div>
-          <div>
-            <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Password</label>
-            <input type="password" name="password" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
-          </div>
+          
+          {loginMethod === "password" ? (
+            <div>
+              <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Password</label>
+              <input type="password" name="password" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+              <div className="mt-2 text-right">
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod("otp")}
+                  className="text-[10px] text-forest/50 hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
+                >
+                  Sign in with OTP code instead
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-2">
+              <p className="text-[11px] text-text-muted font-dm italic">
+                No password? No problem. We'll send a secure code to your email.
+              </p>
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => setLoginMethod("password")}
+                  className="text-[10px] text-forest/50 hover:text-forest font-dm uppercase tracking-widest transition-colors underline underline-offset-4"
+                >
+                  Sign in with password instead
+                </button>
+              </div>
+            </div>
+          )}
+
           <button type="submit" disabled={isLoading} className="w-full py-4 mt-6 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold transition-all disabled:opacity-70 hover:bg-forest/90">
-            {isLoading ? "Loading..." : "Secure Login"}
+            {isLoading ? "Loading..." : loginMethod === "otp" ? "Send Login Code" : "Secure Login"}
           </button>
           <div className="text-center mt-6">
             <button type="button" onClick={() => { setMode("signup"); setError(""); }} className="text-sm font-dm text-text-muted hover:text-gold transition-colors">

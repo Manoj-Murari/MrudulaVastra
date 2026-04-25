@@ -14,7 +14,7 @@ interface CategorySectionProps {
 export default function CategorySection({ categories }: CategorySectionProps) {
   return (
     <section className="bg-cream font-dm py-12 lg:py-16 px-6 sm:px-10 overflow-hidden w-full max-w-[100vw]">
-      <div className="max-w-5xl lg:max-w-7xl mx-auto">
+        <div className="max-w-5xl lg:max-w-6xl mx-auto">
         
         {/* Section Header */}
         <div className="text-center mb-16 lg:mb-20 animate-fade-up">
@@ -26,7 +26,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
           </p>
           <h2
             className="font-playfair text-forest font-light tracking-wide"
-            style={{ fontSize: "clamp(32px, 4vw, 56px)" }}
+            style={{ fontSize: "clamp(22px, 2.8vw, 36px)" }}
           >
             Shop by Category
           </h2>
@@ -46,7 +46,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
               <div className="flex flex-col items-center">
                 
                 {/* Premium Designer Frame */}
-                <div className="relative p-2 lg:p-3 bg-cream border border-gold/40 shadow-md mb-6 w-full group-hover:border-gold transition-colors duration-700">
+                <div className="relative p-2 lg:p-[13px] bg-cream border border-gold/40 shadow-md mb-6 w-full group-hover:border-gold transition-colors duration-700">
                   
                   {/* Decorative Corner Diamonds */}
                   <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cream border border-gold/50 rotate-45 group-hover:bg-gold transition-colors duration-700 z-10 lg:hidden" />
@@ -73,7 +73,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
 
                 {/* Typography */}
                 <div className="text-center">
-                  <h3 className="font-playfair text-forest font-light text-2xl lg:text-3xl mb-2 tracking-wide group-hover:text-gold transition-colors duration-500">
+                  <h3 className="font-playfair text-forest font-light text-2xl lg:text-[24px] mb-2 tracking-wide group-hover:text-gold transition-colors duration-500">
                     {cat.title}
                   </h3>
                   <p className="text-[11px] uppercase tracking-widest font-bold text-forest mt-2 group-hover:text-gold transition-colors duration-500">

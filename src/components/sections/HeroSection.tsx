@@ -13,9 +13,9 @@ const pillars = [
 
 export default function HeroSection() {
   return (
-    <section className="bg-cream font-dm lg:min-h-[85vh] flex flex-col lg:flex-row items-center overflow-hidden w-full max-w-[100vw]">
+    <section className="bg-cream font-dm lg:min-h-[75vh] flex flex-col lg:flex-row items-center overflow-hidden w-full max-w-[100vw]">
       {/* ━━ Left: Editorial Text Panel ━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-14 lg:pl-24 lg:pr-16 py-16 lg:py-0 order-2 lg:order-1">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center lg:items-end px-8 sm:px-14 lg:px-20 py-16 lg:py-0 order-2 lg:order-1">
         <div className="max-w-lg animate-fade-up">
           {/* Eyebrow */}
           <p
@@ -31,14 +31,14 @@ export default function HeroSection() {
           {/* Headline */}
           <h1
             className="font-playfair text-forest font-semibold lg:font-medium mb-3 tracking-wide"
-            style={{ lineHeight: 1.1, fontSize: "clamp(36px, 4.5vw, 56px)" }}
+            style={{ lineHeight: 1.1, fontSize: "clamp(31px, 4.0vw, 51px)" }}
           >
             Timeless Elegance
           </h1>
 
           <p
             className="font-playfair text-gold font-semibold lg:font-medium italic mb-8"
-            style={{ lineHeight: 1.1, fontSize: "clamp(30px, 3.5vw, 46px)" }}
+            style={{ lineHeight: 1.1, fontSize: "clamp(25px, 3.0vw, 41px)" }}
           >
             Woven with Love.
           </p>
@@ -84,7 +84,7 @@ export default function HeroSection() {
           </div>
 
           {/* Pillar stats */}
-          <div className="mt-16 flex flex-wrap gap-12 lg:gap-16">
+          <div className="mt-12 flex flex-wrap gap-12 lg:gap-16">
             {pillars.map(([label, sub], idx) => (
               <div key={sub} className="relative">
                 <p
@@ -113,9 +113,9 @@ export default function HeroSection() {
       </div>
 
       {/* ━━ Right: Framed Gallery Image ━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-20 order-1 lg:order-2">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:py-12 lg:px-20 order-1 lg:order-2">
         <div
-          className="relative w-full max-w-sm lg:max-w-md aspect-[3/4] shadow-lg shadow-forest/5 animate-fade-up"
+          className="relative w-full max-w-sm lg:max-w-[420px] aspect-[3/4] shadow-lg shadow-forest/5 animate-fade-up"
           style={{ animationDelay: "0.2s" }}
         >
           {/* Subtle offset gold frame */}

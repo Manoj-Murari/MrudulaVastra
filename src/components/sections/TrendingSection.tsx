@@ -31,7 +31,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
 
   return (
     <section className="bg-cream font-dm py-20 sm:py-28 lg:py-36 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl lg:max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16 lg:mb-20 gap-4 animate-fade-up">
           <div>
@@ -48,7 +48,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
             </div>
             <h2
               className="font-playfair text-text-primary font-light"
-              style={{ fontSize: "clamp(28px, 3vw, 44px)" }}
+              style={{ fontSize: "clamp(22px, 2.8vw, 36px)" }}
             >
               Trending Right Now
             </h2>
@@ -165,7 +165,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                     {product.category}
                   </p>
                   <h3
-                    className="font-cormorant text-text-primary font-medium mb-1 sm:mb-2 leading-snug text-[16px] sm:text-[19px]"
+                    className="font-cormorant text-text-primary font-medium mb-1 sm:mb-2 leading-snug text-[16px] sm:text-[19px] line-clamp-2 min-h-[2.8em]"
                   >
                     {product.name}
                   </h3>

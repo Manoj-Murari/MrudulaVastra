@@ -81,6 +81,39 @@ export async function verifySignupOtp(formData: FormData) {
   redirect("/profile");
 }
 
+export async function sendLoginOtp(formData: FormData) {
+  const email = formData.get("email") as string;
+  if (!email) return { error: "Email is required." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+    }
+  });
+
+  if (error) return { error: error.message };
+  return { success: "Check your email for the login code!" };
+}
+
+export async function verifyLoginOtp(formData: FormData) {
+  const email = formData.get("email") as string;
+  const token = formData.get("otp") as string;
+
+  if (!email || !token) return { error: "Email and OTP are required." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'magiclink',
+  });
+
+  if (error) return { error: error.message };
+  redirect("/profile");
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();

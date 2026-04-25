@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { loginWithEmail, signupWithEmail, verifySignupOtp } from "@/actions/auth";
+import { loginWithEmail, signupWithEmail, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<"password" | "otp">("password");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [savedEmail, setSavedEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,9 +19,14 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     setSavedEmail(email);
 
-    const result = isSignUp
-      ? await signupWithEmail(formData)
-      : await loginWithEmail(formData);
+    let result;
+    if (isSignUp) {
+      result = await signupWithEmail(formData);
+    } else if (loginMethod === "otp") {
+      result = await sendLoginOtp(formData);
+    } else {
+      result = await loginWithEmail(formData);
+    }
 
     setLoading(false);
 
@@ -28,7 +34,6 @@ export default function LoginPage() {
       setError(result.error);
     }
     if (result && "success" in result && result.success) {
-      // Show the OTP screen instead of the old success message
       setShowOtpInput(true);
     }
   }
@@ -37,17 +42,17 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    // We append the email saved from the first step so Supabase knows who is verifying
     formData.append("email", savedEmail);
 
-    const result = await verifySignupOtp(formData);
+    const result = isSignUp 
+      ? await verifySignupOtp(formData)
+      : await verifyLoginOtp(formData);
 
     setLoading(false);
 
     if (result && "error" in result && result.error) {
       setError(result.error);
     }
-    // Note: On success, verifySignupOtp automatically redirects to /profile
   }
 
   return (
@@ -174,23 +179,69 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="login-password"
-                    className="block text-forest font-dm font-medium text-sm mb-2"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="login-password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
-                  />
-                </div>
+                {!isSignUp && loginMethod === "password" && (
+                  <div>
+                    <label
+                      htmlFor="login-password"
+                      className="block text-forest font-dm font-medium text-sm mb-2"
+                    >
+                      Password
+                    </label>
+                    <input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      required
+                      minLength={8}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                    />
+                    <div className="mt-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setLoginMethod("otp")}
+                        className="text-[11px] text-forest/60 hover:text-forest font-dm uppercase tracking-wider transition-colors underline underline-offset-4"
+                      >
+                        Sign in with OTP code instead
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!isSignUp && loginMethod === "otp" && (
+                  <div className="text-center py-2">
+                    <p className="text-[12px] text-text-muted font-dm mb-4">
+                      No password? No problem. We'll send a secure code to your email.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setLoginMethod("password")}
+                      className="text-[11px] text-forest/60 hover:text-forest font-dm uppercase tracking-wider transition-colors underline underline-offset-4"
+                    >
+                      Sign in with password instead
+                    </button>
+                  </div>
+                )}
+
+                {isSignUp && (
+                  <div>
+                    <label
+                      htmlFor="login-password"
+                      className="block text-forest font-dm font-medium text-sm mb-2"
+                    >
+                      Password
+                    </label>
+                    <input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      required
+                      minLength={8}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                    />
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -200,10 +251,12 @@ export default function LoginPage() {
                   {loading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      {isSignUp ? "Sending Code..." : "Signing In..."}
+                      {isSignUp ? "Sending Code..." : loginMethod === "otp" ? "Sending OTP..." : "Signing In..."}
                     </>
                   ) : isSignUp ? (
                     "Create Account"
+                  ) : loginMethod === "otp" ? (
+                    "Send Login Code"
                   ) : (
                     "Sign In"
                   )}
