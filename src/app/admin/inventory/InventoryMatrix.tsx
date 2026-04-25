@@ -830,7 +830,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                                     {/* Main Variant Image */}
                                     {v.image && (
                                       <div className="relative w-16 h-20 border-2 border-forest rounded overflow-hidden group shadow-lg">
-                                        <Image src={v.image} alt="Main" fill className="object-cover" />
+                                        <Image src={v.image} alt="Main" fill sizes="60px" className="object-cover" />
                                         <div className="absolute top-0 left-0 bg-forest text-white text-[7px] px-1 font-bold">MAIN</div>
                                         <button 
                                           type="button"
@@ -845,7 +845,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                                     {/* Gallery Images */}
                                     {v.gallery_images.map((img, imgIdx) => (
                                       <div key={imgIdx} className="relative w-16 h-20 border border-admin-border-active rounded overflow-hidden group hover:border-gold transition-colors">
-                                        <Image src={img} alt="Gallery" fill className="object-cover" />
+                                        <Image src={img} alt="Gallery" fill sizes="60px" className="object-cover" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
                                           <button 
                                             type="button"

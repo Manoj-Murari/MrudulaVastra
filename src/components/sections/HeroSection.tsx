@@ -32,7 +32,7 @@ export default function HeroSection() {
             alt="Elegant woman wearing deep emerald silk saree"
             fill
             priority
-            sizes="100vw"
+            sizes="(max-width: 1024px) 100vw, 1vw"
             className="object-cover object-top"
           />
         </div>
