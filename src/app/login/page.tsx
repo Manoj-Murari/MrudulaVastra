@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
+import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp, resendOtp } from "@/actions/auth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -14,6 +14,8 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams?.get("view") === "signup") {
@@ -22,6 +24,13 @@ function LoginContent() {
       setIsSignUp(false);
     }
   }, [searchParams]);
+
+  // Cooldown timer for resend OTP
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -49,6 +58,7 @@ function LoginContent() {
     }
     if (result && "success" in result && result.success) {
       setShowOtpInput(true);
+      setResendCooldown(60);
     }
   }
 
@@ -149,10 +159,39 @@ function LoginContent() {
                   setShowOtpInput(false);
                   setIsSignUp(false);
                 }}
-                className="mt-6 text-text-muted font-dm text-sm hover:text-forest transition-colors underline underline-offset-2"
+                className="mt-4 text-text-muted font-dm text-sm hover:text-forest transition-colors underline underline-offset-2"
               >
                 Cancel and return to login
               </button>
+
+              {/* Resend OTP */}
+              <div className="mt-4">
+                {resendMessage && (
+                  <p className="text-forest font-dm text-xs mb-2 bg-emerald-50 p-2 border border-emerald-200">
+                    {resendMessage}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || loading}
+                  onClick={async () => {
+                    setResendMessage(null);
+                    setError(null);
+                    const result = await resendOtp(savedEmail, isSignUp ? 'signup' : 'login');
+                    if (result.error) {
+                      setError(result.error);
+                    } else if (result.success) {
+                      setResendMessage(result.success);
+                      setResendCooldown(60);
+                    }
+                  }}
+                  className="text-text-muted font-dm text-sm hover:text-forest transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {resendCooldown > 0
+                    ? `Resend code in ${resendCooldown}s`
+                    : "Didn't receive the code? Resend"}
+                </button>
+              </div>
             </div>
           ) : (
             <>

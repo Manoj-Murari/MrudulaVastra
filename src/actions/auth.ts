@@ -113,7 +113,10 @@ export async function verifySignupOtp(formData: FormData) {
       type: 'signup',
     });
     if (error2) {
-      return { error: error2.message };
+      const msg = error2.message.toLowerCase().includes('expired') || error2.message.toLowerCase().includes('invalid')
+        ? 'This code has expired or is invalid. Please request a new code.'
+        : error2.message;
+      return { error: msg };
     }
   }
 
@@ -149,8 +152,32 @@ export async function verifyLoginOtp(formData: FormData) {
     type: 'email',
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    const msg = error.message.toLowerCase().includes('expired') || error.message.toLowerCase().includes('invalid')
+      ? 'This code has expired or is invalid. Please request a new code.'
+      : error.message;
+    return { error: msg };
+  }
   redirect("/profile");
+}
+
+/* ── Resend OTP (works for both signup and login) ── */
+export async function resendOtp(email: string, context: 'signup' | 'login') {
+  if (!email) return { error: 'Email is required.' };
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      // For signup context, allow creating user (in case they haven't completed signup)
+      // For login context, don't create new users
+      shouldCreateUser: context === 'signup',
+    },
+  });
+
+  if (error) return { error: error.message };
+  return { success: 'A new verification code has been sent to your email!' };
 }
 
 export async function signOut() {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp } from "@/actions/auth";
+import { useState, useEffect } from "react";
+import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp, resendOtp } from "@/actions/auth";
 
 export default function AuthForms() {
   const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
@@ -12,6 +12,15 @@ export default function AuthForms() {
   const [emailForVerification, setEmailForVerification] = useState("");
   const [showPassword, setShowPassword] = useState(false); // For optional password in signup
   const [verifyContext, setVerifyContext] = useState<"signup" | "login">("login");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendMessage, setResendMessage] = useState("");
+
+  // Cooldown timer for resend OTP
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   async function handleLogin(formData: FormData) {
     setIsLoading(true);
@@ -31,6 +40,7 @@ export default function AuthForms() {
       setMessage((result as any).success);
       setVerifyContext("login");
       setMode("verify");
+      setResendCooldown(60);
     }
     setIsLoading(false);
   }
@@ -55,6 +65,7 @@ export default function AuthForms() {
       setMessage(result.success);
       setVerifyContext("signup");
       setMode("verify");
+      setResendCooldown(60);
     }
     setIsLoading(false);
   }
@@ -195,6 +206,46 @@ export default function AuthForms() {
           <button type="submit" disabled={isLoading} className="w-full py-4 mt-6 bg-forest text-white uppercase tracking-[0.15em] text-sm font-bold transition-all disabled:opacity-70 hover:bg-forest/90">
             {isLoading ? "Verifying..." : "Verify & Enter"}
           </button>
+
+          {/* Resend OTP */}
+          <div className="mt-5 text-center">
+            {resendMessage && (
+              <p className="text-forest font-dm text-xs mb-2 bg-emerald-50 p-2 border border-emerald-200">
+                {resendMessage}
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={resendCooldown > 0 || isLoading}
+              onClick={async () => {
+                setResendMessage("");
+                setError("");
+                const result = await resendOtp(emailForVerification, verifyContext);
+                if (result.error) {
+                  setError(result.error);
+                } else if (result.success) {
+                  setResendMessage(result.success);
+                  setResendCooldown(60);
+                }
+              }}
+              className="text-text-muted font-dm text-sm hover:text-forest transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {resendCooldown > 0
+                ? `Resend code in ${resendCooldown}s`
+                : "Didn't receive the code? Resend"}
+            </button>
+          </div>
+
+          {/* Back to login */}
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => { setMode("login"); setError(""); setMessage(""); setResendMessage(""); }}
+              className="text-sm font-dm text-text-muted hover:text-gold transition-colors underline underline-offset-4"
+            >
+              Cancel and return to login
+            </button>
+          </div>
         </form>
       )}
     </div>
