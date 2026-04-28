@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function loginWithEmail(formData: FormData) {
@@ -41,14 +41,13 @@ export async function signupWithEmail(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const adminSupabase = await createAdminClient();
 
-  // Check if phone number already exists (using admin client to bypass RLS)
-  const { data: existingPhone } = await adminSupabase
+  // Check if phone number already exists
+  const { data: existingPhone } = await supabase
     .from("profiles")
     .select("id")
     .eq("phone", phone)
-    .single();
+    .maybeSingle();
 
   if (existingPhone) {
     return { error: "This phone number is already registered with another account." };
@@ -83,14 +82,13 @@ export async function signupWithOtpOnly(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const adminSupabase = await createAdminClient();
 
-  // Check if phone number already exists (using admin client to bypass RLS)
-  const { data: existingPhone } = await adminSupabase
+  // Check if phone number already exists
+  const { data: existingPhone } = await supabase
     .from("profiles")
     .select("id")
     .eq("phone", phone)
-    .single();
+    .maybeSingle();
 
   if (existingPhone) {
     return { error: "This phone number is already registered with another account." };
