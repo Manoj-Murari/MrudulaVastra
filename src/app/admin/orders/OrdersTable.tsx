@@ -29,6 +29,7 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
   const [orders, setOrders] = useState(initialOrders);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [isAddingOffline, setIsAddingOffline] = useState(false);
@@ -44,7 +45,12 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
   const filtered = orders.filter((o) => {
     const matchesSearch = o.id.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || o.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesSource = sourceFilter === "all" 
+      ? true 
+      : sourceFilter === "offline" 
+        ? !o.user_id 
+        : !!o.user_id;
+    return matchesSearch && matchesStatus && matchesSource;
   });
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
@@ -112,6 +118,26 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
           />
         </div>
         <div className="flex gap-2 flex-wrap sm:flex-nowrap overflow-x-auto pb-1 sm:pb-0 admin-scroll">
+          {/* Source Filter */}
+          <div className="flex bg-admin-surface rounded-lg p-1 border" style={{ borderColor: "var(--admin-border)" }}>
+            {["all", "online", "offline"].map((s) => (
+              <button
+                key={s}
+                onClick={() => setSourceFilter(s)}
+                className="px-3 py-1 rounded-md text-[10px] uppercase tracking-wider font-bold transition-all"
+                style={{
+                  background: sourceFilter === s ? "var(--admin-accent)" : "transparent",
+                  color: sourceFilter === s ? "#000" : "var(--admin-text-dim)",
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-[1px] h-full bg-admin-border mx-1 hidden sm:block" />
+
           {["all", "pending", "paid", "shipped", "delivered", "cancelled"].map((s) => (
             <button
               key={s}
@@ -152,9 +178,14 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                 }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
-                    #{order.id.slice(0, 8).toUpperCase()}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-tighter opacity-60 font-bold" style={{ color: order.user_id ? "var(--admin-blue)" : "var(--admin-accent)" }}>
+                      {order.user_id ? "Online" : "Offline"}
+                    </span>
+                  </div>
                   <span
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold"
                     style={{ background: cfg.bg, color: cfg.color }}
@@ -213,9 +244,14 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
-                  #{order.id.slice(0, 8).toUpperCase()}
-                </span>
+                <div className="flex flex-col">
+                  <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
+                    #{order.id.slice(0, 8).toUpperCase()}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-wider opacity-60 font-bold" style={{ color: order.user_id ? "var(--admin-blue)" : "var(--admin-accent)" }}>
+                    {order.user_id ? "Online Store" : "In-Store / Offline"}
+                  </span>
+                </div>
                 <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>
                   {new Date(order.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                 </span>
