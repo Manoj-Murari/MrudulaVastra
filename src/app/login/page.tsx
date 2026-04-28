@@ -197,22 +197,44 @@ function LoginContent() {
             <>
               <form action={handleSubmit} className="space-y-6">
                 {isSignUp && (
-                  <div>
-                    <label
-                      htmlFor="login-name"
-                      className="block text-forest font-dm font-medium text-sm mb-2"
-                    >
-                      Full Name
-                    </label>
-                    <input
-                      id="login-name"
-                      name="fullName"
-                      type="text"
-                      required
-                      placeholder="Your name"
-                      className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label
+                        htmlFor="login-name"
+                        className="block text-forest font-dm font-medium text-sm mb-2"
+                      >
+                        Full Name
+                      </label>
+                      <input
+                        id="login-name"
+                        name="fullName"
+                        type="text"
+                        required
+                        pattern="^[A-Za-z\s]+$"
+                        title="Names should only contain letters and spaces"
+                        placeholder="Your name"
+                        className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="login-phone"
+                        className="block text-forest font-dm font-medium text-sm mb-2"
+                      >
+                        Phone Number
+                      </label>
+                      <input
+                        id="login-phone"
+                        name="phone"
+                        type="tel"
+                        required
+                        pattern="[0-9]{10}"
+                        title="Please enter a valid 10-digit phone number"
+                        placeholder="e.g. 7989947557"
+                        className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div>
