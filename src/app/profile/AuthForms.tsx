@@ -14,6 +14,7 @@ export default function AuthForms() {
   const [verifyContext, setVerifyContext] = useState<"signup" | "login">("login");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendMessage, setResendMessage] = useState("");
+  const [isRedirectedNewUser, setIsRedirectedNewUser] = useState(false);
 
   // Cooldown timer for resend OTP
   useEffect(() => {
@@ -34,7 +35,10 @@ export default function AuthForms() {
       ? await loginWithEmail(formData)
       : await sendLoginOtp(formData);
 
-    if (result && result.error) {
+    if (result && (result as any).reason === "user_not_found") {
+      setMode("signup");
+      setIsRedirectedNewUser(true);
+    } else if (result && result.error) {
       setError(result.error);
     } else if (result && (result as any).success) {
       setMessage((result as any).success);
@@ -149,13 +153,20 @@ export default function AuthForms() {
       {/* ── SIGNUP FORM ────────────────────────── */}
       {mode === "signup" && (
         <form action={handleSignup} className="space-y-5">
+          {/* Onboarding Banner */}
+          {isRedirectedNewUser && (
+            <div className="mb-4 p-4 bg-[#F9F6E8] border border-gold/40 text-[#5C4D1D] font-dm text-sm leading-relaxed">
+              <strong>Welcome!</strong> It looks like you're new here. Please provide your Name and Phone number to create your Mrudula Vastra account.
+            </div>
+          )}
+
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Full Name</label>
             <input type="text" name="fullName" required pattern="^[A-Za-z\s]+$" title="Names should only contain letters and spaces" className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Email Address</label>
-            <input type="email" name="email" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+            <input type="email" name="email" required defaultValue={emailForVerification} readOnly={isRedirectedNewUser} className={`w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors ${isRedirectedNewUser ? "opacity-60 cursor-not-allowed" : ""}`} />
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Phone Number</label>
