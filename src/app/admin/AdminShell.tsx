@@ -249,8 +249,8 @@ export default function AdminShell({
                 }}
               >
                 <Search size={13} />
-                <span>Search…</span>
-                <kbd className="ml-2 px-1.5 py-0.5 rounded text-[10px] border" style={{ borderColor: "var(--admin-border)" }}>
+                <span className="hidden sm:inline">Search…</span>
+                <kbd className="hidden sm:inline-flex items-center ml-2 px-1.5 py-0.5 rounded text-[10px] border" style={{ borderColor: "var(--admin-border)" }}>
                   <Command size={9} className="inline -mt-0.5" />K
                 </kbd>
               </button>
@@ -282,7 +282,7 @@ export default function AdminShell({
           </header>
 
           {/* ── MAIN SCROLL AREA ── */}
-          <main className="flex-1 overflow-y-auto admin-scroll p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 lg:p-8">
             {children}
           </main>
         </div>

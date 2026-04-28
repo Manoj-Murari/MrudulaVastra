@@ -163,12 +163,12 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
       </motion.div>
 
       {/* ── KPI Matrix ── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {kpiCards.map((kpi, i) => (
           <motion.div
             key={kpi.label}
             whileHover={{ y: -2, transition: { duration: 0.15 } }}
-            className="rounded-xl border p-5 flex flex-col justify-between"
+            className="rounded-xl border p-3 sm:p-5 flex flex-col justify-between"
             style={{
               background: "var(--admin-surface)",
               borderColor: "var(--admin-border)",
@@ -204,7 +204,7 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
                 {kpi.label}
               </p>
               <p
-                className="text-2xl font-bold tracking-tight"
+                className="text-lg sm:text-2xl font-bold tracking-tight"
                 style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}
               >
                 {kpi.value}

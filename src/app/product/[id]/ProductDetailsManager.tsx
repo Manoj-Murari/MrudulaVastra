@@ -3,7 +3,8 @@
 import { useState } from "react";
 import ProductGallery from "./ProductGallery";
 import ProductActions from "./ProductActions";
-import { Star } from "lucide-react";
+import { Star, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import type { Database } from "@/lib/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -65,22 +66,22 @@ export default function ProductDetailsManager({ product }: { product: Product })
           )}
         </div>
 
-        <div className="flex items-center gap-2 mb-8 pb-8 border-b border-gold/10">
-          {product.reviews > 0 ? (
-            <>
-              <span className="text-[#1b7a66] text-lg">★</span>
-              <span className="text-forest font-dm font-medium">{product.rating}</span>
-              <span className="text-text-muted font-dm">({product.reviews} reviews)</span>
-            </>
-          ) : (
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={14} className="text-gray-300" strokeWidth={2.5} />
-              ))}
-              <span className="text-text-muted text-sm ml-2 font-dm">0 reviews</span>
-            </div>
-          )}
-        </div>
+        {product.reviews > 0 && product.rating > 0 ? (
+          <div className="flex items-center gap-2 mb-8 pb-8 border-b border-gold/10">
+            <span className="text-[#1b7a66] text-lg">★</span>
+            <span className="text-forest font-dm font-medium">{product.rating}</span>
+            <span className="text-text-muted font-dm">({product.reviews} reviews)</span>
+          </div>
+        ) : (
+          <div className="mb-8 pb-8 border-b border-gold/10" />
+        )}
+
+        {/* Description */}
+        {(product as any).description && (
+          <div className="mb-8 text-text-muted font-dm text-sm leading-relaxed whitespace-pre-wrap">
+            {(product as any).description}
+          </div>
+        )}
 
         {/* Color Variants Selector */}
         {(variants.length > 0 || product.color) && (
@@ -142,6 +143,12 @@ export default function ProductDetailsManager({ product }: { product: Product })
         </div>
 
         <ProductActions product={product} isSoldOut={displayStock === 0} />
+
+        {/* Easy Returns UI */}
+        <Link href="/returns" className="mt-6 flex items-center justify-center gap-2 p-3.5 rounded-xl border border-gold/20 bg-[#F9F6F0] text-forest font-dm text-sm font-medium transition-colors hover:bg-gold/10">
+          <RefreshCw size={18} className="text-gold" />
+          Easy Returns & Exchanges Available
+        </Link>
 
         <div className="mt-12 space-y-4 font-dm text-sm text-text-muted">
           <p className="flex items-center gap-3">

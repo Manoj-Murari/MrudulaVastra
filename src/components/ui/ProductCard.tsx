@@ -174,12 +174,14 @@ export default function ProductCard({
               {product.name}
             </h3>
 
-            <div className="flex items-center gap-2 mb-2">
-              <StarRating rating={product.rating} />
-              <span className="text-text-muted font-light" style={{ fontSize: "11px" }}>
-                ({product.reviews})
-              </span>
-            </div>
+            {product.rating > 0 && product.reviews > 0 && (
+              <div className="flex items-center gap-2 mb-2">
+                <StarRating rating={product.rating} />
+                <span className="text-text-muted font-light" style={{ fontSize: "11px" }}>
+                  ({product.reviews})
+                </span>
+              </div>
+            )}
 
             <div className="flex items-baseline gap-2">
               <span className="font-playfair text-forest font-medium text-[15px] sm:text-[18px]">
@@ -350,7 +352,7 @@ export default function ProductCard({
           </div>
         )}
 
-        {product.rating > 0 && (
+        {product.rating > 0 && product.reviews > 0 && (
           <div className="flex items-center gap-1.5 mt-2">
             <span className="text-gold text-sm">★</span>
             <span className="text-sm text-text-muted font-dm font-light">

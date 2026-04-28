@@ -89,19 +89,19 @@ export default function CustomerCRM({ initialCustomers }: { initialCustomers: an
               </div>
 
               {/* Contact Info */}
-              <div className="space-y-2">
-                {customer.phone && (
-                  <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--admin-text-muted)", fontFamily: "'DM Sans', sans-serif" }}>
-                    <Phone size={12} style={{ color: "var(--admin-text-dim)" }} />
-                    {customer.phone}
-                  </div>
-                )}
-                {customer.full_address && (
-                  <div className="flex items-start gap-2 text-[12px]" style={{ color: "var(--admin-text-muted)", fontFamily: "'DM Sans', sans-serif" }}>
-                    <MapPin size={12} className="shrink-0 mt-0.5" style={{ color: "var(--admin-text-dim)" }} />
-                    <span className="line-clamp-2">{customer.full_address}{customer.pincode ? `, ${customer.pincode}` : ""}</span>
-                  </div>
-                )}
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2 text-[12px]" style={{ color: customer.phone ? "var(--admin-text-muted)" : "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
+                  <Phone size={12} className="shrink-0" />
+                  <span>{customer.phone || "No phone number"}</span>
+                </div>
+                <div className="flex items-start gap-2 text-[12px]" style={{ color: customer.full_address ? "var(--admin-text-muted)" : "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
+                  <MapPin size={12} className="shrink-0 mt-0.5" />
+                  <span className="line-clamp-2">
+                    {customer.full_address 
+                      ? `${customer.full_address}${customer.pincode ? `, ${customer.pincode}` : ""}` 
+                      : "No address provided"}
+                  </span>
+                </div>
               </div>
 
               {/* LTV Bar */}

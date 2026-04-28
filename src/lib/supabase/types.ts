@@ -60,6 +60,7 @@ export interface Database {
           inventory_count: number
           gallery_images: string[] | null
           variants: Json[] | null
+          description: string | null
         }
         Insert: {
           id?: number
@@ -79,6 +80,7 @@ export interface Database {
           inventory_count?: number
           gallery_images?: string[] | null
           variants?: Json[] | null
+          description?: string | null
         }
         Update: {
           id?: number
@@ -98,6 +100,7 @@ export interface Database {
           inventory_count?: number
           gallery_images?: string[] | null
           variants?: Json[] | null
+          description?: string | null
         }
       }
       testimonials: {
@@ -130,6 +133,9 @@ export interface Database {
           total_amount: number
           status: string
           created_at: string
+          customer_name?: string | null
+          phone?: string | null
+          payment_mode?: string | null
         }
         Insert: {
           id?: string
@@ -137,6 +143,9 @@ export interface Database {
           total_amount: number
           status?: string
           created_at?: string
+          customer_name?: string | null
+          phone?: string | null
+          payment_mode?: string | null
         }
         Update: {
           id?: string
@@ -144,6 +153,9 @@ export interface Database {
           total_amount?: number
           status?: string
           created_at?: string
+          customer_name?: string | null
+          phone?: string | null
+          payment_mode?: string | null
         }
       }
       order_items: {

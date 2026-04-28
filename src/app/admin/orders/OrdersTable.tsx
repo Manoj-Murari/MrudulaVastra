@@ -11,22 +11,35 @@ import {
   Truck,
   CheckCircle,
   Package,
+  Plus,
+  XCircle,
+  RotateCcw,
 } from "lucide-react";
-import { updateOrderStatus } from "@/actions/admin";
+import { updateOrderStatus, createOfflineOrder, cancelOrder } from "@/actions/admin";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
   pending: { label: "Pending", color: "var(--admin-amber)", bg: "var(--admin-amber-muted)", icon: Clock },
   paid: { label: "Paid", color: "var(--admin-emerald)", bg: "var(--admin-emerald-muted)", icon: CheckCircle },
   shipped: { label: "Shipped", color: "var(--admin-blue)", bg: "var(--admin-blue-muted)", icon: Truck },
   delivered: { label: "Delivered", color: "var(--admin-emerald)", bg: "var(--admin-emerald-muted)", icon: Package },
+  cancelled: { label: "Cancelled", color: "var(--admin-red)", bg: "var(--admin-red-muted)", icon: XCircle },
 };
 
-export default function OrdersTable({ initialOrders }: { initialOrders: any[] }) {
+export default function OrdersTable({ initialOrders, products = [] }: { initialOrders: any[], products?: any[] }) {
   const [orders, setOrders] = useState(initialOrders);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [isAddingOffline, setIsAddingOffline] = useState(false);
+  const [offlineForm, setOfflineForm] = useState({
+    customerName: "",
+    phone: "",
+    productId: "",
+    quantity: 1,
+    paymentMode: "Cash"
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filtered = orders.filter((o) => {
     const matchesSearch = o.id.toLowerCase().includes(search.toLowerCase());
@@ -45,6 +58,17 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
     setUpdatingId(null);
   };
 
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm("Are you sure you want to cancel this order? This will restock all items.")) return;
+    setUpdatingId(orderId);
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: "cancelled" } : o)));
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder((prev: any) => ({ ...prev, status: "cancelled" }));
+    }
+    await cancelOrder(orderId);
+    setUpdatingId(null);
+  };
+
   const getNextStatus = (current: string) => {
     const flow = ["pending", "paid", "shipped", "delivered"];
     const idx = flow.indexOf(current);
@@ -54,13 +78,22 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif", color: "var(--admin-text)" }}>
-          Fulfillment Engine
-        </h1>
-        <p className="text-[13px] mt-1" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
-          {orders.length} total orders · {orders.filter((o) => o.status === "pending").length} pending
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif", color: "var(--admin-text)" }}>
+            Fulfillment Engine
+          </h1>
+          <p className="text-[13px] mt-1" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
+            {orders.length} total orders · {orders.filter((o) => o.status === "pending").length} pending
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAddingOffline(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors"
+          style={{ background: "var(--admin-accent)", color: "#000", fontFamily: "'DM Sans', sans-serif" }}
+        >
+          <Plus size={14} /> Add Offline Order
+        </button>
       </div>
 
       {/* Filters Bar */}
@@ -79,7 +112,7 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
           />
         </div>
         <div className="flex gap-2 flex-wrap sm:flex-nowrap overflow-x-auto pb-1 sm:pb-0 admin-scroll">
-          {["all", "pending", "paid", "shipped", "delivered"].map((s) => (
+          {["all", "pending", "paid", "shipped", "delivered", "cancelled"].map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -97,8 +130,55 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border overflow-x-auto admin-scroll" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
+      {/* Mobile Card Layout */}
+      <div className="md:hidden space-y-3">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-[13px]" style={{ color: "var(--admin-text-dim)" }}>
+            No orders match your filters
+          </div>
+        ) : (
+          filtered.map((order) => {
+            const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+            return (
+              <div
+                key={order.id}
+                onClick={() => setSelectedOrder(order)}
+                className="rounded-xl border p-4 cursor-pointer active:scale-[0.98] transition-all"
+                style={{
+                  background: "var(--admin-surface)",
+                  borderColor: "var(--admin-border)",
+                  fontFamily: "'DM Sans', sans-serif",
+                  opacity: order.status === "cancelled" ? 0.6 : 1,
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
+                    #{order.id.slice(0, 8).toUpperCase()}
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold"
+                    style={{ background: cfg.bg, color: cfg.color }}
+                  >
+                    <cfg.icon size={11} />
+                    {cfg.label}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px]" style={{ color: "var(--admin-text-dim)" }}>
+                    {new Date(order.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--admin-text)" }}>
+                    ₹{order.total_amount.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block rounded-xl border overflow-x-auto admin-scroll" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
         <div className="min-w-[650px] w-full">
           {/* Table Header */}
           <div
@@ -125,11 +205,15 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
                 key={order.id}
                 onClick={() => setSelectedOrder(order)}
                 className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-4 border-b cursor-pointer transition-colors duration-150"
-                style={{ borderColor: "var(--admin-border)", fontFamily: "'DM Sans', sans-serif" }}
+                style={{ 
+                  borderColor: "var(--admin-border)", 
+                  fontFamily: "'DM Sans', sans-serif",
+                  opacity: order.status === "cancelled" ? 0.6 : 1
+                }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                <span className="text-[13px] font-semibold" style={{ color: "var(--admin-text)" }}>
+                <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
                   #{order.id.slice(0, 8).toUpperCase()}
                 </span>
                 <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>
@@ -224,7 +308,7 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
                   {getNextStatus(selectedOrder.status) && (
                     <button
                       onClick={() => handleStatusChange(selectedOrder.id, getNextStatus(selectedOrder.status)!)}
-                      disabled={updatingId === selectedOrder.id}
+                      disabled={updatingId === selectedOrder.id || selectedOrder.status === "cancelled"}
                       className="mt-4 w-full py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors disabled:opacity-50"
                       style={{
                         background: "var(--admin-accent)",
@@ -233,6 +317,20 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
                       }}
                     >
                       {updatingId === selectedOrder.id ? "Updating…" : `Mark as ${getNextStatus(selectedOrder.status)}`}
+                    </button>
+                  )}
+                  {selectedOrder.status !== "cancelled" && (
+                    <button
+                      onClick={() => handleCancelOrder(selectedOrder.id)}
+                      disabled={updatingId === selectedOrder.id}
+                      className="mt-2 w-full py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors border"
+                      style={{
+                        borderColor: "var(--admin-red)",
+                        color: "var(--admin-red)",
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      {updatingId === selectedOrder.id ? "Processing…" : "Cancel Order"}
                     </button>
                   )}
                 </div>
@@ -275,6 +373,96 @@ export default function OrdersTable({ initialOrders }: { initialOrders: any[] })
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Offline Order Modal ── */}
+      <AnimatePresence>
+        {isAddingOffline && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAddingOffline(false)}
+              className="fixed inset-0 z-[150]"
+              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 26, stiffness: 260 }}
+              className="fixed top-0 right-0 h-full w-full max-w-md z-[151] overflow-y-auto admin-scroll border-l"
+              style={{ background: "var(--admin-bg)", borderColor: "var(--admin-border)", color: "var(--admin-text)" }}
+            >
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    Add Offline Order
+                  </h2>
+                  <button onClick={() => setIsAddingOffline(false)} className="p-2 rounded-lg" style={{ color: "var(--admin-text-dim)" }}>
+                    <X size={18} />
+                  </button>
+                </div>
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsSubmitting(true);
+                    const res = await createOfflineOrder({
+                      customerName: offlineForm.customerName,
+                      phone: offlineForm.phone,
+                      productId: Number(offlineForm.productId),
+                      quantity: Number(offlineForm.quantity),
+                      paymentMode: offlineForm.paymentMode
+                    });
+                    setIsSubmitting(false);
+                    if (res.error) alert(res.error);
+                    else {
+                      setIsAddingOffline(false);
+                      window.location.reload();
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Customer Name</label>
+                    <input required value={offlineForm.customerName} onChange={e => setOfflineForm({...offlineForm, customerName: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Phone Number</label>
+                    <input required value={offlineForm.phone} onChange={e => setOfflineForm({...offlineForm, phone: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product</label>
+                    <select required value={offlineForm.productId} onChange={e => setOfflineForm({...offlineForm, productId: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
+                      <option value="" disabled style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select a product...</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id} disabled={p.inventory_count < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                          {p.name} (Stock: {p.inventory_count})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Quantity</label>
+                    <input required type="number" min="1" value={offlineForm.quantity} onChange={e => setOfflineForm({...offlineForm, quantity: parseInt(e.target.value) || 1})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Payment Mode</label>
+                    <select value={offlineForm.paymentMode} onChange={e => setOfflineForm({...offlineForm, paymentMode: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
+                      <option value="Cash" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Cash</option>
+                      <option value="UPI" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>UPI</option>
+                      <option value="Bank Transfer" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Bank Transfer</option>
+                    </select>
+                  </div>
+                  <button type="submit" disabled={isSubmitting} className="w-full mt-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors disabled:opacity-50" style={{ background: "var(--admin-accent)", color: "#000", fontFamily: "'DM Sans', sans-serif" }}>
+                    {isSubmitting ? "Saving..." : "Save Offline Order"}
+                  </button>
+                </form>
               </div>
             </motion.div>
           </>

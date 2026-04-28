@@ -33,12 +33,13 @@ export async function getAdminOverview() {
     { data: profiles },
     { data: recentOrders },
   ] = await Promise.all([
-    (supabase as any).from("orders").select("id, total_amount, status, created_at"),
+    (supabase as any).from("orders").select("id, total_amount, status, created_at").neq("status", "cancelled"),
     (supabase as any).from("products").select("id, name, category, price, inventory_count, is_trending, image"),
     (supabase as any).from("profiles").select("id, full_name, phone"),
     (supabase as any)
       .from("orders")
       .select("id, total_amount, status, created_at, user_id")
+      .neq("status", "cancelled")
       .order("created_at", { ascending: false })
       .limit(5),
   ]);
@@ -130,6 +131,98 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   return { success: true };
 }
 
+export async function createOfflineOrder(data: {
+  customerName: string;
+  phone: string;
+  productId: number;
+  quantity: number;
+  paymentMode: string;
+}) {
+  const supabase = await createClient();
+  
+  const { data: product } = await (supabase as any)
+    .from('products')
+    .select('price, inventory_count')
+    .eq('id', data.productId)
+    .single();
+
+  if (!product) return { error: "Product not found" };
+  if (product.inventory_count < data.quantity) return { error: "Insufficient stock" };
+
+  const totalAmount = product.price * data.quantity;
+  const { data: order, error: orderError } = await (supabase as any).from('orders').insert({
+    total_amount: totalAmount,
+    status: 'paid',
+    user_id: null,
+    customer_name: data.customerName,
+    phone: data.phone,
+    payment_mode: data.paymentMode
+  }).select().single();
+
+  if (orderError) return { error: orderError.message };
+
+  const { error: itemError } = await (supabase as any).from('order_items').insert({
+    order_id: order.id,
+    product_id: data.productId,
+    quantity: data.quantity,
+    unit_price: product.price
+  });
+
+  if (itemError) return { error: itemError.message };
+
+  const newInventoryCount = product.inventory_count - data.quantity;
+  await updateProductField(data.productId, "inventory_count", newInventoryCount);
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+export async function cancelOrder(orderId: string) {
+  const supabase = await createClient();
+
+  // 1. Update order status
+  const { error: orderError } = await (supabase as any)
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("id", orderId);
+
+  if (orderError) return { error: orderError.message };
+
+  // 2. Fetch items to restock
+  const { data: items, error: itemsError } = await (supabase as any)
+    .from("order_items")
+    .select("product_id, quantity")
+    .eq("order_id", orderId);
+
+  if (itemsError) return { error: itemsError.message };
+
+  // 3. Increment inventory for each item
+  if (items && items.length > 0) {
+    const updatePromises = items.map(async (item: any) => {
+      const { data: product } = await (supabase as any)
+        .from("products")
+        .select("inventory_count")
+        .eq("id", item.product_id)
+        .single();
+      
+      if (product) {
+        return (supabase as any)
+          .from("products")
+          .update({ inventory_count: product.inventory_count + item.quantity })
+          .eq("id", item.product_id);
+      }
+    });
+    await Promise.all(updatePromises);
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/inventory");
+  revalidatePath("/admin");
+  return { success: true };
+}
+
 /* ─── Product Management ──────────────────────────────── */
 
 export async function getAdminProducts() {
@@ -186,7 +279,7 @@ export async function getAdminCustomers() {
 
   const [{ data: profiles }, { data: orders }] = await Promise.all([
     (supabase as any).from("profiles").select("*"),
-    (supabase as any).from("orders").select("user_id, total_amount"),
+    (supabase as any).from("orders").select("user_id, total_amount").neq("status", "cancelled"),
   ]);
 
   const orderMap: Record<string, { totalSpent: number; orderCount: number }> = {};

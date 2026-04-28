@@ -30,9 +30,10 @@ export async function signupWithEmail(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const fullName = formData.get("fullName") as string;
+  const phone = formData.get("phone") as string;
 
-  if (!email || !password || !fullName) {
-    return { error: "Name, email, and password are required." };
+  if (!email || !password || !fullName || !phone) {
+    return { error: "Name, email, phone, and password are required." };
   }
 
   if (password.length < 8) {
@@ -47,6 +48,7 @@ export async function signupWithEmail(formData: FormData) {
     options: {
       data: {
         full_name: fullName,
+        phone: phone,
       },
     },
   });
@@ -62,9 +64,10 @@ export async function signupWithEmail(formData: FormData) {
 export async function signupWithOtpOnly(formData: FormData) {
   const email = formData.get("email") as string;
   const fullName = formData.get("fullName") as string;
+  const phone = formData.get("phone") as string;
 
-  if (!email || !fullName) {
-    return { error: "Name and email are required." };
+  if (!email || !fullName || !phone) {
+    return { error: "Name, email, and phone are required." };
   }
 
   const supabase = await createClient();
@@ -77,6 +80,7 @@ export async function signupWithOtpOnly(formData: FormData) {
       shouldCreateUser: true,
       data: {
         full_name: fullName,
+        phone: phone,
       },
     },
   });

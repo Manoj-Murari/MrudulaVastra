@@ -151,11 +151,15 @@ export default function AuthForms() {
         <form action={handleSignup} className="space-y-5">
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Full Name</label>
-            <input type="text" name="fullName" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+            <input type="text" name="fullName" required pattern="^[A-Za-z\s]+$" title="Names should only contain letters and spaces" className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
           </div>
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Email Address</label>
             <input type="email" name="email" required className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-wider text-text-muted font-bold font-dm mb-2">Phone Number</label>
+            <input type="tel" name="phone" required pattern="[0-9]{10}" title="Please enter a valid 10-digit phone number" className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors" />
           </div>
 
           {/* Optional Password Toggle */}

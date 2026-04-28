@@ -15,6 +15,7 @@ import {
   Star,
   ArrowLeft,
   ArrowRight,
+  UploadCloud,
 } from "lucide-react";
 import { updateProductField, deleteProduct, upsertProduct } from "@/actions/admin";
 import { createClient } from "@/lib/supabase/client";
@@ -43,7 +44,13 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     "Lavender", "Emerald Green", "Olive", "Magenta", "Cream", "Beige", "Turquoise", 
     "Rust", "Coral", "Indigo", "Mint", "Wine", "Copper", "Coffee"
   ];
-  const SIZES = ["Unstitched", "Free Size", "XS", "S", "M", "L", "XL", "XXL", "3XL", "1-2Y", "3-4Y", "5-6Y", "7-8Y"];
+  const SIZES_GROUPED = {
+    "General": ["Unstitched", "Free Size"],
+    "Standard": ["XS", "S", "M", "L", "XL", "XXL", "3XL"],
+    "Numeric": ["32", "34", "36", "38", "40", "42", "44", "46", "48"],
+    "Infant": ["New born", "0-3 M", "3-6 M", "6-9M", "9-12M"],
+    "Kids": ["1-2Y", "3-4Y", "5-6Y", "7-8Y"]
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -58,6 +65,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     sizes: [] as string[],
     gallery_images: [] as string[],
     variants: [] as ProductVariant[],
+    description: "",
   });
 
   const filtered = products.filter(
@@ -298,6 +306,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     
     const newProduct = {
       name: formData.name,
+      description: formData.description,
       category: formData.category,
       price: Number(formData.price) || 0,
       original_price: Number(formData.original_price) || 0,
@@ -309,7 +318,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       sizes: formData.sizes.length > 0 ? formData.sizes : null,
       gallery_images: formData.gallery_images.length > 0 ? formData.gallery_images : null,
       variants: formData.variants.length > 0 ? (formData.variants as any) : [],
-      ...(editId ? { id: editId } : { is_trending: false, rating: 5, reviews: 0, badge: "New" })
+      ...(editId ? { id: editId } : { is_trending: false, rating: 0, reviews: 0, badge: "New" })
     };
 
     const res = await upsertProduct(newProduct);
@@ -321,7 +330,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
        setIsAdding(false);
        setEditId(null);
        setFormData({
-        name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: []
+        name: "", description: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: []
        });
     } else {
        alert("Failed to save product: " + res.error);
@@ -344,7 +353,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
         <button
           onClick={() => {
             setEditId(null);
-            setFormData({ name: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: [] });
+            setFormData({ name: "", description: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: [] });
             setIsAdding(true);
           }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors"
@@ -369,8 +378,108 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
         />
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border overflow-x-auto admin-scroll" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
+      {/* Mobile Card Layout */}
+      <div className="md:hidden space-y-3">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-[13px]" style={{ color: "var(--admin-text-dim)" }}>
+            No products found
+          </div>
+        ) : (
+          filtered.map((product) => (
+            <div
+              key={product.id}
+              className="rounded-xl border p-4"
+              style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)", fontFamily: "'DM Sans', sans-serif" }}
+            >
+              {/* Top: Thumbnail + Name + Price */}
+              <div className="flex gap-3 mb-3">
+                <div className="w-12 h-12 rounded-lg overflow-hidden relative shrink-0" style={{ background: "var(--admin-surface-elevated)" }}>
+                  {product.image && !product.image.includes("/api/placeholder") ? (
+                    <Image src={product.image} alt={product.name} fill sizes="48px" className="object-cover" />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Package size={14} style={{ color: "var(--admin-text-dim)" }} />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate" style={{ color: "var(--admin-text)" }}>{product.name}</p>
+                  <p className="text-[11px]" style={{ color: "var(--admin-text-muted)" }}>{product.category}</p>
+                  {product.color && (
+                    <p className="text-[10px]" style={{ color: "var(--admin-text-dim)" }}>{product.color} · {product.material}</p>
+                  )}
+                </div>
+                <span className="text-[14px] font-bold shrink-0" style={{ color: "var(--admin-text)" }}>
+                  ₹{product.price.toLocaleString("en-IN")}
+                </span>
+              </div>
+              {/* Bottom: Stock + Trending + Actions */}
+              <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handleStockAdjust(product.id, -1)}
+                    className="w-7 h-7 rounded flex items-center justify-center text-[14px] font-bold"
+                    style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
+                  >−</button>
+                  <span
+                    className="w-8 text-center text-[13px] font-bold"
+                    style={{ color: product.inventory_count === 0 ? "var(--admin-red)" : product.inventory_count <= 2 ? "var(--admin-amber)" : "var(--admin-text)" }}
+                  >{product.inventory_count}</span>
+                  <button
+                    onClick={() => handleStockAdjust(product.id, 1)}
+                    className="w-7 h-7 rounded flex items-center justify-center text-[14px] font-bold"
+                    style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
+                  >+</button>
+                </div>
+                <button
+                  onClick={() => handleToggleTrending(product.id, product.is_trending)}
+                  className="w-9 h-5 rounded-full relative transition-colors duration-200"
+                  style={{
+                    background: product.is_trending ? "var(--admin-accent)" : "var(--admin-surface-elevated)",
+                    border: `1px solid ${product.is_trending ? "var(--admin-accent)" : "var(--admin-border)"}`,
+                  }}
+                >
+                  <motion.div
+                    animate={{ x: product.is_trending ? 16 : 2 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                    className="absolute top-0.5 w-3.5 h-3.5 rounded-full"
+                    style={{ background: product.is_trending ? "#000" : "var(--admin-text-dim)" }}
+                  />
+                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => {
+                      setEditId(product.id);
+                      setFormData({
+                        name: product.name || "", description: product.description || "", category: product.category || "",
+                        price: product.price ? product.price.toString() : "", original_price: product.original_price ? product.original_price.toString() : "",
+                        inventory_count: product.inventory_count !== undefined ? product.inventory_count.toString() : "",
+                        image: product.image || "", tag: product.tag || "", color: product.color || "", material: product.material || "",
+                        sizes: product.sizes || [], gallery_images: product.gallery_images || [], variants: (product.variants as any) || [],
+                      });
+                      setIsAdding(true);
+                    }}
+                    className="p-2 rounded-lg"
+                    style={{ color: "var(--admin-text-dim)" }}
+                  >
+                    <Edit3 size={15} />
+                  </button>
+                  <button
+                    onClick={() => { setDeleteTarget(product); setDeleteConfirm(""); }}
+                    className="p-2 rounded-lg"
+                    style={{ color: "var(--admin-red)" }}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden md:block rounded-xl border overflow-x-auto admin-scroll" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
         <div className="min-w-[850px] w-full">
         {/* Header */}
         <div
@@ -484,6 +593,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     setEditId(product.id);
                     setFormData({
                       name: product.name || "",
+                      description: product.description || "",
                       category: product.category || "",
                       price: product.price ? product.price.toString() : "",
                       original_price: product.original_price ? product.original_price.toString() : "",
@@ -623,6 +733,11 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
                   </div>
 
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Description</label>
+                    <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Category *</label>
@@ -655,46 +770,64 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product Images *</label>
                     <div className="flex flex-col gap-4">
-                      {/* Upload Input */}
-                      <div className="flex-1">
+                      {/* Upload Dropzone */}
+                      <label 
+                        className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                        style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
+                        onMouseEnter={(e) => { if (!isUploading) e.currentTarget.style.borderColor = "var(--admin-accent)"; }}
+                        onMouseLeave={(e) => { if (!isUploading) e.currentTarget.style.borderColor = "var(--admin-border-active)"; }}
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                          <UploadCloud size={28} style={{ color: "var(--admin-accent)" }} className="mb-3" />
+                          <p className="mb-1 text-[13px] font-semibold" style={{ color: "var(--admin-text)" }}>
+                            Click to upload <span className="font-normal" style={{ color: "var(--admin-text-dim)" }}>or drag and drop</span>
+                          </p>
+                          <p className="text-[10px] mt-1" style={{ color: "var(--admin-text-muted)" }}>
+                            Upload multiple high-res images. The first image becomes the primary thumbnail.
+                          </p>
+                        </div>
                         <input 
                           type="file" 
+                          className="hidden" 
                           multiple
                           accept="image/*" 
                           onChange={handleImageUpload} 
                           disabled={isUploading}
-                          className="w-full text-[12px] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-[var(--admin-accent)] file:text-black hover:file:opacity-90 transition-opacity disabled:opacity-50" 
-                          style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }} 
                         />
-                        <p className="text-[10px] mt-2" style={{ color: "var(--admin-text-dim)" }}>
-                          Upload multiple high-res images. First image is the primary grid thumbnail.
-                        </p>
-                      </div>
+                      </label>
 
                       {/* Mini-Gallery Preview */}
                       {(formData.image || isUploading) && (
-                        <div className="flex items-center gap-3 overflow-x-auto pb-2 admin-scroll">
+                        <div className="flex items-center gap-3 overflow-x-auto pb-2 admin-scroll pt-2">
                           {/* Primary Image */}
                           {formData.image && (
                             <div 
-                              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border shrink-0 relative group"
+                              className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden border shrink-0 relative group shadow-sm"
                               style={{ borderColor: "var(--admin-accent)", background: "var(--admin-surface-elevated)" }}
                             >
-                              <Image src={formData.image} alt="Primary Preview" fill sizes="80px" className="object-cover" />
-                              <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" style={{ background: "var(--admin-accent)", color: "#000" }}>
+                              <Image src={formData.image} alt="Primary Preview" fill sizes="112px" className="object-cover" />
+                              <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold uppercase tracking-wider z-10" style={{ background: "var(--admin-accent)", color: "#000" }}>
                                 Primary
                               </div>
-                              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                                <button type="button" onClick={handleMovePrimaryRight} className="p-1 rounded bg-white/20 text-white hover:bg-white/40">
-                                  <motion.span animate={{ x: 2 }} className="block">→</motion.span>
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => handleRemoveImage(formData.image)}
-                                  className="p-1 rounded bg-white/20 text-white hover:bg-white/40"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
+                              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-1.5 md:backdrop-blur-[1px] z-20">
+                                <div className="flex justify-end">
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleRemoveImage(formData.image)} 
+                                    className="w-7 h-7 rounded-full bg-red-500/90 flex items-center justify-center text-white hover:bg-red-600 active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                                <div className="flex justify-end">
+                                  <button 
+                                    type="button" 
+                                    onClick={handleMovePrimaryRight} 
+                                    className="w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black hover:text-[#B8963E] active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <ArrowRight size={13} />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -703,27 +836,44 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                           {formData.gallery_images && formData.gallery_images.map((url, i) => (
                             <div 
                               key={i}
-                              className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border shrink-0 relative group"
+                              className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden border shrink-0 relative group shadow-sm"
                               style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
                             >
-                              <Image src={url} alt={`Gallery Preview ${i+1}`} fill sizes="80px" className="object-cover" />
-                              <div className="absolute inset-0 flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                                <button type="button" onClick={() => handleMoveImage(i, 'left')} className="p-1 rounded bg-white/20 text-white hover:bg-white/40">
-                                  ←
-                                </button>
-                                <button type="button" onClick={() => handleSetPrimary(url)} className="p-1 rounded bg-white/20 text-white hover:bg-white/40 text-[8px] font-bold uppercase">
-                                  ⭐
-                                </button>
-                                <button type="button" onClick={() => handleMoveImage(i, 'right')} className="p-1 rounded bg-white/20 text-white hover:bg-white/40">
-                                  →
-                                </button>
-                                <button 
-                                  type="button"
-                                  onClick={() => handleRemoveImage(url)}
-                                  className="p-1 rounded bg-white/20 text-white hover:bg-white/40"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
+                              <Image src={url} alt={`Gallery Preview ${i+1}`} fill sizes="112px" className="object-cover" />
+                              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-1.5 md:backdrop-blur-[1px] z-20">
+                                <div className="flex justify-end">
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleRemoveImage(url)} 
+                                    className="w-7 h-7 rounded-full bg-red-500/90 flex items-center justify-center text-white hover:bg-red-600 active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                                <div className="flex items-center justify-between gap-1">
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleMoveImage(i, 'left')} 
+                                    className="w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black hover:text-[#B8963E] active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <ArrowLeft size={13} />
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleSetPrimary(url)} 
+                                    className="w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black hover:text-[#B8963E] active:scale-95 transition-all shadow-sm" 
+                                    title="Set as Primary"
+                                  >
+                                    <Star size={13} />
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleMoveImage(i, 'right')} 
+                                    className="w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black hover:text-[#B8963E] active:scale-95 transition-all shadow-sm"
+                                  >
+                                    <ArrowRight size={13} />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -905,26 +1055,33 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
 
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-3" style={{ color: "var(--admin-text-dim)" }}>Sizes</label>
-                    <div className="flex flex-wrap gap-2">
-                      {SIZES.map(s => (
-                        <button
-                          type="button"
-                          key={s}
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev, 
-                              sizes: prev.sizes.includes(s) ? prev.sizes.filter(x => x !== s) : [...prev.sizes, s]
-                            }))
-                          }}
-                          className="px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors"
-                          style={{
-                            background: formData.sizes.includes(s) ? "var(--admin-accent)" : "transparent",
-                            color: formData.sizes.includes(s) ? "#000" : "var(--admin-text-dim)",
-                            borderColor: formData.sizes.includes(s) ? "var(--admin-accent)" : "var(--admin-border-active)"
-                          }}
-                        >
-                          {s}
-                        </button>
+                    <div className="space-y-4">
+                      {Object.entries(SIZES_GROUPED).map(([category, sizes]) => (
+                        <div key={category}>
+                          <p className="text-[10px] uppercase font-bold mb-2 opacity-60" style={{ color: "var(--admin-text-dim)" }}>{category}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {sizes.map(s => (
+                              <button
+                                type="button"
+                                key={s}
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev, 
+                                    sizes: prev.sizes.includes(s) ? prev.sizes.filter(x => x !== s) : [...prev.sizes, s]
+                                  }))
+                                }}
+                                className="px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors"
+                                style={{
+                                  background: formData.sizes.includes(s) ? "var(--admin-accent)" : "transparent",
+                                  color: formData.sizes.includes(s) ? "#000" : "var(--admin-text-dim)",
+                                  borderColor: formData.sizes.includes(s) ? "var(--admin-accent)" : "var(--admin-border-active)"
+                                }}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
