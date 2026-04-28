@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Sans, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/components/providers/CartProvider";
-import CartDrawer from "@/components/layout/CartDrawer";
-import { ProgressBarProvider } from "@/components/providers/ProgressBarProvider";
+import { AppProviders } from "@/components/providers/AppProviders";
 import JsonLd from "@/components/seo/JsonLd";
-import WelcomeModal from "@/components/ui/WelcomeModal";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const playfair = Playfair_Display({
@@ -174,13 +171,9 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body className="min-h-screen font-dm bg-cream text-text-primary antialiased overflow-x-hidden">
-        <ProgressBarProvider>
-          <CartProvider>
-            <CartDrawer />
-            {children}
-          </CartProvider>
-        </ProgressBarProvider>
-        <WelcomeModal />
+        <AppProviders>
+          {children}
+        </AppProviders>
         <SpeedInsights />
       </body>
     </html>
