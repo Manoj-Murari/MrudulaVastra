@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function loginWithEmail(formData: FormData) {
@@ -41,9 +41,10 @@ export async function signupWithEmail(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const adminClient = await createAdminClient();
 
-  // Check if phone number already exists
-  const { data: existingPhone } = await supabase
+  // Check if phone number already exists (using admin client to bypass RLS)
+  const { data: existingPhone } = await adminClient
     .from("profiles")
     .select("id")
     .eq("phone", phone)
@@ -82,9 +83,10 @@ export async function signupWithOtpOnly(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const adminClient = await createAdminClient();
 
-  // Check if phone number already exists
-  const { data: existingPhone } = await supabase
+  // Check if phone number already exists (using admin client to bypass RLS)
+  const { data: existingPhone } = await adminClient
     .from("profiles")
     .select("id")
     .eq("phone", phone)
