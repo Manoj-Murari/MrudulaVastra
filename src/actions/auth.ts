@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function loginWithEmail(formData: FormData) {
@@ -42,16 +42,11 @@ export async function signupWithEmail(formData: FormData) {
 
   const supabase = await createClient();
 
-  const adminClient = await createAdminClient();
+  // Check if phone number already exists using a secure RPC function that bypasses RLS
+  const { data: phoneExists } = await supabase
+    .rpc('check_phone_exists', { phone_number: phone } as any);
 
-  // Check if phone number already exists
-  const { data: existingPhone } = await adminClient
-    .from("profiles")
-    .select("id")
-    .eq("phone", phone)
-    .maybeSingle();
-
-  if (existingPhone) {
+  if (phoneExists) {
     return { error: "This phone number is already registered with another account." };
   }
 
@@ -85,16 +80,11 @@ export async function signupWithOtpOnly(formData: FormData) {
 
   const supabase = await createClient();
 
-  const adminClient = await createAdminClient();
+  // Check if phone number already exists using a secure RPC function that bypasses RLS
+  const { data: phoneExists } = await supabase
+    .rpc('check_phone_exists', { phone_number: phone } as any);
 
-  // Check if phone number already exists
-  const { data: existingPhone } = await adminClient
-    .from("profiles")
-    .select("id")
-    .eq("phone", phone)
-    .maybeSingle();
-
-  if (existingPhone) {
+  if (phoneExists) {
     return { error: "This phone number is already registered with another account." };
   }
 

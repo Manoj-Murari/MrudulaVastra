@@ -223,5 +223,13 @@ export interface Database {
         }
       }
     }
+    Functions: {
+      check_phone_exists: {
+        Args: {
+          phone_number: string
+        }
+        Returns: boolean
+      }
+    }
   }
 }
