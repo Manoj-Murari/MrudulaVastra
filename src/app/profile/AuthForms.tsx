@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp, resendOtp } from "@/actions/auth";
 
 export default function AuthForms() {
@@ -15,6 +16,7 @@ export default function AuthForms() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendMessage, setResendMessage] = useState("");
   const [isRedirectedNewUser, setIsRedirectedNewUser] = useState(false);
+  const router = useRouter();
 
   // Cooldown timer for resend OTP
   useEffect(() => {
@@ -41,10 +43,14 @@ export default function AuthForms() {
     } else if (result && result.error) {
       setError(result.error);
     } else if (result && (result as any).success) {
-      setMessage((result as any).success);
-      setVerifyContext("login");
-      setMode("verify");
-      setResendCooldown(10);
+      if ((result as any).success === true) {
+        router.push("/profile");
+      } else {
+        setMessage((result as any).success);
+        setVerifyContext("login");
+        setMode("verify");
+        setResendCooldown(10);
+      }
     }
     setIsLoading(false);
   }
@@ -84,7 +90,11 @@ export default function AuthForms() {
       ? await verifyLoginOtp(formData)
       : await verifySignupOtp(formData);
 
-    if (result && result.error) setError(result.error);
+    if (result && result.error) {
+      setError(result.error);
+    } else if (result && result.success === true) {
+      router.push("/profile");
+    }
     setIsLoading(false);
   }
 

@@ -22,7 +22,7 @@ export async function loginWithEmail(formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/profile");
+  return { success: true };
 }
 
 /* ── Signup WITH password (optional path) ────────────── */
@@ -140,7 +140,7 @@ export async function verifySignupOtp(formData: FormData) {
     }
   }
 
-  redirect("/profile");
+  return { success: true };
 }
 
 export async function sendLoginOtp(formData: FormData) {
@@ -183,7 +183,7 @@ export async function verifyLoginOtp(formData: FormData) {
       : error.message;
     return { error: msg };
   }
-  redirect("/profile");
+  return { success: true };
 }
 
 /* ── Resend OTP (works for both signup and login) ── */

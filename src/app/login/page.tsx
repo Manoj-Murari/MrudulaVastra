@@ -2,11 +2,12 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { loginWithEmail, signupWithEmail, signupWithOtpOnly, verifySignupOtp, sendLoginOtp, verifyLoginOtp, resendOtp } from "@/actions/auth";
 
 function LoginContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(searchParams?.get("view") === "signup");
   const [loginMethod, setLoginMethod] = useState<"password" | "otp">("otp");
   const [showOtpInput, setShowOtpInput] = useState(false);
@@ -60,8 +61,12 @@ function LoginContent() {
     } else if (result && "error" in result && result.error) {
       setError(result.error);
     } else if (result && "success" in result && result.success) {
-      setShowOtpInput(true);
-      setResendCooldown(10);
+      if (result.success === true) {
+        router.push("/profile");
+      } else {
+        setShowOtpInput(true);
+        setResendCooldown(10);
+      }
     }
   }
 
@@ -79,6 +84,8 @@ function LoginContent() {
 
     if (result && "error" in result && result.error) {
       setError(result.error);
+    } else if (result && "success" in result && result.success === true) {
+      router.push("/profile");
     }
   }
 
