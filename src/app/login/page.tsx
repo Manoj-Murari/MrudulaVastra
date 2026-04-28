@@ -16,6 +16,7 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [isRedirectedNewUser, setIsRedirectedNewUser] = useState(false);
 
   useEffect(() => {
     if (searchParams?.get("view") === "signup") {
@@ -53,12 +54,14 @@ function LoginContent() {
 
     setLoading(false);
 
-    if (result && "error" in result && result.error) {
+    if (result && "reason" in result && result.reason === "user_not_found") {
+      setIsSignUp(true);
+      setIsRedirectedNewUser(true);
+    } else if (result && "error" in result && result.error) {
       setError(result.error);
-    }
-    if (result && "success" in result && result.success) {
+    } else if (result && "success" in result && result.success) {
       setShowOtpInput(true);
-      setResendCooldown(60);
+      setResendCooldown(30);
     }
   }
 
@@ -110,6 +113,13 @@ function LoginContent() {
                 ? "Create Account"
                 : "Welcome Back"}
           </h2>
+
+          {/* Onboarding Banner */}
+          {isSignUp && isRedirectedNewUser && (
+            <div className="mb-6 p-4 bg-[#F9F6E8] border border-gold/40 text-[#5C4D1D] font-dm text-sm leading-relaxed">
+              <strong>Welcome!</strong> It looks like you're new here. Please provide your Name and Phone number to create your Mrudula Vastra account.
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -182,7 +192,7 @@ function LoginContent() {
                       setError(result.error);
                     } else if (result.success) {
                       setResendMessage(result.success);
-                      setResendCooldown(60);
+                      setResendCooldown(30);
                     }
                   }}
                   className="text-text-muted font-dm text-sm hover:text-forest transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -248,8 +258,12 @@ function LoginContent() {
                     name="email"
                     type="email"
                     required
+                    defaultValue={savedEmail}
+                    readOnly={isSignUp && isRedirectedNewUser}
                     placeholder="you@example.com"
-                    className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
+                    className={`w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50 ${
+                      isSignUp && isRedirectedNewUser ? "opacity-60 cursor-not-allowed" : ""
+                    }`}
                   />
                 </div>
 

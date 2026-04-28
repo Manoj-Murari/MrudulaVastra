@@ -139,7 +139,12 @@ export async function sendLoginOtp(formData: FormData) {
     }
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message.toLowerCase().includes("signups not allowed for otp")) {
+      return { success: false, reason: "user_not_found", email };
+    }
+    return { error: error.message };
+  }
   return { success: "Check your email for the login code!" };
 }
 

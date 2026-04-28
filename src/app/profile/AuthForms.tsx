@@ -44,7 +44,7 @@ export default function AuthForms() {
       setMessage((result as any).success);
       setVerifyContext("login");
       setMode("verify");
-      setResendCooldown(60);
+      setResendCooldown(30);
     }
     setIsLoading(false);
   }
@@ -69,7 +69,7 @@ export default function AuthForms() {
       setMessage(result.success);
       setVerifyContext("signup");
       setMode("verify");
-      setResendCooldown(60);
+      setResendCooldown(30);
     }
     setIsLoading(false);
   }
@@ -240,7 +240,7 @@ export default function AuthForms() {
                   setError(result.error);
                 } else if (result.success) {
                   setResendMessage(result.success);
-                  setResendCooldown(60);
+                  setResendCooldown(30);
                 }
               }}
               className="text-text-muted font-dm text-sm hover:text-forest transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
