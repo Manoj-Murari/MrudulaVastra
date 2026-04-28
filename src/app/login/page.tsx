@@ -230,7 +230,6 @@ function LoginContent() {
                         required
                         pattern="[0-9]{10}"
                         title="Please enter a valid 10-digit phone number"
-                        placeholder="e.g. 7989947557"
                         className="w-full px-4 py-3 bg-cream border border-gold/15 focus:border-gold/40 focus:outline-none transition-colors font-dm text-sm text-forest placeholder:text-text-muted/50"
                       />
                     </div>
