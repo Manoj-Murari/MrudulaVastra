@@ -61,7 +61,7 @@ function LoginContent() {
       setError(result.error);
     } else if (result && "success" in result && result.success) {
       setShowOtpInput(true);
-      setResendCooldown(30);
+      setResendCooldown(10);
     }
   }
 
@@ -192,7 +192,7 @@ function LoginContent() {
                       setError(result.error);
                     } else if (result.success) {
                       setResendMessage(result.success);
-                      setResendCooldown(30);
+                      setResendCooldown(10);
                     }
                   }}
                   className="text-text-muted font-dm text-sm hover:text-forest transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
