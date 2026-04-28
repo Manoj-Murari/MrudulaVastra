@@ -42,6 +42,17 @@ export async function signupWithEmail(formData: FormData) {
 
   const supabase = await createClient();
 
+  // Check if phone number already exists
+  const { data: existingPhone } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("phone", phone)
+    .single();
+
+  if (existingPhone) {
+    return { error: "This phone number is already registered with another account." };
+  }
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -71,6 +82,17 @@ export async function signupWithOtpOnly(formData: FormData) {
   }
 
   const supabase = await createClient();
+
+  // Check if phone number already exists
+  const { data: existingPhone } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("phone", phone)
+    .single();
+
+  if (existingPhone) {
+    return { error: "This phone number is already registered with another account." };
+  }
 
   // signInWithOtp with shouldCreateUser: true will create the account
   // if it doesn't exist, and send a magic link / OTP code
