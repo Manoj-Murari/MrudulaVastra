@@ -67,6 +67,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     color: "",
     material: "",
     sizes: [] as string[],
+    size_inventory: {} as Record<string, number>,
     gallery_images: [] as string[],
     variants: [] as ProductVariant[],
     description: "",
@@ -308,6 +309,12 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     e.preventDefault();
     setIsSaving(true);
     
+    let totalStock = Number(formData.inventory_count) || 0;
+    const activeSizeInv = Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)));
+    if (Object.keys(activeSizeInv).length > 0) {
+      totalStock = Object.values(activeSizeInv).reduce((sum, val) => sum + (Number(val) || 0), 0);
+    }
+    
     const newProduct = {
       name: formData.name,
       description: formData.description,
@@ -315,14 +322,17 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       sub_category: formData.sub_category || null,
       price: Number(formData.price) || 0,
       original_price: Number(formData.original_price) || 0,
-      inventory_count: Number(formData.inventory_count) || 0,
+      inventory_count: totalStock,
       image: formData.image || "/api/placeholder/400/600",
       tag: formData.tag || "",
       color: formData.color || null,
       material: formData.material || null,
       sizes: formData.sizes.length > 0 ? formData.sizes : null,
       gallery_images: formData.gallery_images.length > 0 ? formData.gallery_images : null,
-      variants: formData.variants.length > 0 ? (formData.variants as any) : [],
+      variants: [
+        ...(formData.variants.length > 0 ? formData.variants : []),
+        ...(Object.keys(activeSizeInv).length > 0 ? [{ type: "size_inventory", data: activeSizeInv }] : [])
+      ] as any[],
       ...(editId ? { id: editId } : { is_trending: false, rating: 0, reviews: 0, badge: "New" })
     };
 
@@ -335,7 +345,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
        setIsAdding(false);
        setEditId(null);
        setFormData({
-        name: "", description: "", category: "", sub_category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: []
+        name: "", description: "", category: "", sub_category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], size_inventory: {}, gallery_images: [], variants: []
        });
     } else {
        alert("Failed to save product: " + res.error);
@@ -359,7 +369,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
           onClick={() => {
             setEditId(null);
             setIsAddingSubCategory(false);
-            setFormData({ name: "", description: "", category: "", sub_category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: [] });
+            setFormData({ name: "", description: "", category: "", sub_category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], size_inventory: {}, gallery_images: [], variants: [] });
             setIsAdding(true);
           }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors"
@@ -464,7 +474,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                         price: product.price ? product.price.toString() : "", original_price: product.original_price ? product.original_price.toString() : "",
                         inventory_count: product.inventory_count !== undefined ? product.inventory_count.toString() : "",
                         image: product.image || "", tag: product.tag || "", color: product.color || "", material: product.material || "",
-                        sizes: product.sizes || [], gallery_images: product.gallery_images || [], variants: (product.variants as any) || [],
+                        sizes: product.sizes || [], size_inventory: Array.isArray(product.variants) ? (product.variants.find((v: any) => v.type === "size_inventory")?.data || {}) : {}, gallery_images: product.gallery_images || [], variants: Array.isArray(product.variants) ? product.variants.filter((v: any) => v.type !== "size_inventory") : [],
                       });
                       setIsAdding(true);
                     }}
@@ -614,8 +624,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       color: product.color || "",
                       material: product.material || "",
                       sizes: product.sizes || [],
+                      size_inventory: Array.isArray(product.variants) ? (product.variants.find((v: any) => v.type === "size_inventory")?.data || {}) : {},
                       gallery_images: product.gallery_images || [],
-                      variants: (product.variants as any) || []
+                      variants: Array.isArray(product.variants) ? product.variants.filter((v: any) => v.type !== "size_inventory") : []
                     });
                     setIsAdding(true);
                   }}
@@ -826,12 +837,25 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       <input type="number" min="0" value={formData.original_price} onChange={e => setFormData({...formData, original_price: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
                     </div>
                     <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Stock *</label>
-                      <input required type="number" min="0" value={formData.inventory_count} onChange={e => setFormData({...formData, inventory_count: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
+                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>
+                        Stock * {Object.keys(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).length > 0 && <span className="text-blue-500 font-normal normal-case">(Auto-calculated)</span>}
+                      </label>
+                      <input 
+                        required 
+                        type="number" 
+                        min="0" 
+                        value={
+                          Object.keys(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).length > 0
+                            ? Object.values(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).reduce((sum, val) => sum + (Number(val) || 0), 0)
+                            : formData.inventory_count
+                        } 
+                        onChange={e => setFormData({...formData, inventory_count: e.target.value})} 
+                        disabled={Object.keys(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).length > 0}
+                        className={`w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] ${Object.keys(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).length > 0 ? "opacity-50 cursor-not-allowed" : ""}`} 
+                        style={{ borderColor: "var(--admin-border-active)" }} 
+                      />
                     </div>
-                  </div>
-
-                  <div>
+                  </div>                  <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product Images *</label>
                     <div className="flex flex-col gap-4">
                       {/* Upload Dropzone */}
@@ -1125,24 +1149,42 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                           <p className="text-[10px] uppercase font-bold mb-2 opacity-60" style={{ color: "var(--admin-text-dim)" }}>{category}</p>
                           <div className="flex flex-wrap gap-2">
                             {sizes.map(s => (
-                              <button
-                                type="button"
-                                key={s}
-                                onClick={() => {
-                                  setFormData(prev => ({
-                                    ...prev, 
-                                    sizes: prev.sizes.includes(s) ? prev.sizes.filter(x => x !== s) : [...prev.sizes, s]
-                                  }))
-                                }}
-                                className="px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors"
-                                style={{
-                                  background: formData.sizes.includes(s) ? "var(--admin-accent)" : "transparent",
-                                  color: formData.sizes.includes(s) ? "#000" : "var(--admin-text-dim)",
-                                  borderColor: formData.sizes.includes(s) ? "var(--admin-accent)" : "var(--admin-border-active)"
-                                }}
-                              >
-                                {s}
-                              </button>
+                              <div key={s} className="flex flex-col gap-1.5 items-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData(prev => ({
+                                      ...prev, 
+                                      sizes: prev.sizes.includes(s) ? prev.sizes.filter(x => x !== s) : [...prev.sizes, s]
+                                    }))
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg border text-[11px] font-bold uppercase transition-colors"
+                                  style={{
+                                    background: formData.sizes.includes(s) ? "var(--admin-accent)" : "transparent",
+                                    color: formData.sizes.includes(s) ? "#000" : "var(--admin-text-dim)",
+                                    borderColor: formData.sizes.includes(s) ? "var(--admin-accent)" : "var(--admin-border-active)"
+                                  }}
+                                >
+                                  {s}
+                                </button>
+                                {formData.sizes.includes(s) && (
+                                  <input 
+                                    type="number" 
+                                    min="0"
+                                    placeholder="Stock"
+                                    value={formData.size_inventory[s] || ""}
+                                    onChange={(e) => {
+                                      const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        size_inventory: { ...prev.size_inventory, [s]: val }
+                                      }))
+                                    }}
+                                    className="w-14 text-center text-[10px] py-1 border rounded bg-transparent outline-none"
+                                    style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                                  />
+                                )}
+                              </div>
                             ))}
                           </div>
                         </div>
