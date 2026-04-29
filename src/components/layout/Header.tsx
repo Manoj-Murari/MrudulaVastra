@@ -26,6 +26,50 @@ function NavLink({ label, href }: { label: string; href: string }) {
   );
 }
 
+function NavDropdown({ label, href, subLinks }: { label: string; href: string, subLinks: any[] }) {
+  return (
+    <div className="relative group py-1 flex items-center gap-1 cursor-pointer">
+      <Link
+        href={href}
+        prefetch={true}
+        className="relative text-text-nav font-medium font-dm flex items-center gap-1"
+        style={{ fontSize: "12px", letterSpacing: "0.1em" }}
+      >
+        <span className="relative z-10 group-hover:text-forest transition-colors duration-300 uppercase">
+          {label}
+        </span>
+        <span className="absolute left-0 right-0 -bottom-1 h-[1px] bg-gold/60 origin-right scale-x-0 group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-out" />
+      </Link>
+      
+      {subLinks && subLinks.length > 0 && (
+        <>
+          <ChevronDown size={12} className="text-text-nav group-hover:text-forest transition-transform group-hover:-rotate-180" />
+          
+          <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
+            <div className="bg-white border border-gold/10 shadow-xl rounded-lg py-2 min-w-[200px] flex flex-col">
+              <Link
+                href={href}
+                className="px-5 py-2.5 text-[13px] font-dm text-forest/80 hover:text-forest hover:bg-gold/5 transition-colors whitespace-nowrap"
+              >
+                All {label}
+              </Link>
+              {subLinks.map((sub: any) => (
+                <Link
+                  key={sub.label}
+                  href={sub.href}
+                  className="px-5 py-2.5 text-[13px] font-dm text-text-muted hover:text-forest hover:bg-gold/5 transition-colors whitespace-nowrap"
+                >
+                  {sub.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -243,7 +287,7 @@ export default function Header() {
 
       {/* Desktop Navigation Row */}
       <nav
-        className="hidden lg:block overflow-hidden transition-all duration-300"
+        className="hidden lg:block overflow-visible transition-all duration-300"
         style={{
           height: scrolled ? 36 : 42,
           borderTop: "1px solid rgba(184,150,62,0.08)",
@@ -251,7 +295,11 @@ export default function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-center gap-10 h-full">
           {dynamicNavLinks.filter(link => link.href !== "/").map((link) => (
-            <NavLink key={link.href} label={link.label} href={link.href} />
+            'subLinks' in link && link.subLinks.length > 0 ? (
+              <NavDropdown key={link.href} label={link.label} href={link.href} subLinks={link.subLinks} />
+            ) : (
+              <NavLink key={link.href} label={link.label} href={link.href} />
+            )
           ))}
         </div>
       </nav>
