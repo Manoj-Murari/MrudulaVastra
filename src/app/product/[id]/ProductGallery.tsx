@@ -103,7 +103,18 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="absolute inset-0"
+              className="absolute inset-0 cursor-grab active:cursor-grabbing touch-pan-y"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={(e, { offset, velocity }) => {
+                const swipe = offset.x;
+                if (swipe < -50) {
+                  handleNext();
+                } else if (swipe > 50) {
+                  handlePrev();
+                }
+              }}
             >
               <Image
                 src={activeImage}
@@ -111,7 +122,7 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
               />
             </motion.div>
           </AnimatePresence>
@@ -182,7 +193,7 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
             </div>
 
             {/* Main Image View */}
-            <div className="flex-1 relative w-full h-full p-4 lg:p-12 pointer-events-none">
+            <div className="flex-1 relative w-full h-full p-4 lg:p-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeImage}
@@ -190,7 +201,19 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.4, ease: [0.25, 0.4, 0.25, 1] }}
-                  className="w-full h-full relative"
+                  className="w-full h-full relative cursor-grab active:cursor-grabbing touch-pan-y"
+                  onClick={(e) => e.stopPropagation()}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={(e, { offset }) => {
+                    const swipe = offset.x;
+                    if (swipe < -50) {
+                      handleNext();
+                    } else if (swipe > 50) {
+                      handlePrev();
+                    }
+                  }}
                 >
                   <Image
                     src={activeImage}
@@ -198,7 +221,7 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
                     fill
                     priority
                     sizes="100vw"
-                    className="object-contain"
+                    className="object-contain pointer-events-none"
                   />
                 </motion.div>
               </AnimatePresence>
