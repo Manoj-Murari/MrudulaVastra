@@ -1212,19 +1212,24 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       {/* Sub Category Manager Modal */}
       {isManagingSubCategories && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl">
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+          <div className="rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl border" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}>
+            <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "var(--admin-border-active)" }}>
               <h3 className="font-bold text-[14px] uppercase tracking-wider" style={{ color: "var(--admin-text)" }}>Manage Sub Categories</h3>
-              <button onClick={() => setIsManagingSubCategories(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button onClick={() => setIsManagingSubCategories(false)} className="transition-colors hover:opacity-70" style={{ color: "var(--admin-text-dim)" }}>
                 <X size={20} />
               </button>
             </div>
             <div className="p-2 overflow-y-auto flex-1">
               {Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).length === 0 ? (
-                <div className="p-6 text-center text-gray-400 text-[12px]">No sub-categories in use yet.</div>
+                <div className="p-6 text-center text-[12px]" style={{ color: "var(--admin-text-dim)" }}>No sub-categories in use yet.</div>
               ) : (
                 Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).sort().map(sc => (
-                  <div key={sc as string} className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors group">
+                  <div 
+                    key={sc as string} 
+                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-colors group"
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
                     <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>{sc as string}</span>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
@@ -1239,7 +1244,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                             setIsSaving(false);
                           }
                         }} 
-                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
+                        className="p-1.5 text-blue-500 rounded-md transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         title="Rename globally"
                       >
                         <Edit2 size={14} />
@@ -1255,7 +1262,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                             setIsSaving(false);
                           }
                         }} 
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-red-500 rounded-md transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         title="Delete globally"
                       >
                         <Trash2 size={14} />
