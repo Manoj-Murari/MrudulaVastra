@@ -46,6 +46,7 @@ export interface Database {
           id: number
           name: string
           category: string
+          sub_category: string | null
           price: number
           original_price: number
           image: string
@@ -66,6 +67,7 @@ export interface Database {
           id?: number
           name: string
           category: string
+          sub_category?: string | null
           price: number
           original_price: number
           image: string
@@ -86,6 +88,7 @@ export interface Database {
           id?: number
           name?: string
           category?: string
+          sub_category?: string | null
           price?: number
           original_price?: number
           image?: string

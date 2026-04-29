@@ -16,8 +16,9 @@ import {
   ArrowLeft,
   ArrowRight,
   UploadCloud,
+  Edit2,
 } from "lucide-react";
-import { updateProductField, deleteProduct, upsertProduct } from "@/actions/admin";
+import { getAdminProducts, updateProductField, deleteProduct, upsertProduct, manageSubCategory } from "@/actions/admin";
 import { createClient } from "@/lib/supabase/client";
 
 interface ProductVariant {
@@ -36,6 +37,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const [editId, setEditId] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
+  const [isManagingSubCategories, setIsManagingSubCategories] = useState(false);
   
   const CATEGORIES = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear", "Lehengas", "Accessories"];
   const COLORS = [
@@ -55,6 +58,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const [formData, setFormData] = useState({
     name: "",
     category: "",
+    sub_category: "",
     price: "",
     original_price: "",
     inventory_count: "",
@@ -308,6 +312,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       name: formData.name,
       description: formData.description,
       category: formData.category,
+      sub_category: formData.sub_category || null,
       price: Number(formData.price) || 0,
       original_price: Number(formData.original_price) || 0,
       inventory_count: Number(formData.inventory_count) || 0,
@@ -330,7 +335,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
        setIsAdding(false);
        setEditId(null);
        setFormData({
-        name: "", description: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: []
+        name: "", description: "", category: "", sub_category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: []
        });
     } else {
        alert("Failed to save product: " + res.error);
@@ -353,7 +358,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
         <button
           onClick={() => {
             setEditId(null);
-            setFormData({ name: "", description: "", category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: [] });
+            setIsAddingSubCategory(false);
+            setFormData({ name: "", description: "", category: "", sub_category: "", price: "", original_price: "", inventory_count: "", image: "", tag: "", color: "", material: "", sizes: [], gallery_images: [], variants: [] });
             setIsAdding(true);
           }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors"
@@ -404,7 +410,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold truncate" style={{ color: "var(--admin-text)" }}>{product.name}</p>
-                  <p className="text-[11px]" style={{ color: "var(--admin-text-muted)" }}>{product.category}</p>
+                  <p className="text-[11px]" style={{ color: "var(--admin-text-muted)" }}>
+                    {product.category} {product.sub_category && <span className="opacity-70">· {product.sub_category}</span>}
+                  </p>
                   {product.color && (
                     <p className="text-[10px]" style={{ color: "var(--admin-text-dim)" }}>{product.color} · {product.material}</p>
                   )}
@@ -450,8 +458,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   <button
                     onClick={() => {
                       setEditId(product.id);
+                      setIsAddingSubCategory(false);
                       setFormData({
-                        name: product.name || "", description: product.description || "", category: product.category || "",
+                        name: product.name || "", description: product.description || "", category: product.category || "", sub_category: product.sub_category || "",
                         price: product.price ? product.price.toString() : "", original_price: product.original_price ? product.original_price.toString() : "",
                         inventory_count: product.inventory_count !== undefined ? product.inventory_count.toString() : "",
                         image: product.image || "", tag: product.tag || "", color: product.color || "", material: product.material || "",
@@ -533,7 +542,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
 
               {/* Category */}
               <span className="text-[11px]" style={{ color: "var(--admin-text-muted)" }}>
-                {product.category}
+                {product.category} {product.sub_category && <span className="opacity-70 text-[9px] block">↳ {product.sub_category}</span>}
               </span>
 
               {/* Price */}
@@ -591,10 +600,12 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                 <button
                   onClick={() => {
                     setEditId(product.id);
+                    setIsAddingSubCategory(false);
                     setFormData({
                       name: product.name || "",
                       description: product.description || "",
                       category: product.category || "",
+                      sub_category: product.sub_category || "",
                       price: product.price ? product.price.toString() : "",
                       original_price: product.original_price ? product.original_price.toString() : "",
                       inventory_count: product.inventory_count !== undefined ? product.inventory_count.toString() : "",
@@ -722,7 +733,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   <h2 className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
                     {editId ? "Edit Product" : "Add New Product"}
                   </h2>
-                  <button onClick={() => { setIsAdding(false); setEditId(null); }} className="p-2 rounded-lg" style={{ color: "var(--admin-text-dim)" }}>
+                  <button onClick={() => { setIsAdding(false); setEditId(null); setIsAddingSubCategory(false); }} className="p-2 rounded-lg" style={{ color: "var(--admin-text-dim)" }}>
                     <X size={18} />
                   </button>
                 </div>
@@ -747,8 +758,61 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Tag</label>
-                      <input value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} placeholder="e.g. Designer" className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-[11px] uppercase tracking-wider font-bold" style={{ color: "var(--admin-text-dim)" }}>Sub Category</label>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsManagingSubCategories(true)}
+                          className="text-[10px] uppercase font-bold text-blue-500 hover:text-blue-600 transition-colors"
+                        >
+                          Manage
+                        </button>
+                      </div>
+                      {!isAddingSubCategory ? (
+                        <select 
+                          value={formData.sub_category} 
+                          onChange={e => {
+                            if (e.target.value === "ADD_NEW") {
+                              setIsAddingSubCategory(true);
+                              setFormData({ ...formData, sub_category: "" });
+                            } else {
+                              setFormData({ ...formData, sub_category: e.target.value });
+                            }
+                          }}
+                          className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] appearance-none" 
+                          style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
+                        >
+                          <option value="">No Sub Category</option>
+                          {Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).sort().map(sc => (
+                            <option key={sc as string} value={sc as string}>{sc as string}</option>
+                          ))}
+                          <option value="ADD_NEW" style={{ fontWeight: 'bold', color: 'var(--admin-accent)' }}>+ Add New Sub Category</option>
+                        </select>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input 
+                            autoFocus
+                            placeholder="Enter new sub category..."
+                            value={formData.sub_category} 
+                            onChange={e => setFormData({ ...formData, sub_category: e.target.value })}
+                            className="flex-1 bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" 
+                            style={{ borderColor: "var(--admin-border-active)" }} 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              setIsAddingSubCategory(false);
+                              if (!formData.sub_category.trim()) {
+                                setFormData({ ...formData, sub_category: "" });
+                              }
+                            }}
+                            className="p-2.5 rounded-lg border flex-shrink-0"
+                            style={{ borderColor: "var(--admin-border-active)" }}
+                          >
+                            <X size={14} style={{ color: "var(--admin-text-dim)" }} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1102,6 +1166,66 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
           </>
         )}
       </AnimatePresence>
+
+      {/* Sub Category Manager Modal */}
+      {isManagingSubCategories && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h3 className="font-bold text-[14px] uppercase tracking-wider" style={{ color: "var(--admin-text)" }}>Manage Sub Categories</h3>
+              <button onClick={() => setIsManagingSubCategories(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-2 overflow-y-auto flex-1">
+              {Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).length === 0 ? (
+                <div className="p-6 text-center text-gray-400 text-[12px]">No sub-categories in use yet.</div>
+              ) : (
+                Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).sort().map(sc => (
+                  <div key={sc as string} className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors group">
+                    <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>{sc as string}</span>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          const newName = prompt(`Rename '${sc}' to:`, sc as string);
+                          if (newName && newName.trim() !== "" && newName !== sc) {
+                            setIsSaving(true);
+                            await manageSubCategory(sc as string, 'rename', newName.trim());
+                            const updated = await getAdminProducts();
+                            setProducts(updated);
+                            setIsSaving(false);
+                          }
+                        }} 
+                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
+                        title="Rename globally"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          if (window.confirm(`Are you sure you want to delete '${sc}'? This will remove it from all products currently using it.`)) {
+                            setIsSaving(true);
+                            await manageSubCategory(sc as string, 'delete');
+                            const updated = await getAdminProducts();
+                            setProducts(updated);
+                            setIsSaving(false);
+                          }
+                        }} 
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                        title="Delete globally"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

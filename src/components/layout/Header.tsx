@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, ShoppingBag, User, Menu, X, Shield } from "lucide-react";
+import { Search, ShoppingBag, User, Menu, X, Shield, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { NAV_LINKS } from "@/data/navigation";
 import { useCart } from "@/components/providers/CartProvider";
 import { checkIsAdmin } from "@/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 
 /* ── Simple underline link — pure CSS ────────────────── */
 function NavLink({ label, href }: { label: string; href: string }) {
@@ -69,8 +70,53 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [expandedNav, setExpandedNav] = useState<string | null>(null);
+  const [dynamicNavLinks, setDynamicNavLinks] = useState<any[]>([...NAV_LINKS]);
   const { cartCount, toggleCart } = useCart();
   const ticking = useRef(false);
+
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from('products').select('category, sub_category');
+      
+      if (data && data.length > 0) {
+        const dbMap: Record<string, Set<string>> = {};
+        (data as any[]).forEach(p => {
+           if (p.category && p.sub_category) {
+              const catKey = p.category.toLowerCase();
+              if (!dbMap[catKey]) dbMap[catKey] = new Set();
+              dbMap[catKey].add(p.sub_category);
+           }
+        });
+
+        const updatedLinks = NAV_LINKS.map(link => {
+           const linkCatKey = link.label.toLowerCase();
+           const dbSet = dbMap[linkCatKey];
+           
+           if ('subLinks' in link) {
+              const existingSubLinks = link.subLinks.map((s: any) => s.label.toLowerCase());
+              let newSubLinks: any[] = [...link.subLinks];
+              
+              if (dbSet) {
+                 dbSet.forEach(sc => {
+                    if (!existingSubLinks.includes(sc.toLowerCase())) {
+                       newSubLinks.push({
+                          label: sc,
+                          href: `${link.href}?type=${encodeURIComponent(sc.toLowerCase())}`
+                       });
+                    }
+                 });
+              }
+              return { ...link, subLinks: newSubLinks };
+           }
+           return link;
+        });
+        setDynamicNavLinks(updatedLinks);
+      }
+    };
+    fetchSubCategories();
+  }, []);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -204,7 +250,7 @@ export default function Header() {
         }}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-center gap-10 h-full">
-          {NAV_LINKS.filter(link => link.href !== "/").map((link) => (
+          {dynamicNavLinks.filter(link => link.href !== "/").map((link) => (
             <NavLink key={link.href} label={link.label} href={link.href} />
           ))}
         </div>
@@ -263,16 +309,56 @@ export default function Header() {
 
           {/* Nav Links */}
           <nav className="flex-1 px-8 pt-4 overflow-y-auto">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="block py-4 text-forest font-medium font-dm text-[15px] border-b border-gold/10"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {dynamicNavLinks.map((link) => {
+              if ('subLinks' in link) {
+                const isExpanded = expandedNav === link.label;
+                return (
+                  <div key={link.label} className="border-b border-gold/10">
+                    <button
+                      onClick={() => setExpandedNav(isExpanded ? null : link.label)}
+                      className="w-full flex items-center justify-between py-4 text-forest font-medium font-dm text-[15px]"
+                    >
+                      {link.label}
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {isExpanded && (
+                      <div className="flex flex-col pb-4 pl-4 space-y-4 animate-fade-in">
+                        <Link
+                          href={link.href}
+                          onClick={() => { setMenuOpen(false); setExpandedNav(null); }}
+                          className="text-forest/80 text-[14px] font-dm hover:text-forest transition-colors"
+                        >
+                          All {link.label}
+                        </Link>
+                        {link.subLinks.map((subLink: any) => (
+                          <Link
+                            key={subLink.label}
+                            href={subLink.href}
+                            onClick={() => { setMenuOpen(false); setExpandedNav(null); }}
+                            className="text-text-muted text-[14px] font-dm hover:text-forest transition-colors"
+                          >
+                            {subLink.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => { setMenuOpen(false); setExpandedNav(null); }}
+                  className="block py-4 text-forest font-medium font-dm text-[15px] border-b border-gold/10"
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <Link
               href="/profile"
               onClick={() => setMenuOpen(false)}
