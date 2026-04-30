@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,24 +10,69 @@ import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
 import type { Database } from "@/lib/supabase/types";
+import { PREFERRED_CATEGORY_ORDER } from "@/data/navigation";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
+
+import { createClient } from "@/lib/supabase/client";
 
 export default function CategoryGrid({
   products,
   categoryTitle,
+  initialCategories = ["All"],
 }: {
   products: Product[];
   categoryTitle: string;
+  initialCategories?: string[];
 }) {
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [search, setSearch] = useState(searchParams?.get("q") || "");
   const [sortBy, setSortBy] = useState("newest");
   const [materialFilter, setMaterialFilter] = useState("All");
   const [colorFilter, setColorFilter] = useState("All");
   const [sizeFilter, setSizeFilter] = useState("All");
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
+  
+  // Sort initial categories
+  const initialSorted = useMemo(() => {
+    const cats = initialCategories.filter(c => c !== "All");
+    const sorted = cats.sort((a, b) => {
+      const indexA = PREFERRED_CATEGORY_ORDER.indexOf(a);
+      const indexB = PREFERRED_CATEGORY_ORDER.indexOf(b);
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+    return ["All", ...sorted];
+  }, [initialCategories]);
+
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>(initialSorted);
   const { addToCart } = useCart();
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from('products').select('category');
+      if (data) {
+        const cats = Array.from(new Set((data as any[]).map(p => p.category).filter(Boolean)));
+        const sortedCats = cats.sort((a, b) => {
+            const indexA = PREFERRED_CATEGORY_ORDER.indexOf(a);
+            const indexB = PREFERRED_CATEGORY_ORDER.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+        setDynamicCategories(["All", ...sortedCats]);
+      }
+    };
+    if (initialCategories.length <= 1) {
+      fetchCats();
+    }
+  }, [initialCategories]);
 
   const handleAddToCart = (product: Product) => {
     if (product.inventory_count === 0) return;
@@ -36,6 +82,33 @@ export default function CategoryGrid({
       addToCart(product, product.sizes?.[0]);
     }
   };
+
+  const handleSearchChange = useCallback((val: string) => {
+    setSearch(val);
+    if (!searchParams) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (val) {
+      params.set("q", val);
+    } else {
+      params.delete("q");
+    }
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q !== null) setSearch(q);
+      else setSearch("");
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    handleUrlChange();
+    
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
 
   const filtered = useMemo(() => {
     let result = [...products];
@@ -93,11 +166,17 @@ export default function CategoryGrid({
       {/* Utility Bar (no category pills since we're already in a category) */}
       <ShopUtilityBar
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         sortBy={sortBy}
         onSortChange={setSortBy}
         resultCount={filtered.length}
         resultLabel={` in ${categoryTitle}`}
+        categories={undefined}
+        activeCategory={categoryTitle}
+        onCategoryChange={(cat) => {
+          if (cat === "All") router.push("/collections");
+          else router.push(`/collections/${cat.toLowerCase().replace(/\s+/g, '-')}`);
+        }}
         materialFilter={materialFilter}
         onMaterialChange={setMaterialFilter}
         colorFilter={colorFilter}

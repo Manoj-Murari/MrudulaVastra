@@ -32,7 +32,14 @@ const CATEGORY_MAP: Record<string, { dbName: string; title: string; subtitle: st
     seoDescription:
       "Explore designer dress materials at Mrudula Vastra. Premium unstitched fabrics and suit materials curated from India's finest weavers. Free shipping from Machilipatnam across India.",
   },
-  kids: {
+  "kids-wear": {
+    dbName: "Kids Wear",
+    title: "Kids Wear",
+    subtitle: "Adorable ethnic wear crafted for little royals",
+    seoDescription:
+      "Buy adorable kids ethnic wear online at Mrudula Vastra. Traditional Indian outfits for children — festive lehengas, kurtas & more from Machilipatnam. Premium quality guaranteed.",
+  },
+  "kids": {
     dbName: "Kids Wear",
     title: "Kids Wear",
     subtitle: "Adorable ethnic wear crafted for little royals",
@@ -47,10 +54,11 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const normalizedCategory = category.toLowerCase();
+  const decodedCategory = decodeURIComponent(category);
+  const normalizedCategory = decodedCategory.toLowerCase().replace(/\s+/g, '-');
   const cat = CATEGORY_MAP[normalizedCategory] || {
-    title: category.charAt(0).toUpperCase() + category.slice(1).replace("-", " "),
-    seoDescription: `Explore our elegant collection of ${category.replace("-", " ")} at Mrudula Vastra.`,
+    title: decodedCategory.split(/[- ]/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+    seoDescription: `Explore our elegant collection of ${decodedCategory.replace(/[-]/g, " ")} at Mrudula Vastra.`,
   };
 
   return {
@@ -74,16 +82,35 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  const normalizedCategory = category.toLowerCase();
+  const decodedCategory = decodeURIComponent(category);
+  const normalizedCategory = decodedCategory.toLowerCase().replace(/\s+/g, '-');
   
   // Fallback for dynamically added categories
   const cat = CATEGORY_MAP[normalizedCategory] || {
-    dbName: category.charAt(0).toUpperCase() + category.slice(1).replace("-", " "),
-    title: category.charAt(0).toUpperCase() + category.slice(1).replace("-", " "),
-    subtitle: `Explore our elegant collection of ${category.replace("-", " ")}.`,
+    dbName: decodedCategory.split(/[- ]/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+    title: decodedCategory.split(/[- ]/).map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+    subtitle: `Explore our elegant collection of ${decodedCategory.replace(/[-]/g, " ")}.`,
   };
 
   const supabase = await createClient();
+
+  // Fetch all unique categories for the filter bar
+  const { data: allProducts } = await (supabase as any)
+    .from("products")
+    .select("category");
+  
+  const uniqueCategories = Array.from(new Set((allProducts as any[] || []).map(p => p.category).filter(Boolean)));
+
+  // Sort categories according to preferred order
+  const PREFERRED_ORDER = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear", "Dresses"];
+  const sortedCategories = uniqueCategories.sort((a, b) => {
+    const indexA = PREFERRED_ORDER.indexOf(a);
+    const indexB = PREFERRED_ORDER.indexOf(b);
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    return a.localeCompare(b);
+  });
 
   const { data: products } = await (supabase as any)
     .from("products")
@@ -115,7 +142,11 @@ export default async function CategoryPage({
 
       {/* Grid with Search & Sort */}
       <Suspense fallback={<div className="flex items-center justify-center py-20"><div className="w-8 h-8 rounded-full border-2 border-forest border-t-transparent animate-spin" /></div>}>
-        <CategoryGrid products={products || []} categoryTitle={cat.title} />
+        <CategoryGrid 
+          products={products || []} 
+          categoryTitle={cat.title} 
+          initialCategories={sortedCategories}
+        />
       </Suspense>
     </main>
     <Footer />

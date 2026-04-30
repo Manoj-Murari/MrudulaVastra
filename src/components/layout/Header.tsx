@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { Search, ShoppingBag, User, Menu, X, Shield, ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { NAV_LINKS } from "@/data/navigation";
+import { NAV_LINKS, PREFERRED_CATEGORY_ORDER } from "@/data/navigation";
 import { useCart } from "@/components/providers/CartProvider";
 import { checkIsAdmin } from "@/actions/auth";
 import { createClient } from "@/lib/supabase/client";
 
-/* ── Simple underline link — pure CSS ────────────────── */
 function NavLink({ label, href }: { label: string; href: string }) {
   return (
     <Link
@@ -40,11 +39,11 @@ function NavDropdown({ label, href, subLinks }: { label: string; href: string, s
         </span>
         <span className="absolute left-0 right-0 -bottom-1 h-[1px] bg-gold/60 origin-right scale-x-0 group-hover:scale-x-100 group-hover:origin-left transition-transform duration-500 ease-out" />
       </Link>
-      
+
       {subLinks && subLinks.length > 0 && (
         <>
           <ChevronDown size={12} className="text-text-nav group-hover:text-forest transition-transform group-hover:-rotate-180" />
-          
+
           <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-300 z-50">
             <div className="bg-white border border-gold/10 shadow-xl rounded-lg py-2 min-w-[200px] flex flex-col">
               <Link
@@ -74,28 +73,71 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const q = searchParams?.get("q");
+    if (q) setInputValue(q);
+    else if (q === null) setInputValue("");
+  }, [searchParams]);
+
+  // Real-time search update as user types (debounced)
+  useEffect(() => {
+    const isCollectionsPage = window.location.pathname === "/collections" || window.location.pathname.startsWith("/collections/");
+    if (!isCollectionsPage) return;
+
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (inputValue.trim()) {
+        params.set("q", inputValue.trim());
+      } else {
+        params.delete("q");
+      }
+      const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+      
+      // Update URL without triggering a full page refresh or server-side re-render
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+      
+      // Dispatch popstate event so useSearchParams() hook in ShopGrid catches the change
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [inputValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      router.push(`/collections?q=${encodeURIComponent(inputValue.trim())}`);
-      setInputValue("");
+      const isCollectionsPage = window.location.pathname === "/collections" || window.location.pathname.startsWith("/collections/");
+      if (!isCollectionsPage) {
+        router.push(`/collections?q=${encodeURIComponent(inputValue.trim())}`);
+      }
       onSubmitCallback?.();
     }
   };
 
+  const handleClear = () => {
+    setInputValue("");
+    const params = new URLSearchParams(window.location.search);
+    params.delete("q");
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className={`relative group flex items-center transition-all duration-500 ease-in-out ${
-        isFocused ? "w-full max-w-[380px]" : "w-full max-w-[280px]"
-      }`}
+    <form
+      onSubmit={handleSubmit}
+      className={`relative group flex items-center transition-all duration-500 ease-in-out ${isFocused ? "w-full max-w-[380px]" : "w-full max-w-[280px]"
+        }`}
     >
-      <div className={`absolute left-4 transition-colors duration-300 pointer-events-none ${
-        isFocused ? "text-gold" : "text-forest/30"
-      }`}>
+      <button
+        type="submit"
+        className={`absolute left-4 transition-colors duration-300 z-10 ${isFocused ? "text-gold" : "text-forest/30"
+          }`}
+      >
         <Search size={15} strokeWidth={1.5} />
-      </div>
+      </button>
       <input
         type="text"
         value={inputValue}
@@ -103,8 +145,17 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
         onBlur={() => setIsFocused(false)}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder="Search our collections..."
-        className="w-full py-2.5 pl-11 pr-5 bg-white/40 border border-gold/10 rounded-full font-dm text-[12px] tracking-wide text-forest placeholder:text-text-muted/40 focus:outline-none focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)] transition-all duration-500"
+        className="w-full py-2.5 pl-11 pr-10 bg-white/40 border border-gold/10 rounded-full font-dm text-[12px] tracking-wide text-forest placeholder:text-text-muted/40 focus:outline-none focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)] transition-all duration-500"
       />
+      {inputValue && (
+        <button
+          type="button"
+          onClick={handleClear}
+          className="absolute right-4 text-text-muted/40 hover:text-forest transition-colors p-1"
+        >
+          <X size={14} />
+        </button>
+      )}
     </form>
   );
 }
@@ -123,39 +174,50 @@ export default function Header() {
     const fetchSubCategories = async () => {
       const supabase = createClient();
       const { data } = await supabase.from('products').select('category, sub_category');
-      
+
       if (data && data.length > 0) {
         const dbMap: Record<string, Set<string>> = {};
         (data as any[]).forEach(p => {
-           if (p.category && p.sub_category) {
-              const catKey = p.category.toLowerCase();
-              if (!dbMap[catKey]) dbMap[catKey] = new Set();
+          if (p.category) {
+            const catKey = p.category;
+            if (!dbMap[catKey]) dbMap[catKey] = new Set();
+            if (p.sub_category) {
               dbMap[catKey].add(p.sub_category);
-           }
+            }
+          }
         });
 
-        const updatedLinks = NAV_LINKS.map(link => {
-           const linkCatKey = link.label.toLowerCase();
-           const dbSet = dbMap[linkCatKey];
-           
-           if ('subLinks' in link) {
-              const existingSubLinks = link.subLinks.map((s: any) => s.label.toLowerCase());
-              let newSubLinks: any[] = [...link.subLinks];
-              
-              if (dbSet) {
-                 dbSet.forEach(sc => {
-                    if (!existingSubLinks.includes(sc.toLowerCase())) {
-                       newSubLinks.push({
-                          label: sc,
-                          href: `${link.href}?type=${encodeURIComponent(sc.toLowerCase())}`
-                       });
-                    }
-                 });
-              }
-              return { ...link, subLinks: newSubLinks };
-           }
-           return link;
+        // We want: Home, Collections, [DYNAMIC CATEGORIES], About, Contact
+        const dynamicCategories = Object.keys(dbMap).sort((a, b) => {
+          const indexA = PREFERRED_CATEGORY_ORDER.indexOf(a);
+          const indexB = PREFERRED_CATEGORY_ORDER.indexOf(b);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return a.localeCompare(b);
+        }).map(cat => {
+          const dbSet = dbMap[cat];
+          const slug = cat.toLowerCase().replace(/\s+/g, '-');
+          const subLinks = Array.from(dbSet).sort().map(sc => ({
+            label: sc,
+            href: `/collections/${slug}?type=${encodeURIComponent(sc.toLowerCase())}`
+          }));
+          return {
+            label: cat,
+            href: `/collections/${slug}`,
+            subLinks
+          };
         });
+
+        // NAV_LINKS has 4 items now: [Home, Collections, About, Contact]
+        const updatedLinks = [
+          NAV_LINKS[0], // Home
+          NAV_LINKS[1], // Collections
+          ...dynamicCategories,
+          NAV_LINKS[2], // About
+          NAV_LINKS[3]  // Contact
+        ];
+
         setDynamicNavLinks(updatedLinks);
       }
     };
@@ -211,37 +273,39 @@ export default function Header() {
               </button>
 
               <div className="hidden lg:block w-full">
-                <SearchBar />
+                <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
+                  <SearchBar />
+                </Suspense>
               </div>
             </div>
 
-          {/* Center: Brand Logo */}
-          <Link href="/" prefetch={true} className="text-center flex-shrink-0 px-2 sm:px-4">
-            <p
-              className="font-playfair text-forest font-bold transition-all duration-300 whitespace-nowrap"
-              style={{
-                fontSize: scrolled ? "clamp(16px, 2.5vw, 24px)" : "clamp(18px, 3vw, 30px)",
-                letterSpacing: "0.08em",
-                lineHeight: 1.1,
-              }}
-            >
-              MRUDULA VASTRA
-            </p>
-            <p
-              className="uppercase text-gold font-dm font-medium overflow-hidden transition-all duration-300"
-              style={{
-                fontSize: "10px",
-                letterSpacing: "0.25em",
-                height: scrolled ? 0 : "auto",
-                opacity: scrolled ? 0 : 1,
-                marginTop: scrolled ? 0 : 4,
-              }}
-            >
-              Elegance Woven in Every Thread
-            </p>
-          </Link>
+            {/* Center: Brand Logo */}
+            <Link href="/" prefetch={true} className="text-center flex-shrink-0 px-2 sm:px-4">
+              <p
+                className="font-playfair text-forest font-bold transition-all duration-300 whitespace-nowrap"
+                style={{
+                  fontSize: scrolled ? "clamp(16px, 2.5vw, 24px)" : "clamp(18px, 3vw, 30px)",
+                  letterSpacing: "0.08em",
+                  lineHeight: 1.1,
+                }}
+              >
+                MRUDULA VASTRA
+              </p>
+              <p
+                className="uppercase text-gold font-dm font-medium overflow-hidden transition-all duration-300"
+                style={{
+                  fontSize: "10px",
+                  letterSpacing: "0.25em",
+                  height: scrolled ? 0 : "auto",
+                  opacity: scrolled ? 0 : 1,
+                  marginTop: scrolled ? 0 : 4,
+                }}
+              >
+                Elegance Woven in Every Thread
+              </p>
+            </Link>
 
-          {/* Right: User + Cart Icons */}
+            {/* Right: User + Cart Icons */}
             <div className="flex items-center gap-3 lg:gap-5 flex-1 justify-end">
               {isAdmin && (
                 <Link
@@ -260,27 +324,29 @@ export default function Header() {
               >
                 <User size={19} strokeWidth={1.3} />
               </Link>
-            <button
-              onClick={() => toggleCart()}
-              className="text-text-nav hover:text-forest transition-colors p-1 relative"
-              aria-label="Shopping bag"
-            >
-              <ShoppingBag size={19} strokeWidth={1.3} />
-              {cartCount > 0 && (
-                <span
-                  className="absolute -top-1.5 -right-1.5 bg-forest text-white rounded-full flex items-center justify-center font-bold font-dm"
-                  style={{ width: "17px", height: "17px", fontSize: "9px" }}
-                >
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
+              <button
+                onClick={() => toggleCart()}
+                className="text-text-nav hover:text-forest transition-colors p-1 relative"
+                aria-label="Shopping bag"
+              >
+                <ShoppingBag size={19} strokeWidth={1.3} />
+                {cartCount > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 bg-forest text-white rounded-full flex items-center justify-center font-bold font-dm"
+                    style={{ width: "17px", height: "17px", fontSize: "9px" }}
+                  >
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Mobile Search Bar */}
           <div className="block md:hidden w-full mt-1">
-            <SearchBar />
+            <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
+              <SearchBar />
+            </Suspense>
           </div>
         </div>
       </div>
@@ -352,13 +418,17 @@ export default function Header() {
 
           {/* Search */}
           <div className="px-6 py-3">
-            <SearchBar onSubmitCallback={() => setMenuOpen(false)} />
+            <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
+              <SearchBar onSubmitCallback={() => setMenuOpen(false)} />
+            </Suspense>
           </div>
 
           {/* Nav Links */}
           <nav className="flex-1 px-8 pt-4 overflow-y-auto">
             {dynamicNavLinks.map((link) => {
-              if ('subLinks' in link) {
+              const hasSubLinks = 'subLinks' in link && link.subLinks && link.subLinks.length > 0;
+              
+              if (hasSubLinks) {
                 const isExpanded = expandedNav === link.label;
                 return (
                   <div key={link.label} className="border-b border-gold/10">

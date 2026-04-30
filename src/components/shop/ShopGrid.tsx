@@ -11,15 +11,14 @@ import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 import type { Database } from "@/lib/supabase/types";
+import { PREFERRED_CATEGORY_ORDER } from "@/data/navigation";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
-
-const CATEGORIES = ["All", "Sarees", "Kurtas", "Dress Materials", "Kids Wear"];
 
 export default function ShopGrid({ products }: { products: Product[] }) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams?.get("q") || "");
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState(searchParams?.get("category") || "All");
   const [sortBy, setSortBy] = useState("newest");
   const [materialFilter, setMaterialFilter] = useState("All");
   const [colorFilter, setColorFilter] = useState("All");
@@ -27,6 +26,19 @@ export default function ShopGrid({ products }: { products: Product[] }) {
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
   const { addToCart } = useCart();
+
+  const dynamicCategories = useMemo(() => {
+    const cats = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+    const sortedCats = cats.sort((a, b) => {
+        const indexA = PREFERRED_CATEGORY_ORDER.indexOf(a);
+        const indexB = PREFERRED_CATEGORY_ORDER.indexOf(b);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.localeCompare(b);
+    });
+    return ["All", ...sortedCats];
+  }, [products]);
 
   const handleAddToCart = (product: Product) => {
     if (product.inventory_count === 0) return;
@@ -37,14 +49,60 @@ export default function ShopGrid({ products }: { products: Product[] }) {
     }
   };
 
+  const handleSearchChange = useCallback((val: string) => {
+    setSearch(val);
+    if (!searchParams) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (val) {
+      params.set("q", val);
+    } else {
+      params.delete("q");
+    }
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
+  }, [searchParams]);
+
+  const handleCategoryChange = useCallback((cat: string) => {
+    setActiveCategory(cat);
+    if (!searchParams) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat && cat !== "All") {
+      params.set("category", cat);
+    } else {
+      params.delete("category");
+    }
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const cat = searchParams?.get("category");
+    if (cat) {
+      const matched = dynamicCategories.find(c => c.toLowerCase() === cat.toLowerCase());
+      if (matched) setActiveCategory(matched);
+    } else {
+      setActiveCategory("All");
+    }
+  }, [searchParams, dynamicCategories]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
-    const q = searchParams?.get("q");
-    if (q !== null && q !== undefined) setSearch(q);
-  }, [searchParams]);
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q !== null) setSearch(q);
+      else setSearch("");
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    // Also handle the initial state
+    handleUrlChange();
+    
+    return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
 
   const filtered = useMemo(() => {
     let result = [...products];
@@ -124,14 +182,14 @@ export default function ShopGrid({ products }: { products: Product[] }) {
       {/* Utility Bar */}
       <ShopUtilityBar
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         sortBy={sortBy}
         onSortChange={setSortBy}
         resultCount={filtered.length}
         resultLabel={activeCategory !== "All" ? ` in ${activeCategory}` : ""}
-        categories={CATEGORIES}
+        categories={dynamicCategories} 
         activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
+        onCategoryChange={handleCategoryChange}
         materialFilter={materialFilter}
         onMaterialChange={setMaterialFilter}
         colorFilter={colorFilter}

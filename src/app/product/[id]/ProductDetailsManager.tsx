@@ -15,7 +15,13 @@ interface ProductVariant {
   inventory_count: number;
 }
 
-export default function ProductDetailsManager({ product }: { product: Product }) {
+export default function ProductDetailsManager({ 
+  product, 
+  colorVariants = [] 
+}: { 
+  product: Product;
+  colorVariants?: { id: number; color: string | null; image: string; inventory_count: number }[];
+}) {
   const variants = (product.variants as unknown as ProductVariant[]) || [];
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
@@ -83,48 +89,89 @@ export default function ProductDetailsManager({ product }: { product: Product })
           </div>
         )}
 
-        {/* Color Variants Selector */}
-        {(variants.length > 0 || product.color) && (
+        {/* Color Variants Selector (Linked Products & Internal Variants) */}
+        {(variants.length > 0 || product.color || colorVariants.length > 0) && (
           <div className="mb-10">
-            <h3 className="text-[11px] uppercase tracking-widest font-bold text-forest mb-4 font-dm">
-              Select Color: <span className="text-text-muted ml-1 font-normal">{displayColor}</span>
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[11px] uppercase tracking-widest font-bold text-forest font-dm">
+                Select Color: <span className="text-text-muted ml-1 font-normal">{displayColor}</span>
+              </h3>
+              {displayStock === 0 && colorVariants.some(cv => cv.inventory_count > 0) && (
+                <span className="text-[10px] text-gold font-bold uppercase tracking-wider animate-pulse">
+                  Other colors available in stock
+                </span>
+              )}
+            </div>
+            
             <div className="flex flex-wrap gap-4">
               {/* Main Product Color */}
               {product.color && (
                 <button
                   onClick={() => setSelectedVariant(null)}
-                  className={`group relative w-10 h-10 rounded-full border-2 transition-all p-0.5 ${
-                    selectedVariant === null ? "border-forest scale-110" : "border-transparent"
-                  }`}
-                  title={product.color}
+                  className={`group relative w-12 h-12 rounded-full border-2 transition-all p-0.5 ${
+                    selectedVariant === null ? "border-forest scale-110 shadow-md" : "border-transparent"
+                  } ${product.inventory_count === 0 ? "opacity-60" : ""}`}
+                  title={`${product.color} ${product.inventory_count === 0 ? "(Sold Out)" : ""}`}
                 >
                   <div 
                     className="w-full h-full rounded-full border border-black/5"
                     style={{ background: COLOR_MAP[product.color] || "#ddd" }}
                   />
-                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    {product.color}
+                  {product.inventory_count === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-[1px] bg-forest/40 rotate-45" />
+                    </div>
+                  )}
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-white px-2 py-1 shadow-sm rounded border border-gold/10">
+                    {product.color} {product.inventory_count === 0 ? "(Sold Out)" : ""}
                   </div>
                 </button>
               )}
               
-              {/* Variants */}
+              {/* Linked Product Variants (Separate IDs) */}
+              {colorVariants.map((cv) => (
+                <Link
+                  key={cv.id}
+                  href={`/product/${cv.id}`}
+                  className={`group relative w-12 h-12 rounded-full border-2 transition-all p-0.5 border-transparent hover:border-gold/30 ${cv.inventory_count === 0 ? "opacity-60" : ""}`}
+                  title={`${cv.color} ${cv.inventory_count === 0 ? "(Sold Out)" : ""}`}
+                >
+                  <div 
+                    className="w-full h-full rounded-full border border-black/5"
+                    style={{ background: cv.color ? (COLOR_MAP[cv.color] || "#ddd") : "#ddd" }}
+                  />
+                  {cv.inventory_count === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-[1px] bg-forest/40 rotate-45" />
+                    </div>
+                  )}
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-white px-2 py-1 shadow-sm rounded border border-gold/10">
+                    {cv.color} {cv.inventory_count === 0 ? "(Sold Out)" : ""}
+                  </div>
+                </Link>
+              ))}
+
+              {/* Internal JSON Variants (If any) */}
               {Array.isArray(variants) && variants.map((v, i) => (
                 <button
-                  key={i}
+                  key={`v-${i}`}
                   onClick={() => setSelectedVariant(v)}
-                  className={`group relative w-10 h-10 rounded-full border-2 transition-all p-0.5 ${
-                    selectedVariant?.color === v.color ? "border-forest scale-110" : "border-transparent"
-                  }`}
-                  title={v.color}
+                  className={`group relative w-12 h-12 rounded-full border-2 transition-all p-0.5 ${
+                    selectedVariant?.color === v.color ? "border-forest scale-110 shadow-md" : "border-transparent"
+                  } ${v.inventory_count === 0 ? "opacity-60" : ""}`}
+                  title={`${v.color} ${v.inventory_count === 0 ? "(Sold Out)" : ""}`}
                 >
                   <div 
                     className="w-full h-full rounded-full border border-black/5"
                     style={{ background: COLOR_MAP[v.color] || "#ddd" }}
                   />
-                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    {v.color}
+                  {v.inventory_count === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-full h-[1px] bg-forest/40 rotate-45" />
+                    </div>
+                  )}
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-white px-2 py-1 shadow-sm rounded border border-gold/10">
+                    {v.color} {v.inventory_count === 0 ? "(Sold Out)" : ""}
                   </div>
                 </button>
               ))}

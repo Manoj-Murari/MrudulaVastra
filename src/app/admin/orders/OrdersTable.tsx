@@ -37,6 +37,7 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
     customerName: "",
     phone: "",
     productId: "",
+    size: "",
     quantity: 1,
     paymentMode: "Cash"
   });
@@ -452,6 +453,7 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                       customerName: offlineForm.customerName,
                       phone: offlineForm.phone,
                       productId: Number(offlineForm.productId),
+                      size: offlineForm.size || undefined,
                       quantity: Number(offlineForm.quantity),
                       paymentMode: offlineForm.paymentMode
                     });
@@ -474,18 +476,53 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                   </div>
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product</label>
-                    <select required value={offlineForm.productId} onChange={e => setOfflineForm({...offlineForm, productId: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
+                    <select required value={offlineForm.productId} onChange={e => setOfflineForm({...offlineForm, productId: e.target.value, size: ""})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
                       <option value="" disabled style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select a product...</option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id} disabled={p.inventory_count < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
-                          {p.name} (Stock: {p.inventory_count})
-                        </option>
-                      ))}
+                      {products.map(p => {
+                        const sizeInvVariant = (p.variants || []).find((v: any) => v.type === "size_inventory");
+                        const hasSizes = sizeInvVariant && Object.keys(sizeInvVariant.data).length > 0;
+                        const totalStock = p.inventory_count;
+                        return (
+                          <option key={p.id} value={p.id} disabled={totalStock < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                            {p.name} {hasSizes ? `(Sizes Available)` : `(Stock: ${totalStock})`}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
+                  {offlineForm.productId && (() => {
+                    const selectedProduct = products.find(p => p.id === Number(offlineForm.productId));
+                    const sizeInvVariant = (selectedProduct?.variants || []).find((v: any) => v.type === "size_inventory");
+                    if (sizeInvVariant && Object.keys(sizeInvVariant.data).length > 0) {
+                      return (
+                        <div>
+                          <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Size</label>
+                          <select required value={offlineForm.size} onChange={e => setOfflineForm({...offlineForm, size: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
+                            <option value="" disabled style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select a size...</option>
+                            {Object.entries(sizeInvVariant.data).map(([size, count]) => (
+                              <option key={size} value={size} disabled={(count as number) < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                                {size} (Stock: {count as number})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Quantity</label>
-                    <input required type="number" min="1" value={offlineForm.quantity} onChange={e => setOfflineForm({...offlineForm, quantity: parseInt(e.target.value) || 1})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                    <input required type="number" min="1" max={
+                      (() => {
+                        const p = products.find(p => p.id === Number(offlineForm.productId));
+                        if (!p) return 1;
+                        if (offlineForm.size) {
+                          const sizeInv = (p.variants || []).find((v: any) => v.type === "size_inventory")?.data;
+                          return sizeInv ? sizeInv[offlineForm.size] || 1 : 1;
+                        }
+                        return p.inventory_count;
+                      })()
+                    } value={offlineForm.quantity} onChange={e => setOfflineForm({...offlineForm, quantity: parseInt(e.target.value) || 1})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
                   </div>
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Payment Mode</label>

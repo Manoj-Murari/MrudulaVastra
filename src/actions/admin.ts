@@ -135,6 +135,7 @@ export async function createOfflineOrder(data: {
   customerName: string;
   phone: string;
   productId: number;
+  size?: string;
   quantity: number;
   paymentMode: string;
 }) {
@@ -142,12 +143,37 @@ export async function createOfflineOrder(data: {
   
   const { data: product } = await (supabase as any)
     .from('products')
-    .select('price, inventory_count')
+    .select('price, inventory_count, variants')
     .eq('id', data.productId)
     .single();
 
   if (!product) return { error: "Product not found" };
-  if (product.inventory_count < data.quantity) return { error: "Insufficient stock" };
+
+  let currentStock = product.inventory_count;
+  let newVariants = product.variants;
+
+  if (data.size) {
+    const sizeName = data.size; // Fix TS type inference
+    const sizeInvVariant = (product.variants || []).find((v: any) => v.type === 'size_inventory');
+    if (sizeInvVariant && sizeInvVariant.data[sizeName] !== undefined) {
+      currentStock = sizeInvVariant.data[sizeName];
+      if (currentStock < data.quantity) return { error: `Insufficient stock for size ${sizeName}` };
+      
+      newVariants = product.variants.map((v: any) => {
+         if (v.type === 'size_inventory') {
+             return {
+                 ...v,
+                 data: { ...v.data, [sizeName]: v.data[sizeName] - data.quantity }
+             };
+         }
+         return v;
+      });
+    } else {
+      return { error: `Size ${sizeName} is not available` };
+    }
+  } else {
+    if (product.inventory_count < data.quantity) return { error: "Insufficient stock" };
+  }
 
   const totalAmount = product.price * data.quantity;
   const { data: order, error: orderError } = await (supabase as any).from('orders').insert({
@@ -171,7 +197,11 @@ export async function createOfflineOrder(data: {
   if (itemError) return { error: itemError.message };
 
   const newInventoryCount = product.inventory_count - data.quantity;
-  await updateProductField(data.productId, "inventory_count", newInventoryCount);
+  
+  await (supabase as any).from('products').update({
+     inventory_count: newInventoryCount,
+     variants: newVariants
+  }).eq('id', data.productId);
 
   revalidatePath("/admin/orders");
   revalidatePath("/admin/inventory");

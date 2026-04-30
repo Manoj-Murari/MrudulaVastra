@@ -101,6 +101,13 @@ export default async function ProductPage({
     .neq("id", id)
     .limit(4);
 
+  // Fetch color variants (linked products with same name)
+  const { data: colorVariants } = await (supabase as any)
+    .from("products")
+    .select("id, color, image, inventory_count")
+    .eq("name", product.name)
+    .neq("id", id);
+
   return (
     <>
       <ProductJsonLd
@@ -128,7 +135,7 @@ export default async function ProductPage({
         ]}
       />
 
-      <ProductDetailsManager product={product} />
+      <ProductDetailsManager product={product} colorVariants={colorVariants || []} />
 
       {/* Customer Reviews Section */}
       <ReviewSection 

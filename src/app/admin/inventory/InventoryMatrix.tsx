@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
@@ -17,6 +17,7 @@ import {
   ArrowRight,
   UploadCloud,
   Edit2,
+  Copy,
 } from "lucide-react";
 import { getAdminProducts, updateProductField, deleteProduct, upsertProduct, manageSubCategory, manageCategory } from "@/actions/admin";
 import { createClient } from "@/lib/supabase/client";
@@ -41,6 +42,15 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const [isManagingSubCategories, setIsManagingSubCategories] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isManagingCategories, setIsManagingCategories] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [actionModal, setActionModal] = useState<{
+    action: 'rename' | 'delete';
+    type: 'category' | 'sub_category';
+    targetName: string;
+    newName?: string;
+  } | null>(null);
+  const [visibleCount, setVisibleCount] = useState(20);
+
 
   const COLORS = [
     "Red", "Blue", "Green", "Yellow", "Pink", "Gold", "Black", "White", "Navy", "Maroon", 
@@ -74,11 +84,33 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     description: "",
   });
 
-  const filtered = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const categories = useMemo(() => {
+    return Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort();
+  }, [products]);
+
+  const subCategories = useMemo(() => {
+    return Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).sort();
+  }, [products]);
+
+  const filtered = useMemo(() => {
+    const searchLower = search.toLowerCase();
+    return products.filter(
+      (p) =>
+        (categoryFilter === "All" || p.category === categoryFilter) &&
+        (p.name.toLowerCase().includes(searchLower) ||
+         p.category.toLowerCase().includes(searchLower) ||
+         (p.sub_category || "").toLowerCase().includes(searchLower))
+    );
+  }, [products, categoryFilter, search]);
+
+  const visibleProducts = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = visibleCount < filtered.length;
+
+  // Reset visible count when filter/search changes
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [categoryFilter, search]);
+
 
   /* ── Optimistic Inline Toggles ── */
   const handleToggleTrending = async (id: number, current: boolean) => {
@@ -306,9 +338,12 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     }));
   };
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateProduct = async (e?: React.FormEvent, isDuplicate = false) => {
+    if (e) e.preventDefault();
     setIsSaving(true);
+    
+    // Determine the ID to use. If duplicating, we pass null to create a new entry.
+    const targetId = isDuplicate ? null : editId;
     
     let totalStock = Number(formData.inventory_count) || 0;
     const activeSizeInv = Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)));
@@ -316,8 +351,15 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       totalStock = Object.values(activeSizeInv).reduce((sum, val) => sum + (Number(val) || 0), 0);
     }
     
+    let finalName = formData.name;
+    if (isDuplicate && formData.color) {
+      // Remove any existing trailing parentheses (e.g. "Product (Red)" -> "Product")
+      const baseName = finalName.replace(/\s*\([^)]+\)$/, "").trim();
+      finalName = `${baseName} (${formData.color})`;
+    }
+
     const newProduct = {
-      name: formData.name,
+      name: finalName,
       description: formData.description,
       category: formData.category,
       sub_category: formData.sub_category || null,
@@ -334,13 +376,13 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
         ...(formData.variants.length > 0 ? formData.variants : []),
         ...(Object.keys(activeSizeInv).length > 0 ? [{ type: "size_inventory", data: activeSizeInv }] : [])
       ] as any[],
-      ...(editId ? { id: editId } : { is_trending: false, rating: 0, reviews: 0, badge: "New" })
+      ...(targetId ? { id: targetId } : { is_trending: false, rating: 0, reviews: 0, badge: "New" })
     };
 
     const res = await upsertProduct(newProduct);
     if (!res.error && res.data) {
-       setProducts(prev => editId 
-         ? prev.map(p => p.id === editId ? res.data : p) 
+       setProducts(prev => targetId 
+         ? prev.map(p => p.id === targetId ? res.data : p) 
          : [res.data, ...prev]
        );
        setIsAdding(false);
@@ -380,19 +422,37 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
         </button>
       </div>
 
-      {/* Search */}
-      <div
-        className="flex items-center gap-2 px-3 py-2.5 rounded-lg border"
-        style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
-      >
-        <Search size={14} style={{ color: "var(--admin-text-dim)" }} />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search products…"
-          className="flex-1 bg-transparent outline-none text-[13px]"
-          style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div
+          className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border"
+          style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
+        >
+          <Search size={14} style={{ color: "var(--admin-text-dim)" }} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products…"
+            className="flex-1 bg-transparent outline-none text-[13px]"
+            style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}
+          />
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="px-3 py-2.5 rounded-lg border outline-none text-[13px] appearance-none cursor-pointer sm:w-[180px]"
+          style={{ 
+            borderColor: "var(--admin-border)", 
+            background: "var(--admin-surface)",
+            color: "var(--admin-text)",
+            fontFamily: "'DM Sans', sans-serif"
+          }}
+        >
+          <option value="All">All Categories</option>
+          {categories.map(c => (
+            <option key={c as string} value={c as string}>{c as string}</option>
+          ))}
+        </select>
       </div>
 
       {/* Mobile Card Layout */}
@@ -402,7 +462,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
             No products found
           </div>
         ) : (
-          filtered.map((product) => (
+          visibleProducts.map((product) => (
             <div
               key={product.id}
               className="rounded-xl border p-4"
@@ -466,6 +526,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   />
                 </button>
                 <div className="flex items-center gap-1">
+
                   <button
                     onClick={() => {
                       setEditId(product.id);
@@ -520,7 +581,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
             No products found
           </div>
         ) : (
-          filtered.map((product) => (
+          visibleProducts.map((product) => (
             <div
               key={product.id}
               className="grid grid-cols-[48px_1fr_100px_100px_80px_80px_100px] gap-3 px-5 py-3 border-b items-center transition-colors duration-150"
@@ -608,6 +669,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
 
               {/* Actions */}
               <div className="flex items-center justify-end gap-1">
+
                 <button
                   onClick={() => {
                     setEditId(product.id);
@@ -652,6 +714,19 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
           ))
         )}
         </div>
+
+        {/* View More Button */}
+        {hasMore && (
+          <div className="flex justify-center py-8">
+            <button
+              onClick={() => setVisibleCount(prev => prev + 20)}
+              className="px-6 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold border transition-all hover:bg-[var(--admin-surface-elevated)]"
+              style={{ borderColor: "var(--admin-border)", color: "var(--admin-text-dim)" }}
+            >
+              View More ({filtered.length - visibleCount} remaining)
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Delete Confirmation Modal ── */}
@@ -789,7 +864,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                           style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
                         >
                           <option value="" disabled>Select Category</option>
-                          {Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort().map(c => (
+                          {categories.map(c => (
                             <option key={c as string} value={c as string}>{c as string}</option>
                           ))}
                           <option value="ADD_NEW" style={{ fontWeight: 'bold', color: 'var(--admin-accent)' }}>+ Add New Category</option>
@@ -846,7 +921,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                           style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
                         >
                           <option value="">No Sub Category</option>
-                          {Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).sort().map(sc => (
+                          {subCategories.map(sc => (
                             <option key={sc as string} value={sc as string}>{sc as string}</option>
                           ))}
                           <option value="ADD_NEW" style={{ fontWeight: 'bold', color: 'var(--admin-accent)' }}>+ Add New Sub Category</option>
@@ -1050,148 +1125,12 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     </div>
                   </div>
 
-                  {/* Color Variants Section */}
+                  {/* Color Variants Section (Legacy - Replaced by Linked Products) */}
+                  {/* 
                   <div className="space-y-4 pt-4 border-t border-gold/10">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-[11px] uppercase tracking-wider font-bold" style={{ color: "var(--admin-text-dim)" }}>Color Variants</label>
-                      <button 
-                        type="button" 
-                        onClick={handleAddVariant}
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-colors"
-                        style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-accent)" }}
-                      >
-                        + Add Variant
-                      </button>
-                    </div>
-
-                    <div className="space-y-4">
-                      {formData.variants.map((v, idx) => (
-                        <div key={idx} className="p-4 rounded-xl border space-y-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-[10px] uppercase font-bold mb-2 opacity-60">Variant Color</label>
-                                  <select 
-                                    value={v.color} 
-                                    onChange={e => {
-                                      const newVariants = [...formData.variants];
-                                      newVariants[idx] = { ...newVariants[idx], color: e.target.value };
-                                      setFormData({...formData, variants: newVariants});
-                                    }}
-                                    className="w-full bg-transparent border rounded-lg px-2 py-1.5 outline-none text-[12px]" 
-                                    style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
-                                  >
-                                    <option value="" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select Color</option>
-                                    {COLORS.map(c => (
-                                      <option key={c} value={c} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
-                                        {c}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                                <div>
-                                  <label className="block text-[10px] uppercase font-bold mb-2 opacity-60">Stock</label>
-                                  <input 
-                                    type="number" 
-                                    value={v.inventory_count} 
-                                    onChange={e => {
-                                      const newVariants = [...formData.variants];
-                                      newVariants[idx] = { ...newVariants[idx], inventory_count: Number(e.target.value) };
-                                      setFormData({...formData, variants: newVariants});
-                                    }}
-                                    className="w-full bg-transparent border rounded-lg px-2 py-1.5 outline-none text-[12px]" 
-                                    style={{ borderColor: "var(--admin-border-active)" }}
-                                  />
-                                </div>
-                              </div>
-
-                               <div className="mt-4">
-                                <label className="block text-[10px] uppercase font-bold mb-3 opacity-60">Variant Photos</label>
-                                <div className="flex flex-col gap-3">
-                                  <input 
-                                    type="file" 
-                                    multiple
-                                    onChange={e => handleVariantImageUpload(idx, e)}
-                                    className="text-[10px] file:mr-4 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-forest file:text-white hover:file:bg-forest/80 cursor-pointer"
-                                  />
-                                  
-                                  <div className="flex flex-wrap gap-2">
-                                    {/* Main Variant Image */}
-                                    {v.image && (
-                                      <div className="relative w-16 h-20 border-2 border-forest rounded overflow-hidden group shadow-lg">
-                                        <Image src={v.image} alt="Main" fill sizes="60px" className="object-cover" />
-                                        <div className="absolute top-0 left-0 bg-forest text-white text-[7px] px-1 font-bold">MAIN</div>
-                                        <button 
-                                          type="button"
-                                          onClick={() => handleRemoveVariantImage(idx, -1, true)}
-                                          className="absolute top-0 right-0 p-0.5 bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                          <X size={10} />
-                                        </button>
-                                      </div>
-                                    )}
-                                    
-                                    {/* Gallery Images */}
-                                    {v.gallery_images.map((img, imgIdx) => (
-                                      <div key={imgIdx} className="relative w-16 h-20 border border-admin-border-active rounded overflow-hidden group hover:border-gold transition-colors">
-                                        <Image src={img} alt="Gallery" fill sizes="60px" className="object-cover" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                                          <button 
-                                            type="button"
-                                            onClick={() => handleSetVariantMainImage(idx, imgIdx)}
-                                            className="p-1 bg-white/90 rounded-full text-gold hover:bg-white"
-                                            title="Set as Main"
-                                          >
-                                            <Star size={10} fill="currentColor" />
-                                          </button>
-                                          {imgIdx > 0 && (
-                                            <button 
-                                              type="button"
-                                              onClick={() => handleMoveVariantImage(idx, imgIdx, 'left')}
-                                              className="p-1 bg-white/90 rounded-full text-forest hover:bg-white"
-                                              title="Move Left"
-                                            >
-                                              <ArrowLeft size={10} />
-                                            </button>
-                                          )}
-                                          {imgIdx < v.gallery_images.length - 1 && (
-                                            <button 
-                                              type="button"
-                                              onClick={() => handleMoveVariantImage(idx, imgIdx, 'right')}
-                                              className="p-1 bg-white/90 rounded-full text-forest hover:bg-white"
-                                              title="Move Right"
-                                            >
-                                              <ArrowRight size={10} />
-                                            </button>
-                                          )}
-                                          <button 
-                                            type="button"
-                                            onClick={() => handleRemoveVariantImage(idx, imgIdx, false)}
-                                            className="p-1 bg-white/90 rounded-full text-red-500 hover:bg-white"
-                                            title="Remove"
-                                          >
-                                            <X size={10} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <button 
-                              type="button" 
-                              onClick={() => handleRemoveVariant(idx)}
-                              className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                    ... (Legacy Variant Logic) ...
+                  </div> 
+                  */}
 
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-3" style={{ color: "var(--admin-text-dim)" }}>Sizes</label>
@@ -1244,7 +1183,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     </div>
                   </div>
 
-                  <div className="pt-6">
+                  <div className="pt-6 space-y-3">
                     <button
                       type="submit"
                       disabled={isSaving}
@@ -1253,6 +1192,19 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     >
                       {isSaving ? "Saving..." : editId ? "Update Product" : "Create Product"}
                     </button>
+                    
+                    {editId && (
+                      <button
+                        type="button"
+                        disabled={isSaving}
+                        onClick={() => handleCreateProduct(undefined, true)}
+                        className="w-full py-3.5 rounded-lg text-[13px] uppercase tracking-wider font-bold transition-colors border-2 flex items-center justify-center gap-2"
+                        style={{ borderColor: "var(--admin-accent)", color: "var(--admin-accent)" }}
+                      >
+                        <Copy size={14} />
+                        Duplicate as New Variant
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>
@@ -1272,10 +1224,10 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
               </button>
             </div>
             <div className="p-2 overflow-y-auto flex-1">
-              {Array.from(new Set(products.map(p => p.category).filter(Boolean))).length === 0 ? (
+              {categories.length === 0 ? (
                 <div className="p-6 text-center text-[12px]" style={{ color: "var(--admin-text-dim)" }}>No categories in use yet.</div>
               ) : (
-                Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort().map(sc => (
+                categories.map(sc => (
                   <div 
                     key={sc as string} 
                     className="flex items-center justify-between py-3 px-4 rounded-lg transition-colors group"
@@ -1286,15 +1238,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         type="button"
-                        onClick={async () => {
-                          const newName = prompt(`Rename '${sc}' to:`, sc as string);
-                          if (newName && newName.trim() !== "" && newName !== sc) {
-                            setIsSaving(true);
-                            await manageCategory(sc as string, 'rename', newName.trim());
-                            const updated = await getAdminProducts();
-                            setProducts(updated);
-                            setIsSaving(false);
-                          }
+                        onClick={() => {
+                          setActionModal({ action: 'rename', type: 'category', targetName: sc as string, newName: sc as string });
                         }} 
                         className="p-1.5 text-blue-500 rounded-md transition-colors"
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)")}
@@ -1305,14 +1250,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       </button>
                       <button 
                         type="button"
-                        onClick={async () => {
-                          if (window.confirm(`Are you sure you want to delete '${sc}'? Products using it will be marked 'Uncategorized'.`)) {
-                            setIsSaving(true);
-                            await manageCategory(sc as string, 'delete');
-                            const updated = await getAdminProducts();
-                            setProducts(updated);
-                            setIsSaving(false);
-                          }
+                        onClick={() => {
+                          setActionModal({ action: 'delete', type: 'category', targetName: sc as string });
                         }} 
                         className="p-1.5 text-red-500 rounded-md transition-colors"
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)")}
@@ -1341,10 +1280,10 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
               </button>
             </div>
             <div className="p-2 overflow-y-auto flex-1">
-              {Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).length === 0 ? (
+              {subCategories.length === 0 ? (
                 <div className="p-6 text-center text-[12px]" style={{ color: "var(--admin-text-dim)" }}>No sub-categories in use yet.</div>
               ) : (
-                Array.from(new Set(products.map(p => p.sub_category).filter(Boolean))).sort().map(sc => (
+                subCategories.map(sc => (
                   <div 
                     key={sc as string} 
                     className="flex items-center justify-between py-3 px-4 rounded-lg transition-colors group"
@@ -1355,15 +1294,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         type="button"
-                        onClick={async () => {
-                          const newName = prompt(`Rename '${sc}' to:`, sc as string);
-                          if (newName && newName.trim() !== "" && newName !== sc) {
-                            setIsSaving(true);
-                            await manageSubCategory(sc as string, 'rename', newName.trim());
-                            const updated = await getAdminProducts();
-                            setProducts(updated);
-                            setIsSaving(false);
-                          }
+                        onClick={() => {
+                          setActionModal({ action: 'rename', type: 'sub_category', targetName: sc as string, newName: sc as string });
                         }} 
                         className="p-1.5 text-blue-500 rounded-md transition-colors"
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)")}
@@ -1374,14 +1306,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                       </button>
                       <button 
                         type="button"
-                        onClick={async () => {
-                          if (window.confirm(`Are you sure you want to delete '${sc}'? This will remove it from all products currently using it.`)) {
-                            setIsSaving(true);
-                            await manageSubCategory(sc as string, 'delete');
-                            const updated = await getAdminProducts();
-                            setProducts(updated);
-                            setIsSaving(false);
-                          }
+                        onClick={() => {
+                          setActionModal({ action: 'delete', type: 'sub_category', targetName: sc as string });
                         }} 
                         className="p-1.5 text-red-500 rounded-md transition-colors"
                         onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)")}
@@ -1394,6 +1320,94 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Action Modal (Rename/Delete) */}
+      {actionModal && (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="rounded-2xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border p-6" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}>
+            <h3 className="font-bold text-[14px] uppercase tracking-wider mb-4" style={{ color: "var(--admin-text)" }}>
+              {actionModal.action === 'rename' ? 'Rename' : 'Delete'} {actionModal.type === 'category' ? 'Category' : 'Sub Category'}
+            </h3>
+            
+            {actionModal.action === 'rename' ? (
+              <>
+                <div className="mb-4 text-[12px]" style={{ color: "var(--admin-text-dim)" }}>
+                  Renaming <span className="font-bold" style={{ color: "var(--admin-text)" }}>'{actionModal.targetName}'</span> will immediately update all products currently using it.
+                </div>
+                <input 
+                  autoFocus
+                  value={actionModal.newName || ""}
+                  onChange={e => setActionModal({ ...actionModal, newName: e.target.value })}
+                  className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] mb-6" 
+                  style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                  placeholder="New name..."
+                />
+              </>
+            ) : (
+              <div className="mb-6 text-[12px]" style={{ color: "var(--admin-text-dim)" }}>
+                Are you sure you want to delete <span className="font-bold text-red-400">'{actionModal.targetName}'</span>? 
+                {actionModal.type === 'category' ? " Products using it will be marked as 'Uncategorized'." : " This will remove it from all products currently using it."}
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setActionModal(null)}
+                disabled={isSaving}
+                className="px-4 py-2.5 rounded-lg text-[12px] font-bold uppercase transition-colors hover:bg-white/5"
+                style={{ color: "var(--admin-text-dim)" }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  setIsSaving(true);
+                  try {
+                    if (actionModal.action === 'rename') {
+                      if (!actionModal.newName || actionModal.newName.trim() === "" || actionModal.newName === actionModal.targetName) {
+                        setActionModal(null);
+                        setIsSaving(false);
+                        return;
+                      }
+                      const newCatName = actionModal.newName.trim();
+                      if (actionModal.type === 'category') {
+                        await manageCategory(actionModal.targetName, 'rename', newCatName);
+                        if (categoryFilter === actionModal.targetName) {
+                          setCategoryFilter(newCatName);
+                        }
+                      } else {
+                        await manageSubCategory(actionModal.targetName, 'rename', newCatName);
+                      }
+                    } else {
+                      if (actionModal.type === 'category') {
+                        await manageCategory(actionModal.targetName, 'delete');
+                        if (categoryFilter === actionModal.targetName) {
+                          setCategoryFilter("All");
+                        }
+                      } else {
+                        await manageSubCategory(actionModal.targetName, 'delete');
+                      }
+                    }
+                    const updated = await getAdminProducts();
+                    setProducts(updated);
+                  } finally {
+                    setIsSaving(false);
+                    setActionModal(null);
+                  }
+                }}
+                disabled={isSaving}
+                className="px-5 py-2.5 rounded-lg text-[12px] font-bold uppercase transition-colors"
+                style={{ 
+                  background: actionModal.action === 'delete' ? "var(--admin-red)" : "var(--admin-accent)", 
+                  color: actionModal.action === 'delete' ? "#FFF" : "#000" 
+                }}
+              >
+                {isSaving ? "Saving..." : actionModal.action === 'rename' ? "Save" : "Delete"}
+              </button>
             </div>
           </div>
         </div>

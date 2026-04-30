@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, SlidersHorizontal, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -30,6 +30,7 @@ interface ShopUtilityBarProps {
 
 export default function ShopUtilityBar({
   search,
+  onSearchChange,
   sortBy,
   onSortChange,
   resultCount,
@@ -64,6 +65,15 @@ export default function ShopUtilityBar({
     sizeFilter !== "All" || 
     sortBy !== "newest";
 
+  useEffect(() => {
+    if (activeCategory) {
+      const el = document.getElementById(`cat-${activeCategory.toLowerCase().replace(/\s+/g, '-')}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [activeCategory]);
+
   return (
     <>
       <section className="max-w-7xl mx-auto px-6 md:px-10 mb-6 md:mb-8">
@@ -71,31 +81,35 @@ export default function ShopUtilityBar({
           
           {/* Categories - Editorial Navigation Style */}
           {categories && onCategoryChange && (
-            <div className="flex items-center overflow-x-auto no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 gap-8 md:gap-10">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => onCategoryChange(cat)}
-                  className={`group relative whitespace-nowrap flex-shrink-0 py-1 text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
-                    activeCategory === cat
-                      ? "text-forest"
-                      : "text-text-muted hover:text-forest"
-                  }`}
-                >
-                  {cat}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-gold transition-all duration-500 ${
-                    activeCategory === cat ? "w-full" : "w-0 group-hover:w-full"
-                  }`} />
-                </button>
-              ))}
+            <div className="flex items-center overflow-x-auto no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 gap-8 md:gap-10 scroll-smooth">
+              {categories.map((cat) => {
+                const isActive = activeCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    id={`cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                    onClick={() => onCategoryChange(cat)}
+                    className={`group relative whitespace-nowrap flex-shrink-0 py-1 text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
+                      isActive
+                        ? "text-forest"
+                        : "text-text-muted hover:text-forest"
+                    }`}
+                  >
+                    {cat}
+                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gold transition-all duration-500 ${
+                      isActive ? "w-full" : "w-0 group-hover:w-full"
+                    }`} />
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {/* Mobile Filter Button */}
-          <div className="flex items-center justify-between w-full md:hidden pt-4 border-t border-gold/10">
+          <div className="flex items-center justify-between w-full md:hidden pt-4 border-t border-gold/10 gap-3">
             <button
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center gap-3 px-6 py-3 bg-forest text-cream font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-forest/10"
+              className="flex items-center gap-3 px-6 py-3 bg-forest text-cream font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-forest/10 whitespace-nowrap"
             >
               <SlidersHorizontal size={14} />
               Refine
@@ -103,7 +117,7 @@ export default function ShopUtilityBar({
                 <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
               )}
             </button>
-            <p className="text-forest font-bold text-[10px] uppercase tracking-widest opacity-40">
+            <p className="text-forest font-bold text-[10px] uppercase tracking-widest opacity-40 whitespace-nowrap">
               {resultCount} Items
             </p>
           </div>
