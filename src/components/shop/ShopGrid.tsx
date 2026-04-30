@@ -4,41 +4,56 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
-import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 import type { Database } from "@/lib/supabase/types";
 import { PREFERRED_CATEGORY_ORDER } from "@/data/navigation";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
-export default function ShopGrid({ products }: { products: Product[] }) {
+import { createClient } from "@/lib/supabase/client";
+
+export default function ShopGrid({
+  products,
+}: {
+  products: Product[];
+}) {
   const searchParams = useSearchParams();
-  const [search, setSearch] = useState(searchParams?.get("q") || "");
-  const [activeCategory, setActiveCategory] = useState(searchParams?.get("category") || "All");
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
   const [materialFilter, setMaterialFilter] = useState("All");
   const [colorFilter, setColorFilter] = useState("All");
   const [sizeFilter, setSizeFilter] = useState("All");
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [dynamicCategories, setDynamicCategories] = useState<string[]>(["All"]);
+
   const { addToCart } = useCart();
 
-  const dynamicCategories = useMemo(() => {
-    const cats = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-    const sortedCats = cats.sort((a, b) => {
-        const indexA = PREFERRED_CATEGORY_ORDER.indexOf(a);
-        const indexB = PREFERRED_CATEGORY_ORDER.indexOf(b);
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-        return a.localeCompare(b);
-    });
-    return ["All", ...sortedCats];
-  }, [products]);
+  // Fetch unique categories
+  useEffect(() => {
+    const fetchCats = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from('products').select('category');
+      if (data) {
+        const cats = Array.from(new Set((data as any[]).map(p => p.category).filter(Boolean)));
+        const sortedCats = cats.sort((a, b) => {
+            const indexA = PREFERRED_CATEGORY_ORDER.indexOf(a);
+            const indexB = PREFERRED_CATEGORY_ORDER.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+        setDynamicCategories(["All", ...sortedCats]);
+      }
+    };
+    fetchCats();
+  }, []);
 
   const handleAddToCart = (product: Product) => {
     if (product.inventory_count === 0) return;
@@ -51,32 +66,33 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
   const handleSearchChange = useCallback((val: string) => {
     setSearch(val);
-    if (!searchParams) return;
-    const params = new URLSearchParams(searchParams.toString());
-    if (val) {
-      params.set("q", val);
-    } else {
-      params.delete("q");
-    }
+    const params = new URLSearchParams(window.location.search);
+    if (val) params.set("q", val);
+    else params.delete("q");
     const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
     window.history.replaceState({}, '', newUrl);
-  }, [searchParams]);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
 
   const handleCategoryChange = useCallback((cat: string) => {
     setActiveCategory(cat);
-    if (!searchParams) return;
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     if (cat && cat !== "All") {
       params.set("category", cat);
+      params.delete("type"); // Clear subcategory when switching main category
     } else {
       params.delete("category");
+      params.delete("type");
     }
     const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
     window.history.replaceState({}, '', newUrl);
-  }, [searchParams]);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, []);
 
+  // Sync state with URL on mount and when URL changes
   useEffect(() => {
-    const cat = searchParams?.get("category");
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("category");
     if (cat) {
       const matched = dynamicCategories.find(c => c.toLowerCase() === cat.toLowerCase());
       if (matched) setActiveCategory(matched);
@@ -89,28 +105,24 @@ export default function ShopGrid({ products }: { products: Product[] }) {
     window.scrollTo(0, 0);
   }, []);
 
-  useEffect(() => {
-    const handleUrlChange = () => {
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get("q");
-      if (q !== null) setSearch(q);
-      else setSearch("");
-    };
-
-    window.addEventListener('popstate', handleUrlChange);
-    // Also handle the initial state
-    handleUrlChange();
-    
-    return () => window.removeEventListener('popstate', handleUrlChange);
-  }, []);
+  // Read direct values from searchParams for reactivity
+  const subCategory = searchParams?.get("type");
+  const searchFromUrl = searchParams?.get("q") || "";
 
   const filtered = useMemo(() => {
     let result = [...products];
 
+    // Main Category filter
     if (activeCategory !== "All") {
       result = result.filter((p) => p.category === activeCategory);
     }
 
+    // Subcategory filter (from header)
+    if (subCategory) {
+      result = result.filter((p) => p.sub_category?.toLowerCase() === subCategory.toLowerCase());
+    }
+
+    // Facet filters
     if (materialFilter && materialFilter !== "All") {
       result = result.filter((p) => p.material === materialFilter);
     }
@@ -123,8 +135,10 @@ export default function ShopGrid({ products }: { products: Product[] }) {
       result = result.filter((p) => p.sizes?.includes(sizeFilter));
     }
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    // Search filter
+    const currentSearch = search || searchFromUrl;
+    if (currentSearch.trim()) {
+      const q = currentSearch.toLowerCase();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -136,6 +150,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
       );
     }
 
+    // Sorting
     switch (sortBy) {
       case "price-asc":
         result.sort((a, b) => a.price - b.price);
@@ -150,38 +165,21 @@ export default function ShopGrid({ products }: { products: Product[] }) {
     }
 
     return result;
-  }, [products, search, activeCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
+  }, [products, search, searchFromUrl, subCategory, activeCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(8);
-  }, [activeCategory, search, sortBy, materialFilter, colorFilter, sizeFilter]);
+  }, [search, searchFromUrl, subCategory, activeCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
   return (
     <>
-      {/* Hero — Compact Horizontal Strip */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 pt-6 pb-4 sm:pt-8 sm:pb-6 lg:pt-10 lg:pb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-6">
-          <div className="min-w-0">
-            <p className="hidden lg:block uppercase font-bold text-gold tracking-[0.5em] text-[9px] mb-2">
-              Shop
-            </p>
-            <h1 className="font-playfair text-forest font-medium tracking-wide text-[22px] sm:text-[28px] lg:text-[34px] leading-tight">
-              {activeCategory === "All" ? "Curated Collections" : activeCategory}
-            </h1>
-          </div>
-          <p className="hidden lg:block text-text-muted/60 font-dm text-[13px] italic whitespace-nowrap pb-1">
-            Heritage weaves, timeless elegance
-          </p>
-        </div>
-      </section>
-
       {/* Utility Bar */}
       <ShopUtilityBar
-        search={search}
+        search={search || searchFromUrl}
         onSearchChange={handleSearchChange}
         sortBy={sortBy}
         onSortChange={setSortBy}
@@ -206,17 +204,16 @@ export default function ShopGrid({ products }: { products: Product[] }) {
               No products found.
             </p>
             <p className="text-text-muted/60 font-dm text-sm">
-              Try adjusting your search or filters.
+              Try adjusting your search or sort.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {visibleProducts.map((product, idx) => (
+            {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onAddToCart={handleAddToCart}
-                priority={idx < 4}
               />
             ))}
           </div>
@@ -238,10 +235,9 @@ export default function ShopGrid({ products }: { products: Product[] }) {
             </p>
           </div>
         )}
-
       </section>
 
-      {/* Quick Add Modal — Bottom sheet on mobile, centered modal on desktop */}
+      {/* Quick Add Modal */}
       <AnimatePresence>
         {quickAddProduct && (
           <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center">
@@ -260,18 +256,16 @@ export default function ShopGrid({ products }: { products: Product[] }) {
               transition={{ type: "spring", damping: 28, stiffness: 320 }}
               className="relative w-full sm:w-auto sm:min-w-[360px] sm:max-w-md bg-cream shadow-2xl p-6 pt-8 pb-safe-8 sm:pb-6 rounded-t-3xl sm:rounded-2xl"
             >
-              {/* Drag Handle (mobile only) */}
               <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-text-muted/20 sm:hidden" />
               <button
                 onClick={() => setQuickAddProduct(null)}
                 className="absolute top-4 right-4 text-text-muted hover:text-forest p-1 transition-colors"
-                aria-label="Close"
               >
                 ✕
               </button>
               <h3 className="font-playfair text-xl font-medium text-forest mb-1">Select Size</h3>
               <p className="text-text-muted text-lg font-cormorant font-medium mb-6">{quickAddProduct.name}</p>
-
+              
               <div className="flex flex-wrap gap-3 pb-2">
                 {quickAddProduct.sizes?.map((size) => (
                   <button

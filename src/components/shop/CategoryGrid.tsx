@@ -27,7 +27,7 @@ export default function CategoryGrid({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [search, setSearch] = useState(searchParams?.get("q") || "");
+  const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [materialFilter, setMaterialFilter] = useState("All");
   const [colorFilter, setColorFilter] = useState("All");
@@ -94,25 +94,22 @@ export default function CategoryGrid({
     }
     const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
     window.history.replaceState({}, '', newUrl);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   }, [searchParams]);
 
-  useEffect(() => {
-    const handleUrlChange = () => {
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get("q");
-      if (q !== null) setSearch(q);
-      else setSearch("");
-    };
-
-    window.addEventListener('popstate', handleUrlChange);
-    handleUrlChange();
-    
-    return () => window.removeEventListener('popstate', handleUrlChange);
-  }, []);
+  // Read direct values from searchParams for reactivity
+  const subCategory = searchParams?.get("type");
+  const searchFromUrl = searchParams?.get("q") || "";
 
   const filtered = useMemo(() => {
     let result = [...products];
 
+    // Subcategory filter (from header)
+    if (subCategory) {
+      result = result.filter((p) => p.sub_category?.toLowerCase() === subCategory.toLowerCase());
+    }
+
+    // Facet filters
     if (materialFilter && materialFilter !== "All") {
       result = result.filter((p) => p.material === materialFilter);
     }
@@ -125,8 +122,10 @@ export default function CategoryGrid({
       result = result.filter((p) => p.sizes?.includes(sizeFilter));
     }
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    // Search filter
+    const currentSearch = search || searchFromUrl;
+    if (currentSearch.trim()) {
+      const q = currentSearch.toLowerCase();
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
@@ -137,6 +136,7 @@ export default function CategoryGrid({
       );
     }
 
+    // Sorting
     switch (sortBy) {
       case "price-asc":
         result.sort((a, b) => a.price - b.price);
@@ -151,12 +151,12 @@ export default function CategoryGrid({
     }
 
     return result;
-  }, [products, search, sortBy, materialFilter, colorFilter, sizeFilter]);
+  }, [products, search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(8);
-  }, [search, sortBy, materialFilter, colorFilter, sizeFilter]);
+  }, [search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -165,7 +165,7 @@ export default function CategoryGrid({
     <>
       {/* Utility Bar (no category pills since we're already in a category) */}
       <ShopUtilityBar
-        search={search}
+        search={search || searchFromUrl}
         onSearchChange={handleSearchChange}
         sortBy={sortBy}
         onSortChange={setSortBy}
