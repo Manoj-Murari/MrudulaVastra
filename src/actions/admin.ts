@@ -280,6 +280,28 @@ export async function manageSubCategory(oldName: string, action: 'delete' | 'ren
   return { success: true };
 }
 
+export async function manageCategory(oldName: string, action: 'delete' | 'rename', newName?: string) {
+  const supabase = await createClient();
+  
+  if (action === 'delete') {
+    const { error } = await (supabase as any)
+      .from('products')
+      .update({ category: "Uncategorized" })
+      .eq('category', oldName);
+    if (error) return { error: error.message };
+  } else if (action === 'rename' && newName) {
+    const { error } = await (supabase as any)
+      .from('products')
+      .update({ category: newName })
+      .eq('category', oldName);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/admin/inventory");
+  revalidatePath("/");
+  return { success: true };
+}
+
 export async function upsertProduct(product: Database["public"]["Tables"]["products"]["Insert"]) {
   const supabase = await createClient();
   const { data, error } = await (supabase as any)

@@ -18,7 +18,7 @@ import {
   UploadCloud,
   Edit2,
 } from "lucide-react";
-import { getAdminProducts, updateProductField, deleteProduct, upsertProduct, manageSubCategory } from "@/actions/admin";
+import { getAdminProducts, updateProductField, deleteProduct, upsertProduct, manageSubCategory, manageCategory } from "@/actions/admin";
 import { createClient } from "@/lib/supabase/client";
 
 interface ProductVariant {
@@ -39,8 +39,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const [isUploading, setIsUploading] = useState(false);
   const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
   const [isManagingSubCategories, setIsManagingSubCategories] = useState(false);
-  
-  const CATEGORIES = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear", "Lehengas", "Accessories"];
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [isManagingCategories, setIsManagingCategories] = useState(false);
+
   const COLORS = [
     "Red", "Blue", "Green", "Yellow", "Pink", "Gold", "Black", "White", "Navy", "Maroon", 
     "Silver", "Multicolor", "Grey", "Orange", "Purple", "Teal", "Mustard", "Peach", 
@@ -762,11 +763,62 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Category *</label>
-                      <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] appearance-none" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
-                        <option value="" disabled>Select Category</option>
-                        {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-[11px] uppercase tracking-wider font-bold" style={{ color: "var(--admin-text-dim)" }}>Category *</label>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsManagingCategories(true)}
+                          className="text-[10px] uppercase font-bold text-blue-500 hover:text-blue-600 transition-colors"
+                        >
+                          Manage
+                        </button>
+                      </div>
+                      {!isAddingCategory ? (
+                        <select 
+                          required 
+                          value={formData.category} 
+                          onChange={e => {
+                            if (e.target.value === "ADD_NEW") {
+                              setIsAddingCategory(true);
+                              setFormData({ ...formData, category: "" });
+                            } else {
+                              setFormData({ ...formData, category: e.target.value });
+                            }
+                          }}
+                          className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] appearance-none" 
+                          style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
+                        >
+                          <option value="" disabled>Select Category</option>
+                          {Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort().map(c => (
+                            <option key={c as string} value={c as string}>{c as string}</option>
+                          ))}
+                          <option value="ADD_NEW" style={{ fontWeight: 'bold', color: 'var(--admin-accent)' }}>+ Add New Category</option>
+                        </select>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input 
+                            autoFocus
+                            placeholder="Enter new category..."
+                            value={formData.category} 
+                            onChange={e => setFormData({ ...formData, category: e.target.value })}
+                            className="flex-1 bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" 
+                            style={{ borderColor: "var(--admin-border-active)" }} 
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              setIsAddingCategory(false);
+                              if (!formData.category.trim()) {
+                                setFormData({ ...formData, category: "" });
+                              }
+                            }}
+                            className="p-2.5 rounded-lg border flex-shrink-0"
+                            style={{ borderColor: "var(--admin-border-active)" }}
+                          >
+                            <X size={14} style={{ color: "var(--admin-text-dim)" }} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -1208,6 +1260,75 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
           </>
         )}
       </AnimatePresence>
+
+      {/* Category Manager Modal */}
+      {isManagingCategories && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl border" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}>
+            <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "var(--admin-border-active)" }}>
+              <h3 className="font-bold text-[14px] uppercase tracking-wider" style={{ color: "var(--admin-text)" }}>Manage Categories</h3>
+              <button onClick={() => setIsManagingCategories(false)} className="transition-colors hover:opacity-70" style={{ color: "var(--admin-text-dim)" }}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-2 overflow-y-auto flex-1">
+              {Array.from(new Set(products.map(p => p.category).filter(Boolean))).length === 0 ? (
+                <div className="p-6 text-center text-[12px]" style={{ color: "var(--admin-text-dim)" }}>No categories in use yet.</div>
+              ) : (
+                Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort().map(sc => (
+                  <div 
+                    key={sc as string} 
+                    className="flex items-center justify-between py-3 px-4 rounded-lg transition-colors group"
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>{sc as string}</span>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          const newName = prompt(`Rename '${sc}' to:`, sc as string);
+                          if (newName && newName.trim() !== "" && newName !== sc) {
+                            setIsSaving(true);
+                            await manageCategory(sc as string, 'rename', newName.trim());
+                            const updated = await getAdminProducts();
+                            setProducts(updated);
+                            setIsSaving(false);
+                          }
+                        }} 
+                        className="p-1.5 text-blue-500 rounded-md transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        title="Rename globally"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={async () => {
+                          if (window.confirm(`Are you sure you want to delete '${sc}'? Products using it will be marked 'Uncategorized'.`)) {
+                            setIsSaving(true);
+                            await manageCategory(sc as string, 'delete');
+                            const updated = await getAdminProducts();
+                            setProducts(updated);
+                            setIsSaving(false);
+                          }
+                        }} 
+                        className="p-1.5 text-red-500 rounded-md transition-colors"
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        title="Delete globally"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sub Category Manager Modal */}
       {isManagingSubCategories && (
