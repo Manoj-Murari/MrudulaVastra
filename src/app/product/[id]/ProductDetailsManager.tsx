@@ -97,25 +97,7 @@ export default function ProductDetailsManager({
           </div>
         )}
 
-        {/* Description */}
-        {((product as any).description) && (() => {
-          const desc = (product as any).description || "";
-          const shouldTruncate = desc.length > 200;
-          const truncatedDesc = shouldTruncate && !isDescExpanded ? desc.slice(0, 180) + "..." : desc;
-          return (
-            <div className="mb-8 font-dm text-sm leading-relaxed whitespace-pre-wrap">
-              <span className="text-text-muted">{truncatedDesc}</span>
-              {shouldTruncate && (
-                <button
-                  onClick={() => setIsDescExpanded(!isDescExpanded)}
-                  className="text-forest hover:text-gold font-semibold ml-2 inline-block transition-colors underline decoration-dotted"
-                >
-                  {isDescExpanded ? "Show Less" : "Read More"}
-                </button>
-              )}
-            </div>
-          );
-        })()}
+
 
         {/* Color Variants Selector (Linked Products & Internal Variants) */}
         {((product.color ? 1 : 0) + colorVariants.length + variants.length > 1) && (
@@ -225,7 +207,27 @@ export default function ProductDetailsManager({
           Easy Returns & Exchanges Available
         </Link>
 
-        <div className="mt-12 space-y-4 font-dm text-sm text-text-muted">
+        {/* Description moved below returns */}
+        {((product as any).description) && (() => {
+          const desc = (product as any).description || "";
+          const shouldTruncate = desc.length > 200;
+          const truncatedDesc = shouldTruncate && !isDescExpanded ? desc.slice(0, 180) + "..." : desc;
+          return (
+            <div className="mt-8 mb-4 font-dm text-sm leading-relaxed whitespace-pre-wrap">
+              <span className="text-text-muted">{truncatedDesc}</span>
+              {shouldTruncate && (
+                <button
+                  onClick={() => setIsDescExpanded(!isDescExpanded)}
+                  className="text-forest hover:text-gold font-semibold ml-2 inline-block transition-colors underline decoration-dotted"
+                >
+                  {isDescExpanded ? "Show Less" : "Read More"}
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
+        <div className="mt-8 space-y-4 font-dm text-sm text-text-muted">
           <p className="flex items-center gap-3">
             <span className="text-gold">✓</span> 100% Authentic Product
           </p>
