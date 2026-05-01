@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getShippingSettings } from "@/actions/shipping";
 import ProductGallery from "./ProductGallery";
 import ProductActions from "./ProductActions";
 import { Star, RefreshCw } from "lucide-react";
@@ -25,6 +26,21 @@ export default function ProductDetailsManager({
   const variants = (Array.isArray(product.variants) ? (product.variants as any[]).filter(v => v && v.color && v.type !== 'size_inventory') : []);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+
+  const [shippingSettings, setShippingSettings] = useState({
+    shippingCharge: 100,
+    minFreeShippingOrderValue: 2000
+  });
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const settings = await getShippingSettings();
+      if (settings) {
+        setShippingSettings(settings);
+      }
+    }
+    fetchSettings();
+  }, []);
 
   const displayImage = selectedVariant?.image || product.image;
   const displayGallery = selectedVariant ? selectedVariant.gallery_images : product.gallery_images;
@@ -216,7 +232,7 @@ export default function ProductDetailsManager({
             <span className="text-gold">✓</span> 100% Authentic Product
           </p>
           <p className="flex items-center gap-3">
-            <span className="text-gold">✓</span> Free shipping on orders over ₹2000
+            <span className="text-gold">✓</span> Free shipping on orders over ₹{shippingSettings.minFreeShippingOrderValue.toLocaleString("en-IN")}
           </p>
           <p className="flex items-center gap-3">
             <span className="text-gold">✓</span> 7-day return/exchange available
