@@ -280,9 +280,9 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Glass "Add to Bag" overlay — NO backdrop-blur, CSS-only animation */}
+        {/* Desktop: Glass "Add to Bag" overlay — hover only */}
         <div
-          className="absolute bottom-0 left-0 right-0 z-20 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="absolute bottom-0 left-0 right-0 z-20 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] hidden sm:block"
           style={{
             background: "rgba(14,34,25,0.85)",
             transform: isHovered && !isSoldOut && onAddToCart ? "translateY(0)" : "translateY(100%)",
@@ -300,6 +300,21 @@ export default function ProductCard({
             Add to Bag
           </button>
         </div>
+
+        {/* Mobile: Always-visible small Add to Bag button */}
+        {!isSoldOut && onAddToCart && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+            className="sm:hidden absolute bottom-3 right-3 z-20 w-9 h-9 rounded-full bg-forest text-cream flex items-center justify-center shadow-lg shadow-forest/20 active:scale-90 transition-transform"
+            aria-label="Add to bag"
+          >
+            <ShoppingBag size={14} />
+          </button>
+        )}
       </Link>
 
       {/* ── Product Details ── */}

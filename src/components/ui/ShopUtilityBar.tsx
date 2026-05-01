@@ -89,15 +89,15 @@ export default function ShopUtilityBar({
                     key={cat}
                     id={`cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                     onClick={() => onCategoryChange(cat)}
-                    className={`group relative whitespace-nowrap flex-shrink-0 py-1 text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
+                    className={`group relative whitespace-nowrap flex-shrink-0 py-1.5 px-3 rounded-full text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
                       isActive
-                        ? "text-forest"
+                        ? "text-forest bg-forest/[0.06]"
                         : "text-text-muted hover:text-forest"
                     }`}
                   >
                     {cat}
-                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gold transition-all duration-500 ${
-                      isActive ? "w-full" : "w-0 group-hover:w-full"
+                    <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gold transition-all duration-500 ${
+                      isActive ? "w-4" : "w-0 group-hover:w-4"
                     }`} />
                   </button>
                 );
@@ -109,7 +109,7 @@ export default function ShopUtilityBar({
           <div className="flex items-center justify-between w-full md:hidden pt-4 border-t border-gold/10 gap-3">
             <button
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center gap-3 px-6 py-3 bg-forest text-cream font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-forest/10 whitespace-nowrap"
+              className="flex items-center gap-3 px-5 py-2.5 bg-forest text-cream font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-forest/10 whitespace-nowrap"
             >
               <SlidersHorizontal size={14} />
               Refine
@@ -117,7 +117,7 @@ export default function ShopUtilityBar({
                 <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
               )}
             </button>
-            <p className="text-forest font-bold text-[10px] uppercase tracking-widest opacity-40 whitespace-nowrap">
+            <p className="text-forest font-bold text-[10px] uppercase tracking-widest opacity-60 whitespace-nowrap">
               {resultCount} Items
             </p>
           </div>

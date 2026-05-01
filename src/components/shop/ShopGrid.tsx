@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
@@ -200,15 +200,24 @@ export default function ShopGrid({
       <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-24">
         {filtered.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-text-muted font-dm text-lg mb-2">
-              No products found.
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-sand flex items-center justify-center">
+              <Search size={24} className="text-gold/50" />
+            </div>
+            <p className="font-playfair text-forest text-xl mb-2">
+              Nothing here yet
             </p>
-            <p className="text-text-muted/60 font-dm text-sm">
-              Try adjusting your search or sort.
+            <p className="text-text-muted/60 font-dm text-sm max-w-xs mx-auto mb-6">
+              We couldn't find what you're looking for. Try a different search or explore our full collection.
             </p>
+            <Link
+              href="/collections"
+              className="inline-flex items-center gap-2 px-8 py-3 uppercase font-bold font-dm text-[10px] tracking-[0.2em] bg-forest text-cream hover:bg-forest/90 transition-all active:scale-[0.97]"
+            >
+              Browse All
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -230,9 +239,12 @@ export default function ShopGrid({
               View More
               <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
             </button>
-            <p className="text-text-muted/50 font-dm text-[11px] mt-3 tracking-wider">
+            <p className="text-text-muted/70 font-dm text-[11px] mt-3 tracking-wider">
               Showing {visibleProducts.length} of {filtered.length} products
             </p>
+            <div className="mx-auto mt-2 w-32 h-0.5 bg-gold/10 rounded-full overflow-hidden">
+              <div className="h-full bg-gold/50 rounded-full transition-all duration-500" style={{ width: `${(visibleProducts.length / filtered.length) * 100}%` }} />
+            </div>
           </div>
         )}
       </section>
