@@ -18,6 +18,7 @@ import {
   UploadCloud,
   Edit2,
   Copy,
+  ChevronDown,
 } from "lucide-react";
 import { getAdminProducts, updateProductField, deleteProduct, upsertProduct, manageSubCategory, manageCategory } from "@/actions/admin";
 import { createClient } from "@/lib/supabase/client";
@@ -437,22 +438,27 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
             style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}
           />
         </div>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-lg border outline-none text-[13px] appearance-none cursor-pointer sm:w-[180px]"
-          style={{ 
-            borderColor: "var(--admin-border)", 
-            background: "var(--admin-surface)",
-            color: "var(--admin-text)",
-            fontFamily: "'DM Sans', sans-serif"
-          }}
-        >
-          <option value="All">All Categories</option>
-          {categories.map(c => (
-            <option key={c as string} value={c as string}>{c as string}</option>
-          ))}
-        </select>
+        <div className="relative sm:w-[180px]">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full px-3 py-2.5 pr-8 rounded-lg border outline-none text-[13px] appearance-none cursor-pointer"
+            style={{ 
+              borderColor: "var(--admin-border)", 
+              background: "var(--admin-surface)",
+              color: "var(--admin-text)",
+              fontFamily: "'DM Sans', sans-serif"
+            }}
+          >
+            <option value="All">All Categories</option>
+            {categories.map(c => (
+              <option key={c as string} value={c as string}>{c as string}</option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
+            <ChevronDown size={14} style={{ color: "var(--admin-text)" }} />
+          </div>
+        </div>
       </div>
 
       {/* Mobile Card Layout */}
@@ -957,11 +963,11 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Price *</label>
-                      <input required type="number" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
+                      <input required type="number" min="0" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value.replace(/^0+(?=\d)/, "")})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
                     </div>
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Orig. Price</label>
-                      <input type="number" min="0" value={formData.original_price} onChange={e => setFormData({...formData, original_price: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
+                      <input type="number" min="0" value={formData.original_price} onChange={e => setFormData({...formData, original_price: e.target.value.replace(/^0+(?=\d)/, "")})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)" }} />
                     </div>
                     <div>
                       <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>
@@ -976,7 +982,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                             ? Object.values(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).reduce((sum, val) => sum + (Number(val) || 0), 0)
                             : formData.inventory_count
                         } 
-                        onChange={e => setFormData({...formData, inventory_count: e.target.value})} 
+                        onChange={e => setFormData({...formData, inventory_count: e.target.value.replace(/^0+(?=\d)/, "")})} 
                         disabled={Object.keys(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).length > 0}
                         className={`w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px] ${Object.keys(Object.fromEntries(Object.entries(formData.size_inventory).filter(([k]) => formData.sizes.includes(k)))).length > 0 ? "opacity-50 cursor-not-allowed" : ""}`} 
                         style={{ borderColor: "var(--admin-border-active)" }} 

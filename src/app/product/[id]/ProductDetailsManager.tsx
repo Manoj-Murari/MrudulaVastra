@@ -22,7 +22,7 @@ export default function ProductDetailsManager({
   product: Product;
   colorVariants?: { id: number; color: string | null; image: string; inventory_count: number }[];
 }) {
-  const variants = (product.variants as unknown as ProductVariant[]) || [];
+  const variants = (Array.isArray(product.variants) ? (product.variants as any[]).filter(v => v && v.color && v.type !== 'size_inventory') : []);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
   const displayImage = selectedVariant?.image || product.image;
@@ -90,7 +90,7 @@ export default function ProductDetailsManager({
         )}
 
         {/* Color Variants Selector (Linked Products & Internal Variants) */}
-        {(variants.length > 0 || product.color || colorVariants.length > 0) && (
+        {((product.color ? 1 : 0) + colorVariants.length + variants.length > 1) && (
           <div className="mb-10">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[11px] uppercase tracking-widest font-bold text-forest font-dm">

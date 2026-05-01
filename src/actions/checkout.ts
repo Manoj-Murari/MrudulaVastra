@@ -155,6 +155,28 @@ export async function processOrderAfterPayment(
         .insert(orderItems);
 
       if (itemsError && itemsError.code !== "42501") throw itemsError;
+
+      // Deduct inventory from products table
+      try {
+        const updatePromises = items.map(async (item) => {
+          const { data: p } = await (supabase as any)
+            .from("products")
+            .select("inventory_count")
+            .eq("id", item.product_id)
+            .single();
+
+          if (p) {
+            const newCount = Math.max(0, (p.inventory_count || 0) - item.quantity);
+            await (supabase as any)
+              .from("products")
+              .update({ inventory_count: newCount })
+              .eq("id", item.product_id);
+          }
+        });
+        await Promise.all(updatePromises);
+      } catch (err) {
+        // Silent catch: don't abort successful checkout
+      }
     }
 
     // Send email receipt via Resend

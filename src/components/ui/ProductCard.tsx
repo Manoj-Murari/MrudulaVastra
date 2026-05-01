@@ -193,19 +193,6 @@ export default function ProductCard({
                 </span>
               )}
             </div>
-
-            {/* Color Dots */}
-            {(product.variants as any)?.length > 0 && (
-              <div className="flex items-center gap-1.5 mt-2.5">
-                {[product.color, ...(product.variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => (
-                  <div 
-                    key={i}
-                    className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border border-black/10"
-                    style={{ background: COLOR_HEX[normalizeColor(color as string)] || "#ddd" }}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </Link>
       </div>
@@ -335,22 +322,6 @@ export default function ProductCard({
             </span>
           )}
         </div>
-
-        {/* Color Dots */}
-        {((product as any).variants as any[])?.length > 0 && (
-          <div className="flex items-center gap-1.5 mt-3">
-            {[product.color, ...((product as any).variants as any[]).map(v => v.color)].filter(Boolean).slice(0, 5).map((color, i) => (
-              <div 
-                key={i}
-                className="w-2.5 h-2.5 rounded-full border border-black/10"
-                style={{ background: COLOR_HEX[normalizeColor(color as string)] || "#ddd" }}
-              />
-            ))}
-            {((product as any).variants as any[]).length > 4 && (
-              <span className="text-[10px] text-text-muted font-dm">+{ ((product as any).variants as any[]).length - 4 }</span>
-            )}
-          </div>
-        )}
 
         {product.rating > 0 && product.reviews > 0 && (
           <div className="flex items-center gap-1.5 mt-2">

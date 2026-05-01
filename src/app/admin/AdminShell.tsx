@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Ticket,
   ExternalLink,
+  Truck,
 } from "lucide-react";
 import "./admin.css";
 
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
   { label: "Enquiries", icon: MessageSquare, href: "/admin/enquiries" },
   { label: "Coupons", icon: Ticket, href: "/admin/coupons" },
+  { label: "Delivery Charges", icon: Truck, href: "/admin/settings" },
 ];
 
 /* ─── Main Shell ──────────────────────────────────────────── */

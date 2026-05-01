@@ -267,18 +267,32 @@ export default function ShopGrid({
               <p className="text-text-muted text-lg font-cormorant font-medium mb-6">{quickAddProduct.name}</p>
               
               <div className="flex flex-wrap gap-3 pb-2">
-                {quickAddProduct.sizes?.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => {
-                      addToCart(quickAddProduct, size);
-                      setQuickAddProduct(null);
-                    }}
-                    className="px-5 py-3 border border-gold/30 hover:border-forest text-forest font-dm text-sm tracking-wider uppercase transition-colors hover:bg-forest/5 min-w-[72px] text-center"
-                  >
-                    {size}
-                  </button>
-                ))}
+                {quickAddProduct.sizes?.map((size) => {
+                  const isOutOfStock = quickAddProduct.inventory_count === 0 || (
+                    Array.isArray(quickAddProduct.variants) &&
+                    (quickAddProduct.variants as any).find((v: any) => v.type === 'size_inventory')?.data?.[size] === 0
+                  );
+
+                  return (
+                    <button
+                      key={size}
+                      disabled={isOutOfStock}
+                      onClick={() => {
+                        if (!isOutOfStock) {
+                          addToCart(quickAddProduct, size);
+                          setQuickAddProduct(null);
+                        }
+                      }}
+                      className={`px-5 py-3 border text-forest font-dm text-sm tracking-wider uppercase transition-colors min-w-[72px] text-center ${
+                        isOutOfStock 
+                          ? "opacity-40 cursor-not-allowed border-gold/15 line-through bg-sand/10 text-text-muted/60" 
+                          : "border-gold/30 hover:border-forest hover:bg-forest/5 cursor-pointer"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           </div>

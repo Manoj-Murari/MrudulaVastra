@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trash2, ShoppingBag, CheckCircle, LogIn } from "lucide-react";
+import { X, Trash2, ShoppingBag, CheckCircle, LogIn, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/providers/CartProvider";
@@ -12,6 +12,7 @@ import { getUserProfile } from "@/actions/profile";
 import { validateCoupon, getActiveCouponsCount } from "@/actions/coupons";
 import { checkIsLoggedIn } from "@/actions/auth";
 import { getUserAddresses, saveAddressFromCheckout, type Address } from "@/actions/addresses";
+import { getShippingSettings } from "@/actions/shipping";
 
 /* ── Razorpay Types ──────────────────────────────────── */
 
@@ -55,6 +56,24 @@ export default function CartDrawer() {
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [hasActiveCoupons, setHasActiveCoupons] = useState(false);
+
+  // Shipping Settings State
+  const [shippingSettings, setShippingSettings] = useState<{ shippingCharge: number; minFreeShippingOrderValue: number }>({
+    shippingCharge: 100,
+    minFreeShippingOrderValue: 2000,
+  });
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const settings = await getShippingSettings();
+      if (settings) {
+        setShippingSettings(settings);
+      }
+    }
+    fetchSettings();
+  }, []);
+
+  const [showShippingInfo, setShowShippingInfo] = useState(false);
 
   // Address selection state
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
@@ -137,8 +156,12 @@ export default function CartDrawer() {
       variant: item.selectedSize ? `${item.product.color ? item.product.color + ' | ' : ''}${item.selectedSize}` : item.product.color,
     }));
 
+    const isFreeShipping = cartTotal >= shippingSettings.minFreeShippingOrderValue;
+    const shippingFee = isFreeShipping ? 0 : shippingSettings.shippingCharge;
+    const finalAmountInRs = (appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal) + shippingFee;
+
     // Step 1: Initialize razorpay order from backend
-    const orderResult = await createRazorpayOrder(cartTotal);
+    const orderResult = await createRazorpayOrder(finalAmountInRs);
     
     if (!orderResult.success) {
       alert("Failed to initialize checkout: " + orderResult.error);
@@ -156,9 +179,8 @@ export default function CartDrawer() {
       order_id: orderResult.orderId,
       handler: async function (response: RazorpaySuccessResponse) {
         // Step 3: Handle success, process order and save to DB
-        const finalTotal = appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal;
         const verifyResult = await processOrderAfterPayment(
-          finalTotal,
+          finalAmountInRs,
           checkoutItems,
           addressData,
           {
@@ -197,11 +219,15 @@ export default function CartDrawer() {
       },
       theme: {
         color: "#183226" // Forest
+      },
+      modal: {
+        ondismiss: function () {
+          setIsProcessing(false);
+        }
       }
     };
 
     // Calculate final amount for Razorpay (In Paise)
-    const finalAmountInRs = appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal;
     options.amount = finalAmountInRs * 100;
 
     const rzp = new window.Razorpay(options);
@@ -209,11 +235,6 @@ export default function CartDrawer() {
     rzp.on('payment.failed', function (response: RazorpayFailResponse) {
        alert("Payment Failed: " + response.error.description);
        setIsProcessing(false);
-    });
-
-    // Handle modal close without payment completion
-    rzp.on('payment.cancel', function() {
-      setIsProcessing(false);
     });
 
     rzp.open();
@@ -548,11 +569,57 @@ export default function CartDrawer() {
                       <span>- ₹{appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
                     </div>
                   )}
+                  <div className="relative">
+                    <div className="flex justify-between items-center text-sm text-text-muted">
+                      <span className="flex items-center gap-1.5">
+                        Shipping & Handling
+                        <button
+                          type="button"
+                          onClick={() => setShowShippingInfo(!showShippingInfo)}
+                          className="hover:text-forest transition-colors duration-200"
+                          title="View delivery details"
+                        >
+                          <HelpCircle size={14} className="text-forest/70 hover:text-forest transition-colors" />
+                        </button>
+                      </span>
+                      {cartTotal >= shippingSettings.minFreeShippingOrderValue ? (
+                        <span className="text-emerald-600 font-medium">FREE</span>
+                      ) : (
+                        <span>₹{shippingSettings.shippingCharge.toLocaleString("en-IN")}</span>
+                      )}
+                    </div>
+
+                    <AnimatePresence>
+                      {showShippingInfo && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, y: -5 }}
+                          animate={{ opacity: 1, height: "auto", y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -5 }}
+                          className="mt-2 p-3 bg-forest/5 border border-forest/10 rounded-lg text-xs leading-relaxed font-dm text-text-muted"
+                        >
+                          <p className="font-medium text-forest mb-1">Standard Delivery</p>
+                          <p>
+                            A delivery charge of <span className="font-semibold">₹{shippingSettings.shippingCharge}</span> applies for orders below <span className="font-semibold">₹{shippingSettings.minFreeShippingOrderValue}</span>.
+                          </p>
+                          <p className="mt-1">
+                            Enjoy <span className="text-emerald-600 font-medium">Free Delivery</span> on orders of <span className="font-semibold">₹{shippingSettings.minFreeShippingOrderValue}</span> or more.
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   <div className="flex justify-between items-end pt-2 border-t border-gold/10">
                     <span className="text-text-primary font-bold tracking-wide">Final Total</span>
                     <span className="font-playfair text-forest font-bold text-2xl">
-                      ₹{(appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal).toLocaleString("en-IN")}
+                      ₹{(
+                        (appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal) +
+                        (cartTotal >= shippingSettings.minFreeShippingOrderValue ? 0 : shippingSettings.shippingCharge)
+                      ).toLocaleString("en-IN")}
                     </span>
+                  </div>
+                  <div className="mt-3 p-3 bg-amber-500/5 border border-amber-500/10 rounded-lg flex items-center justify-between text-xs font-dm">
+                    <span className="text-text-muted">Expected Delivery</span>
+                    <span className="font-semibold text-forest">Within 3 - 7 business days</span>
                   </div>
                 </div>
                 

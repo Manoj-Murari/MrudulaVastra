@@ -23,6 +23,8 @@ interface CartContextType {
   resetCart: () => void;
   toggleCart: (open?: boolean) => void;
   isHydrated: boolean;
+  warning: string | null;
+  setWarning: (msg: string | null) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -31,6 +33,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [warning, setWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (warning) {
+      const timer = setTimeout(() => setWarning(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [warning]);
 
   useEffect(() => {
     try {
@@ -55,17 +65,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addToCart = useCallback((product: Product, selectedSize?: string) => {
     setItems((prev) => {
-      const cartItemId = `${product.id}-${selectedSize || "none"}`;
+      const actualSize = selectedSize || (product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined);
+      const cartItemId = `${product.id}-${actualSize || "none"}`;
       const existing = prev.find((item) => item.cartItemId === cartItemId);
       
       if (existing) {
+        const newQuantity = existing.quantity + 1;
+        if (newQuantity > product.inventory_count) {
+          setWarning(`Only ${product.inventory_count} items in stock.`);
+          return prev;
+        }
         return prev.map((item) =>
           item.cartItemId === cartItemId
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: newQuantity }
             : item
         );
       }
-      return [...prev, { cartItemId, product, quantity: 1, selectedSize }];
+      if (product.inventory_count < 1) {
+        setWarning("This item is out of stock.");
+        return prev;
+      }
+      return [...prev, { cartItemId, product, quantity: 1, selectedSize: actualSize }];
     });
     setIsCartOpen(true); // Auto open cart on add
   }, []);
@@ -77,9 +97,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
     if (quantity < 1) return removeFromCart(cartItemId);
     setItems((prev) =>
-      prev.map((item) =>
-        item.cartItemId === cartItemId ? { ...item, quantity } : item
-      )
+      prev.map((item) => {
+        if (item.cartItemId === cartItemId) {
+          if (quantity > item.product.inventory_count) {
+            setWarning(`Only ${item.product.inventory_count} items in stock.`);
+            return item;
+          }
+          return { ...item, quantity };
+        }
+        return item;
+      })
     );
   }, [removeFromCart]);
 
@@ -104,9 +131,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
         resetCart,
         toggleCart,
         isHydrated,
+        warning,
+        setWarning,
       }}
     >
       {children}
+      {warning && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-[#E07A5F] text-white px-5 py-3 rounded-lg shadow-2xl text-xs uppercase tracking-widest font-bold flex items-center gap-3 animate-fade-in font-dm select-none border border-white/10">
+          <span className="text-base leading-none">⚠️</span>
+          <span>{warning}</span>
+          <button onClick={() => setWarning(null)} className="text-white hover:text-white/80 font-bold ml-3 text-sm">✕</button>
+        </div>
+      )}
     </CartContext.Provider>
   );
 }
