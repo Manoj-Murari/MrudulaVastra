@@ -51,11 +51,11 @@ export default function InstagramBanner() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3 mb-10">
           {posts.map((post, idx) => (
             <div
               key={post.id}
-              className="group relative overflow-hidden aspect-square cursor-pointer animate-fade-up"
+              className={`group relative overflow-hidden aspect-square cursor-pointer animate-fade-up ${idx >= 4 ? "hidden md:block" : ""}`}
               style={{ animationDelay: `${idx * 0.05}s` }}
             >
               <Image

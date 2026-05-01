@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { Star } from "lucide-react";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 import type { Database } from "@/lib/supabase/types";
@@ -11,6 +12,22 @@ interface TestimonialsSectionProps {
 }
 
 export default function TestimonialsSection({ testimonials }: TestimonialsSectionProps) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft;
+      const cardWidth = container.offsetWidth * 0.78 + 16; // card width + gap
+      const idx = Math.round(scrollLeft / cardWidth);
+      setActiveIdx(idx);
+    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <section className="bg-cream sm:bg-forest font-dm py-8 sm:py-20 lg:py-16 px-4 sm:px-6 lg:px-10 overflow-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto">
@@ -34,11 +51,11 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
         </div>
 
         {/* Mobile: Horizontal swipe carousel | Desktop: 3-column grid */}
-        <div className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-8 lg:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 sm:pb-0">
+        <div ref={scrollRef} className="flex sm:grid sm:grid-cols-3 gap-4 sm:gap-8 lg:gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-4 sm:pb-0">
           {testimonials.map((t, i) => (
             <div
               key={i}
-              className="relative p-6 sm:p-10 lg:p-8 hover:border-gold/60 transition-all duration-500 ease-out animate-fade-up w-[85vw] sm:w-full flex-shrink-0 snap-center group hover:-translate-y-2 bg-white sm:bg-white/[0.03] border border-gold/15"
+              className="relative p-6 sm:p-10 lg:p-8 hover:border-gold/60 transition-all duration-500 ease-out animate-fade-up w-[78vw] sm:w-full flex-shrink-0 snap-center group hover:-translate-y-2 bg-white sm:bg-white/[0.03] border border-gold/15"
               style={{
                 animationDelay: `${i * 0.15}s`,
               }}
@@ -80,6 +97,16 @@ export default function TestimonialsSection({ testimonials }: TestimonialsSectio
                 </p>
               </div>
             </div>
+          ))}
+        </div>
+
+        {/* Mobile Dot Indicators */}
+        <div className="flex sm:hidden items-center justify-center gap-2 mt-4">
+          {testimonials.map((_, i) => (
+            <div
+              key={i}
+              className={`rounded-full transition-all duration-300 ${activeIdx === i ? "w-5 h-1.5 bg-gold" : "w-1.5 h-1.5 bg-gold/25"}`}
+            />
           ))}
         </div>
       </div>

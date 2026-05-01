@@ -19,7 +19,7 @@ export default function CategorySection({ categories }: CategorySectionProps) {
         {/* Section Header */}
         <div className="text-center mb-10 lg:mb-16 animate-fade-up">
           <p
-            className="hidden sm:block uppercase font-bold mb-4 text-gold tracking-[0.5em] text-[9px]"
+            className="uppercase font-bold mb-4 text-gold tracking-[0.5em] text-[9px]"
           >
             The Curations
           </p>
@@ -28,10 +28,10 @@ export default function CategorySection({ categories }: CategorySectionProps) {
           >
             Shop by Category
           </h2>
-          <div className="hidden sm:flex items-center justify-center gap-4 mt-6 opacity-60">
-            <div className="h-px w-12 bg-gold/40" />
-            <OrnamentalDivider className="max-w-[120px]" />
-            <div className="h-px w-12 bg-gold/40" />
+          <div className="flex items-center justify-center gap-4 mt-5 sm:mt-6 opacity-60">
+            <div className="h-px w-8 sm:w-12 bg-gold/40" />
+            <OrnamentalDivider className="max-w-[80px] sm:max-w-[120px]" />
+            <div className="h-px w-8 sm:w-12 bg-gold/40" />
           </div>
         </div>
 

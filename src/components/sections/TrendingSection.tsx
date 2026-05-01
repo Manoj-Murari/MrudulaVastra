@@ -139,12 +139,14 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                     >
                       {product.name}
                     </h3>
-                    <div className="flex items-center gap-2 mb-3">
-                      <StarRating rating={product.rating} />
-                      <span className="text-text-muted" style={{ fontSize: "11px" }}>
-                        ({product.reviews})
-                      </span>
-                    </div>
+                    {product.rating > 0 && product.reviews > 0 && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <StarRating rating={product.rating} />
+                        <span className="text-text-muted" style={{ fontSize: "11px" }}>
+                          ({product.reviews})
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between gap-2 pt-2 border-t border-gold/10">
                       <div className="flex flex-col">
                         <span className="text-gold line-through text-[10px]" style={{ letterSpacing: '0.05em' }}>
@@ -164,9 +166,11 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                             addToCart(product, product.sizes?.[0]);
                           }
                         }}
-                        className="px-5 py-2.5 bg-forest text-cream uppercase font-black text-[9px] tracking-[0.2em] transition-all duration-300 hover:bg-forest/90 active:scale-95 shadow-md"
+                        className="sm:px-5 px-3 py-2.5 bg-forest text-cream uppercase font-black text-[9px] tracking-[0.2em] transition-all duration-300 hover:bg-forest/90 active:scale-95 shadow-md flex items-center justify-center gap-1.5"
                       >
-                        Add to Bag
+                        <ShoppingBag size={12} className="sm:hidden" />
+                        <span className="hidden sm:inline">Add to Bag</span>
+                        <span className="sm:hidden">Add</span>
                       </button>
                     </div>
                   </div>

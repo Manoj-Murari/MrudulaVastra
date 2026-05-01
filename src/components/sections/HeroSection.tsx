@@ -96,12 +96,12 @@ export default function HeroSection() {
               style={{ fontSize: "10px", letterSpacing: "0.25em" }}
             >
               <InstagramIcon size={12} className="opacity-80" />
-              Reels
+              Watch Reels
             </Link>
           </div>
 
           {/* Pillar Stats */}
-          <div className="flex items-center gap-7 pt-4 border-t border-cream/10">
+          <div className="flex items-center gap-7 pt-5 border-t border-cream/10">
             {pillars.map(([label, sub], idx) => (
               <div key={sub} className="relative">
                 <p className="font-playfair text-cream font-bold" style={{ fontSize: "14px" }}>

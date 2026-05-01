@@ -39,7 +39,7 @@ export default function AnnouncementBar() {
           ease: "linear",
           duration: 55 // Much longer duration for slow, elegant, and calming motion
         }}
-        className="flex whitespace-nowrap text-[10px] sm:text-xs tracking-[0.1em] sm:tracking-[0.15em] text-amber-200/80 uppercase font-medium select-none"
+        className="flex whitespace-nowrap text-[11px] sm:text-[13px] tracking-[0.1em] sm:tracking-[0.15em] text-amber-200/80 uppercase font-medium select-none"
       >
         <span>{repeatedText}</span>
         <span>{repeatedText}</span>
