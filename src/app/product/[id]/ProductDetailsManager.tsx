@@ -78,7 +78,7 @@ export default function ProductDetailsManager({
           {product.name}
         </h1>
         
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-5">
           <span className="font-playfair text-forest font-bold text-2xl lg:text-3xl">
             ₹{product.price.toLocaleString("en-IN")}
           </span>
@@ -89,14 +89,12 @@ export default function ProductDetailsManager({
           )}
         </div>
 
-        {product.reviews > 0 && product.rating > 0 ? (
-          <div className="flex items-center gap-2 mb-8 pb-8 border-b border-gold/10">
+        {product.reviews > 0 && product.rating > 0 && (
+          <div className="flex items-center gap-2 mb-5 pb-5 border-b border-gold/10">
             <span className="text-[#1b7a66] text-lg">★</span>
             <span className="text-forest font-dm font-medium">{product.rating}</span>
             <span className="text-text-muted font-dm">({product.reviews} reviews)</span>
           </div>
-        ) : (
-          <div className="mb-8 pb-8 border-b border-gold/10" />
         )}
 
         {/* Description */}
