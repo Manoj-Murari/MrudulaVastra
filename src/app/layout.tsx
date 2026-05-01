@@ -173,7 +173,7 @@ export default function RootLayout({
       <head>
         <JsonLd />
       </head>
-      <body className="min-h-screen font-dm bg-cream text-text-primary antialiased overflow-x-hidden">
+      <body className="min-h-screen font-dm bg-cream text-text-primary antialiased overflow-x-hidden" suppressHydrationWarning={true}>
         <ProgressBarProvider>
           <CartProvider>
             <CartDrawer />
