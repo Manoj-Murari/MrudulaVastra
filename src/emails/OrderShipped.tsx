@@ -8,6 +8,7 @@ import {
   Preview,
   Section,
   Text,
+  Link,
   Button,
 } from "@react-email/components";
 import * as React from "react";
@@ -25,6 +26,7 @@ export default function OrderShipped({
   carrierName,
   trackingId,
 }: OrderShippedEmailProps) {
+  // Simple check for common carriers to construct a tracking link if possible
   let trackingUrl = "";
   const carrier = carrierName.toLowerCase();
   if (carrier.includes("delhivery")) {
@@ -43,29 +45,17 @@ export default function OrderShipped({
 
   return (
     <Html>
-      <Head>
-        <style>{`
-          @media only screen and (max-width: 600px) {
-            .container { width: 100% !important; padding: 0 !important; }
-            .body-section { padding: 24px 16px !important; border-radius: 0 !important; }
-            .brand-text { font-size: 20px !important; }
-            .h1 { font-size: 20px !important; }
-            .track-btn { width: 100% !important; display: block !important; text-align: center !important; box-sizing: border-box !important; }
-          }
-        `}</style>
-      </Head>
+      <Head />
       <Preview>Your Mrudula Vastra order has been shipped!</Preview>
       <Body style={main}>
-        <Container style={container} className="container">
-          {/* Header */}
+        <Container style={container}>
           <Section style={headerSection}>
-            <Text style={brandTypography} className="brand-text">MRUDULA VASTRA</Text>
+            <Text style={brandTypography}>MRUDULA VASTRA</Text>
             <Text style={subtitle}>Elegance Woven in Every Thread</Text>
           </Section>
 
-          {/* Body */}
-          <Section style={bodySection} className="body-section">
-            <Heading style={h1} className="h1">Your Order is on the Way!</Heading>
+          <Section style={bodySection}>
+            <Heading style={h1}>Your Order is on the Way!</Heading>
             <Text style={text}>Dear {customerName},</Text>
             <Text style={text}>
               We are excited to let you know that your order <strong>{orderId}</strong> has been shipped and is now on its way to you.
@@ -73,7 +63,6 @@ export default function OrderShipped({
 
             <Hr style={hr} />
 
-            {/* Shipping details box */}
             <Section style={shippingSection}>
               <Text style={shippingLabel}>Shipping Details</Text>
               <Text style={shippingText}><strong>Courier:</strong> {carrierName}</Text>
@@ -82,13 +71,13 @@ export default function OrderShipped({
 
             {trackingUrl ? (
               <Section style={buttonContainer}>
-                <Button style={button} href={trackingUrl} className="track-btn">
+                <Button style={button} href={trackingUrl}>
                   Track Your Order
                 </Button>
               </Section>
             ) : (
               <Text style={text}>
-                Please use the tracking ID provided above on the courier&apos;s website to track your shipment.
+                Please use the tracking ID provided above on the courier's website to track your shipment.
               </Text>
             )}
 
@@ -97,7 +86,7 @@ export default function OrderShipped({
             <Text style={text}>
               Thank you for shopping with us. We hope you love your exquisite selections!
             </Text>
-
+            
             <Text style={footerText}>
               Warm regards,
               <br />
@@ -110,8 +99,9 @@ export default function OrderShipped({
   );
 }
 
+// Styling (Mocked closely to brand specifics)
 const main = {
-  backgroundColor: "#FDFBF7",
+  backgroundColor: "#FDFBF7", // cream
   fontFamily:
     "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen-Sans,Ubuntu,Cantarell,'Helvetica Neue',sans-serif",
 };
@@ -119,38 +109,37 @@ const main = {
 const container = {
   margin: "0 auto",
   padding: "20px 0 48px",
-  width: "100%",
-  maxWidth: "580px",
+  width: "580px",
+  maxWidth: "100%",
 };
 
 const headerSection = {
   textAlign: "center" as const,
-  padding: "32px 16px",
+  padding: "32px 0",
 };
 
 const brandTypography = {
   fontSize: "24px",
   fontWeight: "bold",
-  color: "#1A3C2E",
+  color: "#1A3C2E", // forest
   letterSpacing: "0.1em",
   margin: "0",
-  textAlign: "center" as const,
 };
 
 const subtitle = {
   fontSize: "10px",
   letterSpacing: "0.3em",
-  color: "#b8963e",
+  color: "#b8963e", // gold
   textTransform: "uppercase" as const,
   margin: "4px 0 0",
-  textAlign: "center" as const,
 };
 
 const bodySection = {
   backgroundColor: "#ffffff",
   padding: "40px",
-  border: "1px solid rgba(184,150,62,0.15)",
+  border: "1px solid rgba(184,150,62,0.15)", // gold/15
   borderRadius: "8px",
+  boxShadow: "0 4px 24px rgba(26,60,46,0.04)",
 };
 
 const h1 = {
@@ -195,24 +184,23 @@ const shippingText = {
   fontSize: "14px",
   color: "#333333",
   lineHeight: "24px",
-  margin: "0 0 4px",
+  margin: "0",
 };
 
 const buttonContainer = {
   textAlign: "center" as const,
-  margin: "24px 0",
+  margin: "32px 0",
 };
 
 const button = {
   backgroundColor: "#1A3C2E",
   color: "#ffffff",
-  padding: "14px 32px",
+  padding: "12px 24px",
   borderRadius: "4px",
   textDecoration: "none",
   fontWeight: "bold",
   fontSize: "14px",
   letterSpacing: "0.05em",
-  display: "inline-block",
 };
 
 const footerText = {
