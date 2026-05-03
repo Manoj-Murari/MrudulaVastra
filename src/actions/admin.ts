@@ -147,7 +147,10 @@ export async function updateOrderStatus(
     .select("customer_name, customer_email, user_id, carrier_name, tracking_id")
     .single();
 
-  if (error) return { error: error.message };
+  if (error) {
+    console.error(`[Admin Update Order Error] Failed to update status in Supabase:`, error);
+    return { error: error.message };
+  }
 
   // Fetch email if we have it, either from the order or the profiles
   let email = orderData?.customer_email;
