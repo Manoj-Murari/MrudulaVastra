@@ -564,10 +564,15 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                               <p className="text-[13px] font-medium" style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}>
                                 {item.products?.name || `Product #${item.product_id}`}
                               </p>
-                              <p className="text-[11px]" style={{ color: "var(--admin-text-dim)" }}>
+                              <p className="text-[11px] flex items-center gap-1.5 flex-wrap" style={{ color: "var(--admin-text-dim)" }}>
                                 Qty: {item.quantity} × ₹{item.unit_price.toLocaleString("en-IN")}
+                                {item.variant && (
+                                  <span className="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded" style={{ background: "var(--admin-accent-glow)", color: "var(--admin-accent)", border: "1px solid var(--admin-border-active)" }}>
+                                    Size: {item.variant}
+                                  </span>
+                                )}
                                 {item.products?.category && (
-                                  <span className="ml-2 text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}>
+                                  <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}>
                                     {item.products.category}
                                   </span>
                                 )}

@@ -155,6 +155,7 @@ export async function processOrderAfterPayment(
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
+        variant: item.variant || null,
       }));
 
       const { error: itemsError } = await (supabase as any)
