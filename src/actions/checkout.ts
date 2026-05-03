@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { render } from "@react-email/render";
 import OrderReceipt from "@/emails/OrderReceipt";
 import { Resend } from "resend";
@@ -97,13 +97,12 @@ export async function processOrderAfterPayment(
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    const adminClient = await createAdminClient();
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     let nextId = 1001;
     try {
-      const { data: existingOrders } = await adminClient.from("orders").select("id");
+      const { data: existingOrders } = await (supabase as any).from("orders").select("id");
       if (existingOrders && existingOrders.length > 0) {
         const validNumbers = existingOrders
           .map((o: any) => {
@@ -122,49 +121,72 @@ export async function processOrderAfterPayment(
       // ignore gracefully
     }
 
-    const orderId = `MV-${nextId}`;
+    let orderId = `MV-${nextId}`;
+    let order: any = null;
+    let orderError: any = null;
 
-    const insertPayload: OrderInsertPayload = {
-      id: orderId,
-      total_amount: totalAmount,
-      status: "paid",
-      user_id: user ? user.id : null,
-    };
-    
-    if (paymentDetails?.razorpay_order_id) {
-      insertPayload.razorpay_order_id = paymentDetails.razorpay_order_id;
-      insertPayload.razorpay_payment_id = paymentDetails.razorpay_payment_id;
-    }
+    // Retry loop in case of RLS obscuring max ID and causing Unique Constraint violations
+    let retries = 0;
+    while (retries < 20) {
+      const insertPayload: OrderInsertPayload = {
+        id: orderId,
+        total_amount: totalAmount,
+        status: "paid",
+        user_id: user ? user.id : null,
+      };
+      
+      if (paymentDetails?.razorpay_order_id) {
+        insertPayload.razorpay_order_id = paymentDetails.razorpay_order_id;
+        insertPayload.razorpay_payment_id = paymentDetails.razorpay_payment_id;
+      }
 
-    let { data: order, error: orderError } = await adminClient
-      .from("orders")
-      .insert(insertPayload)
-      .select("id")
-      .single();
+      let { data: insertedOrder, error: insertError } = await (supabase as any)
+        .from("orders")
+        .insert(insertPayload)
+        .select("id")
+        .single();
 
-    if (orderError) {
-      // Fallback if razorpay columns haven't been created yet
-      if (orderError.code === "42703") {
-        const fallback = await adminClient
-          .from("orders")
-          .insert({
-            id: orderId,
-            total_amount: totalAmount,
-            status: "paid",
-            user_id: user ? user.id : null,
-          })
-          .select("id")
-          .single();
-        order = fallback.data;
-        orderError = fallback.error;
+      if (insertError) {
+        if (insertError.code === "42703") {
+          const fallback = await (supabase as any)
+            .from("orders")
+            .insert({
+              id: orderId,
+              total_amount: totalAmount,
+              status: "paid",
+              user_id: user ? user.id : null,
+            })
+            .select("id")
+            .single();
+          insertedOrder = fallback.data;
+          insertError = fallback.error;
+        }
+      }
+
+      if (insertError) {
+        // 23505 is PostgreSQL Unique Violation code
+        if (insertError.code === "23505") {
+          nextId++;
+          orderId = `MV-${nextId}`;
+          retries++;
+          continue;
+        }
+        // Ignore RLS errors like original code did
+        if (insertError.code !== "42501" && !(insertError.message || "").includes("row-level security")) {
+          orderError = insertError;
+        }
+        break;
       }
       
-      if (orderError) {
-        throw orderError;
-      }
+      order = insertedOrder;
+      break;
     }
 
-    const mockOrderId = order?.id || String(nextId);
+    if (orderError) {
+      throw orderError;
+    }
+
+    const mockOrderId = order?.id || orderId;
 
     // Write order items to Supabase
     if (order && items.length > 0) {
@@ -175,7 +197,7 @@ export async function processOrderAfterPayment(
         unit_price: item.unit_price,
       }));
 
-      const { error: itemsError } = await adminClient
+      const { error: itemsError } = await (supabase as any)
         .from("order_items")
         .insert(orderItems);
 
@@ -184,7 +206,7 @@ export async function processOrderAfterPayment(
       // Deduct inventory from products table
       try {
         const updatePromises = items.map(async (item) => {
-          const { data: p } = await adminClient
+          const { data: p } = await (supabase as any)
             .from("products")
             .select("inventory_count")
             .eq("id", item.product_id)
@@ -192,7 +214,7 @@ export async function processOrderAfterPayment(
 
           if (p) {
             const newCount = Math.max(0, (p.inventory_count || 0) - item.quantity);
-            await adminClient
+            await (supabase as any)
               .from("products")
               .update({ inventory_count: newCount })
               .eq("id", item.product_id);
@@ -244,6 +266,7 @@ export async function processOrderAfterPayment(
       message: "Order placed successfully!",
     };
   } catch (error: unknown) {
+    console.error("Error processing checkout:", error);
     const message = error instanceof Error ? error.message : "Failed to process checkout";
     return {
       success: false,

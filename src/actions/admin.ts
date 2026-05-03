@@ -198,17 +198,37 @@ export async function createOfflineOrder(data: {
     // ignore gracefully
   }
 
-  const orderId = `MV-${nextId}`;
+  let orderId = `MV-${nextId}`;
+  let order: any = null;
+  let orderError: any = null;
 
-  const { data: order, error: orderError } = await (supabase as any).from('orders').insert({
-    id: orderId,
-    total_amount: totalAmount,
-    status: 'paid',
-    user_id: null,
-    customer_name: data.customerName,
-    phone: data.phone,
-    payment_mode: data.paymentMode
-  }).select().single();
+  let retries = 0;
+  while (retries < 20) {
+    const { data: insertedOrder, error: insertError } = await (supabase as any).from('orders').insert({
+      id: orderId,
+      total_amount: totalAmount,
+      status: 'paid',
+      user_id: null,
+      customer_name: data.customerName,
+      phone: data.phone,
+      payment_mode: data.paymentMode
+    }).select().single();
+
+    if (insertError) {
+      if (insertError.code === "23505") { // PostgreSQL unique violation
+        nextId++;
+        orderId = `MV-${nextId}`;
+        retries++;
+        continue;
+      }
+      if (insertError.code !== "42501" && !(insertError.message || "").includes("row-level security")) {
+        orderError = insertError;
+      }
+      break;
+    }
+    order = insertedOrder;
+    break;
+  }
 
   if (orderError) return { error: orderError.message };
 
