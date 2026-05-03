@@ -177,34 +177,30 @@ export async function createOfflineOrder(data: {
 
   const totalAmount = product.price * data.quantity;
 
+  // Determine next sequential order ID
   let nextId = 1001;
   try {
     const { data: existingOrders } = await (supabase as any).from("orders").select("id");
     if (existingOrders && existingOrders.length > 0) {
-      const validNumbers = existingOrders
+      const nums = existingOrders
         .map((o: any) => {
           if (!o.id) return NaN;
-          if (o.id.startsWith("MV-")) {
-            return parseInt(o.id.replace("MV-", ""), 10);
-          }
-          return parseInt(o.id, 10);
+          const raw = o.id.startsWith("MV-") ? o.id.slice(3) : o.id;
+          return parseInt(raw, 10);
         })
-        .filter((num: any) => !isNaN(num));
-      if (validNumbers.length > 0) {
-        nextId = Math.max(...validNumbers) + 1;
-      }
+        .filter((n: number) => !isNaN(n));
+      if (nums.length > 0) nextId = Math.max(...nums) + 1;
     }
-  } catch (err) {
-    // ignore gracefully
+  } catch {
+    // RLS may limit visibility — fall back to default
   }
 
+  // Insert order with retry on duplicate ID
   let orderId = `MV-${nextId}`;
   let order: any = null;
-  let orderError: any = null;
 
-  let retries = 0;
-  while (retries < 20) {
-    const { data: insertedOrder, error: insertError } = await (supabase as any).from('orders').insert({
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { data: insertedOrder, error } = await (supabase as any).from('orders').insert({
       id: orderId,
       total_amount: totalAmount,
       status: 'paid',
@@ -214,23 +210,19 @@ export async function createOfflineOrder(data: {
       payment_mode: data.paymentMode
     }).select().single();
 
-    if (insertError) {
-      if (insertError.code === "23505") { // PostgreSQL unique violation
-        nextId++;
-        orderId = `MV-${nextId}`;
-        retries++;
-        continue;
-      }
-      if (insertError.code !== "42501" && !(insertError.message || "").includes("row-level security")) {
-        orderError = insertError;
-      }
+    if (!error) {
+      order = insertedOrder;
       break;
     }
-    order = insertedOrder;
-    break;
+    if (error.code === "23505") {
+      nextId++;
+      orderId = `MV-${nextId}`;
+      continue;
+    }
+    return { error: error.message };
   }
 
-  if (orderError) return { error: orderError.message };
+  if (!order) return { error: "Failed to create order" };
 
   const { error: itemError } = await (supabase as any).from('order_items').insert({
     order_id: order.id,

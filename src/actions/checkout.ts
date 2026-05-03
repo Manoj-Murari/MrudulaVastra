@@ -34,14 +34,6 @@ interface ShippingAddress {
   state?: string;
 }
 
-interface OrderInsertPayload {
-  id?: string;
-  total_amount: number;
-  status: string;
-  user_id: string | null;
-  razorpay_order_id?: string;
-  razorpay_payment_id?: string;
-}
 
 /* ─── Razorpay Order Creation ────────────────────────── */
 
@@ -84,6 +76,7 @@ export async function processOrderAfterPayment(
   paymentDetails?: RazorpayPaymentDetails
 ) {
   try {
+    // Verify Razorpay signature
     if (paymentDetails?.razorpay_order_id) {
       const crypto = require("crypto");
       const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || "");
@@ -93,102 +86,66 @@ export async function processOrderAfterPayment(
       if (generated_signature !== paymentDetails.razorpay_signature) {
         return { success: false, message: "Payment verification failed. Invalid signature." };
       }
-    } else {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Determine next sequential order ID
     let nextId = 1001;
     try {
       const { data: existingOrders } = await (supabase as any).from("orders").select("id");
       if (existingOrders && existingOrders.length > 0) {
-        const validNumbers = existingOrders
+        const nums = existingOrders
           .map((o: any) => {
             if (!o.id) return NaN;
-            if (o.id.startsWith("MV-")) {
-              return parseInt(o.id.replace("MV-", ""), 10);
-            }
-            return parseInt(o.id, 10);
+            const raw = o.id.startsWith("MV-") ? o.id.slice(3) : o.id;
+            return parseInt(raw, 10);
           })
-          .filter((num: any) => !isNaN(num));
-        if (validNumbers.length > 0) {
-          nextId = Math.max(...validNumbers) + 1;
-        }
+          .filter((n: number) => !isNaN(n));
+        if (nums.length > 0) nextId = Math.max(...nums) + 1;
       }
-    } catch (err) {
-      // ignore gracefully
+    } catch {
+      // RLS may limit visibility — fall back to default
     }
 
+    // Insert order with retry on duplicate ID
     let orderId = `MV-${nextId}`;
     let order: any = null;
-    let orderError: any = null;
 
-    // Retry loop in case of RLS obscuring max ID and causing Unique Constraint violations
-    let retries = 0;
-    while (retries < 20) {
-      const insertPayload: OrderInsertPayload = {
-        id: orderId,
-        total_amount: totalAmount,
-        status: "paid",
-        user_id: user ? user.id : null,
-      };
-      
-      if (paymentDetails?.razorpay_order_id) {
-        insertPayload.razorpay_order_id = paymentDetails.razorpay_order_id;
-        insertPayload.razorpay_payment_id = paymentDetails.razorpay_payment_id;
-      }
-
-      let { data: insertedOrder, error: insertError } = await (supabase as any)
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { data, error } = await (supabase as any)
         .from("orders")
-        .insert(insertPayload)
+        .insert({
+          id: orderId,
+          total_amount: totalAmount,
+          status: "paid",
+          user_id: user ? user.id : null,
+          ...(paymentDetails?.razorpay_order_id && {
+            razorpay_order_id: paymentDetails.razorpay_order_id,
+            razorpay_payment_id: paymentDetails.razorpay_payment_id,
+          }),
+        })
         .select("id")
         .single();
 
-      if (insertError) {
-        if (insertError.code === "42703") {
-          const fallback = await (supabase as any)
-            .from("orders")
-            .insert({
-              id: orderId,
-              total_amount: totalAmount,
-              status: "paid",
-              user_id: user ? user.id : null,
-            })
-            .select("id")
-            .single();
-          insertedOrder = fallback.data;
-          insertError = fallback.error;
-        }
-      }
-
-      if (insertError) {
-        // 23505 is PostgreSQL Unique Violation code
-        if (insertError.code === "23505") {
-          nextId++;
-          orderId = `MV-${nextId}`;
-          retries++;
-          continue;
-        }
-        // Ignore RLS errors like original code did
-        if (insertError.code !== "42501" && !(insertError.message || "").includes("row-level security")) {
-          orderError = insertError;
-        }
+      if (!error) {
+        order = data;
         break;
       }
-      
-      order = insertedOrder;
-      break;
+      if (error.code === "23505") {
+        // Duplicate — increment and retry
+        nextId++;
+        orderId = `MV-${nextId}`;
+        continue;
+      }
+      if (error.code === "42501") break; // RLS — order may still have been created
+      throw error;
     }
 
-    if (orderError) {
-      throw orderError;
-    }
+    const finalOrderId = order?.id || orderId;
 
-    const mockOrderId = order?.id || orderId;
-
-    // Write order items to Supabase
+    // Insert order items
     if (order && items.length > 0) {
       const orderItems = items.map((item) => ({
         order_id: order.id,
@@ -201,76 +158,67 @@ export async function processOrderAfterPayment(
         .from("order_items")
         .insert(orderItems);
 
-      if (itemsError) throw itemsError;
+      if (itemsError && itemsError.code !== "42501") throw itemsError;
 
-      // Deduct inventory from products table
+      // Deduct inventory
       try {
-        const updatePromises = items.map(async (item) => {
+        await Promise.all(items.map(async (item) => {
           const { data: p } = await (supabase as any)
             .from("products")
             .select("inventory_count")
             .eq("id", item.product_id)
             .single();
-
           if (p) {
-            const newCount = Math.max(0, (p.inventory_count || 0) - item.quantity);
             await (supabase as any)
               .from("products")
-              .update({ inventory_count: newCount })
+              .update({ inventory_count: Math.max(0, (p.inventory_count || 0) - item.quantity) })
               .eq("id", item.product_id);
           }
-        });
-        await Promise.all(updatePromises);
-      } catch (err) {
-        // Silent catch: don't abort successful checkout
+        }));
+      } catch {
+        // Don't abort checkout for inventory errors
       }
     }
 
-    // Send email receipt via Resend
+    // Send email receipt
     if (addressData) {
       try {
-        const orderItems = items.map((i) => ({
-          name: i.name || `Product ID: ${i.product_id}`,
-          variant: i.variant,
-          quantity: i.quantity,
-          price: i.unit_price,
-        }));
-
         const html = await render(
           OrderReceipt({
-            orderId: mockOrderId,
+            orderId: finalOrderId,
             customerName: addressData.fullName,
             totalAmount: `₹${totalAmount.toLocaleString("en-IN")}`,
-            items: orderItems,
+            items: items.map((i) => ({
+              name: i.name || `Product ID: ${i.product_id}`,
+              variant: i.variant,
+              quantity: i.quantity,
+              price: i.unit_price,
+            })),
             shippingAddress: `${addressData.fullAddress}${addressData.city ? `, ${addressData.city}` : ""}${addressData.state ? `, ${addressData.state}` : ""} - ${addressData.pincode}`,
           }) as React.ReactElement
         );
 
         if (process.env.RESEND_API_KEY) {
-          const targetEmail = addressData.email || user?.email || "customer@example.com";
           await resend.emails.send({
             from: "Mrudula Vastra <orders@mrudulavastra.in>",
-            to: targetEmail, 
+            to: addressData.email || user?.email || "customer@example.com",
             subject: "Order Confirmed - Mrudula Vastra",
-            html: html,
+            html,
           });
         }
       } catch {
-        // Do not abort checkout if email fails
+        // Don't abort checkout if email fails
       }
     }
 
     return {
       success: true,
-      orderId: mockOrderId,
+      orderId: finalOrderId,
       message: "Order placed successfully!",
     };
   } catch (error: unknown) {
     console.error("Error processing checkout:", error);
     const message = error instanceof Error ? error.message : "Failed to process checkout";
-    return {
-      success: false,
-      message,
-    };
+    return { success: false, message };
   }
 }
