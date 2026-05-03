@@ -443,18 +443,104 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                   )}
                 </div>
 
-                {/* Summary */}
+                {/* Customer Details */}
                 <div className="rounded-lg border p-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}>
                   <p className="text-[10px] uppercase tracking-[0.2em] font-bold mb-3" style={{ color: "var(--admin-text-dim)" }}>
-                    Order Summary
+                    Customer Details
                   </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[13px]" style={{ color: "var(--admin-text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Total</span>
-                    <span className="text-xl font-bold" style={{ color: "var(--admin-accent)", fontFamily: "'DM Sans', sans-serif" }}>
-                      ₹{selectedOrder.total_amount.toLocaleString("en-IN")}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Name</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>
+                        {selectedOrder.customer_name || "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Phone</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>
+                        {selectedOrder.phone ? (
+                          <a href={`tel:${selectedOrder.phone}`} style={{ color: "var(--admin-accent)" }}>{selectedOrder.phone}</a>
+                        ) : "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Email</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>
+                        {selectedOrder.customer_email ? (
+                          <a href={`mailto:${selectedOrder.customer_email}`} style={{ color: "var(--admin-accent)" }}>{selectedOrder.customer_email}</a>
+                        ) : (
+                          <span style={{ color: "var(--admin-amber)" }}>Not provided</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Source</span>
+                      <span
+                        className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: selectedOrder.user_id ? "var(--admin-blue-muted)" : "var(--admin-amber-muted)",
+                          color: selectedOrder.user_id ? "var(--admin-blue)" : "var(--admin-amber)",
+                        }}
+                      >
+                        {selectedOrder.user_id ? "Online" : "Offline"}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Payment Details */}
+                <div className="rounded-lg border p-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold mb-3" style={{ color: "var(--admin-text-dim)" }}>
+                    Payment Details
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Total Amount</span>
+                      <span className="text-xl font-bold" style={{ color: "var(--admin-accent)", fontFamily: "'DM Sans', sans-serif" }}>
+                        ₹{selectedOrder.total_amount.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    {selectedOrder.payment_mode && (
+                      <div className="flex justify-between">
+                        <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Payment Mode</span>
+                        <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>
+                          {selectedOrder.payment_mode}
+                        </span>
+                      </div>
+                    )}
+                    {selectedOrder.razorpay_payment_id && (
+                      <div className="flex justify-between">
+                        <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Razorpay ID</span>
+                        <span className="text-[11px] font-mono" style={{ color: "var(--admin-text-dim)" }}>
+                          {selectedOrder.razorpay_payment_id}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Shipping / Tracking */}
+                {(selectedOrder.carrier_name || selectedOrder.tracking_id || ["shipped", "delivered"].includes(selectedOrder.status)) && (
+                  <div className="rounded-lg border p-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold mb-3" style={{ color: "var(--admin-text-dim)" }}>
+                      Shipping & Tracking
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Carrier</span>
+                        <span className="text-[13px] font-medium" style={{ color: "var(--admin-text)" }}>
+                          {selectedOrder.carrier_name || "Not assigned"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>Tracking ID</span>
+                        <span className="text-[13px] font-mono font-medium" style={{ color: "var(--admin-text)" }}>
+                          {selectedOrder.tracking_id || "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Line Items */}
                 {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
@@ -465,13 +551,28 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                     <div className="space-y-3">
                       {selectedOrder.order_items.map((item: any, i: number) => (
                         <div key={i} className="flex items-center justify-between border-b pb-3" style={{ borderColor: "var(--admin-border)" }}>
-                          <div>
-                            <p className="text-[13px] font-medium" style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}>
-                              {item.products?.name || `Product #${item.product_id}`}
-                            </p>
-                            <p className="text-[11px]" style={{ color: "var(--admin-text-dim)" }}>
-                              Qty: {item.quantity} × ₹{item.unit_price.toLocaleString("en-IN")}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            {item.products?.image && (
+                              <img
+                                src={item.products.image}
+                                alt={item.products.name}
+                                className="w-10 h-10 rounded-md object-cover border"
+                                style={{ borderColor: "var(--admin-border)" }}
+                              />
+                            )}
+                            <div>
+                              <p className="text-[13px] font-medium" style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}>
+                                {item.products?.name || `Product #${item.product_id}`}
+                              </p>
+                              <p className="text-[11px]" style={{ color: "var(--admin-text-dim)" }}>
+                                Qty: {item.quantity} × ₹{item.unit_price.toLocaleString("en-IN")}
+                                {item.products?.category && (
+                                  <span className="ml-2 text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}>
+                                    {item.products.category}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
                           </div>
                           <span className="text-[13px] font-semibold" style={{ color: "var(--admin-text)" }}>
                             ₹{(item.quantity * item.unit_price).toLocaleString("en-IN")}

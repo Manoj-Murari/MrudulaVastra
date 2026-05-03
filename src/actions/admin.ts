@@ -133,6 +133,13 @@ export async function updateOrderStatus(
   trackingId?: string,
   customerEmail?: string
 ) {
+  console.log(`\n=== [updateOrderStatus] START ===`);
+  console.log(`  orderId: ${orderId}`);
+  console.log(`  newStatus: ${newStatus}`);
+  console.log(`  carrierName: ${carrierName}`);
+  console.log(`  trackingId: ${trackingId}`);
+  console.log(`  customerEmail (param): ${customerEmail}`);
+
   const supabase = await createClient();
   
   const updateData: any = { status: newStatus };
@@ -140,28 +147,55 @@ export async function updateOrderStatus(
   if (trackingId) updateData.tracking_id = trackingId;
   if (customerEmail) updateData.customer_email = customerEmail;
 
-  const { data: orderData, error } = await (supabase as any)
+  console.log(`  updateData:`, JSON.stringify(updateData));
+
+  // Step 1: Update the order (no .select() — avoids RLS RETURNING issue)
+  const { error: updateError } = await (supabase as any)
     .from("orders")
     .update(updateData)
-    .eq("id", orderId)
-    .select("customer_name, customer_email, user_id, carrier_name, tracking_id")
-    .single();
+    .eq("id", orderId);
 
-  if (error) {
-    console.error(`[Admin Update Order Error] Failed to update status in Supabase:`, error);
-    return { error: error.message };
+  if (updateError) {
+    console.error(`  [ERROR] Supabase update failed:`, JSON.stringify(updateError));
+    return { error: updateError.message };
   }
 
-  // Fetch email if we have it, either from the order or the profiles
-  let email = orderData?.customer_email;
+  console.log(`  [OK] Supabase update succeeded.`);
+
+  // Step 2: Fetch the updated order data separately
+  const { data: orderData, error: selectError } = await (supabase as any)
+    .from("orders")
+    .select("customer_name, customer_email, user_id, carrier_name, tracking_id")
+    .eq("id", orderId)
+    .single();
+
+  if (selectError) {
+    console.error(`  [WARN] Could not fetch order data for email:`, JSON.stringify(selectError));
+    // Update succeeded, just can't send email
+    revalidatePath("/admin/orders");
+    revalidatePath("/admin");
+    return { success: true };
+  }
+
+  console.log(`  [OK] Order data fetched:`, JSON.stringify(orderData));
+
+  const email = orderData?.customer_email;
   const name = orderData?.customer_name || "Customer";
 
-  console.log(`[Order Status Email Trigger] Order ID: ${orderId}, Target Email: ${email}, Key Exists: ${!!process.env.RESEND_API_KEY}`);
+  console.log(`  Target Email: ${email}`);
+  console.log(`  Customer Name: ${name}`);
+  console.log(`  RESEND_API_KEY exists: ${!!process.env.RESEND_API_KEY}`);
+  console.log(`  RESEND_API_KEY starts with: ${process.env.RESEND_API_KEY?.substring(0, 6)}...`);
 
-  // Send Email Notifications if RESEND is configured and we have an email
-  if (process.env.RESEND_API_KEY && email) {
+  if (!process.env.RESEND_API_KEY) {
+    console.log(`  [SKIP] No RESEND_API_KEY — skipping email`);
+  } else if (!email) {
+    console.log(`  [SKIP] No customer email — skipping email`);
+  } else {
+    console.log(`  [SENDING] Attempting to send ${newStatus} email to ${email}...`);
     try {
       if (newStatus.toLowerCase() === "shipped") {
+        console.log(`  [RENDER] Rendering OrderShipped template...`);
         const html = await render(
           OrderShipped({
             orderId,
@@ -170,30 +204,42 @@ export async function updateOrderStatus(
             trackingId: orderData.tracking_id || "N/A",
           }) as React.ReactElement
         );
-        await resend.emails.send({
+        console.log(`  [RENDER OK] HTML length: ${html.length}`);
+        
+        const result = await resend.emails.send({
           from: "Mrudula Vastra <orders@mrudulavastra.in>",
           to: email,
           subject: `Your Order ${orderId} has been Shipped!`,
           html,
         });
+        console.log(`  [RESEND RESULT]`, JSON.stringify(result));
+        
       } else if (newStatus.toLowerCase() === "delivered") {
+        console.log(`  [RENDER] Rendering OrderDelivered template...`);
         const html = await render(
           OrderDelivered({
             orderId,
             customerName: name,
           }) as React.ReactElement
         );
-        await resend.emails.send({
+        console.log(`  [RENDER OK] HTML length: ${html.length}`);
+        
+        const result = await resend.emails.send({
           from: "Mrudula Vastra <orders@mrudulavastra.in>",
           to: email,
           subject: `Your Order ${orderId} has been Delivered!`,
           html,
         });
+        console.log(`  [RESEND RESULT]`, JSON.stringify(result));
+      } else {
+        console.log(`  [SKIP] Status "${newStatus}" does not trigger an email`);
       }
     } catch (e) {
-      console.error("Failed to send status update email:", e);
+      console.error(`  [EMAIL ERROR] Failed to send:`, e);
     }
   }
+
+  console.log(`=== [updateOrderStatus] END ===\n`);
 
   revalidatePath("/admin/orders");
   revalidatePath("/admin");
