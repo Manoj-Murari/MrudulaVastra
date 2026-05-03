@@ -168,18 +168,36 @@ export async function processOrderAfterPayment(
         await Promise.all(items.map(async (item) => {
           const { data: p } = await (supabase as any)
             .from("products")
-            .select("inventory_count")
+            .select("inventory_count, variants")
             .eq("id", item.product_id)
             .single();
           if (p) {
+            const updatePayload: any = {
+              inventory_count: Math.max(0, (p.inventory_count || 0) - item.quantity)
+            };
+
+            // Deduct from size inventory matrix if it exists
+            if (p.variants && Array.isArray(p.variants) && item.variant) {
+              const variantsCopy = [...p.variants];
+              const sizeInvIdx = variantsCopy.findIndex((v: any) => v && v.type === "size_inventory");
+              if (sizeInvIdx !== -1 && variantsCopy[sizeInvIdx].data) {
+                const sizeData = { ...variantsCopy[sizeInvIdx].data };
+                if (sizeData[item.variant] !== undefined) {
+                  sizeData[item.variant] = Math.max(0, (sizeData[item.variant] as number) - item.quantity);
+                  variantsCopy[sizeInvIdx] = { ...variantsCopy[sizeInvIdx], data: sizeData };
+                  updatePayload.variants = variantsCopy;
+                }
+              }
+            }
+
             await (supabase as any)
               .from("products")
-              .update({ inventory_count: Math.max(0, (p.inventory_count || 0) - item.quantity) })
+              .update(updatePayload)
               .eq("id", item.product_id);
           }
         }));
-      } catch {
-        // Don't abort checkout for inventory errors
+      } catch (err) {
+        console.error("Inventory deduction error:", err);
       }
     }
 
