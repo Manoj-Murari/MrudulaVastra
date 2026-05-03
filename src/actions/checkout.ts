@@ -149,9 +149,9 @@ export async function processOrderAfterPayment(
     const finalOrderId = order?.id || orderId;
 
     // Insert order items
-    if (order && items.length > 0) {
+    if (finalOrderId && items.length > 0) {
       const orderItems = items.map((item) => ({
-        order_id: order.id,
+        order_id: finalOrderId,
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,

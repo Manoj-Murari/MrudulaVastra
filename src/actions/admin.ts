@@ -334,6 +334,10 @@ export async function createOfflineOrder(data: {
       orderId = `MV-${nextId}`;
       continue;
     }
+    if (error.code === "42501") {
+      order = { id: orderId };
+      break;
+    }
     return { error: error.message };
   }
 
@@ -343,7 +347,8 @@ export async function createOfflineOrder(data: {
     order_id: order.id,
     product_id: data.productId,
     quantity: data.quantity,
-    unit_price: product.price
+    unit_price: product.price,
+    variant: data.size || null
   });
 
   if (itemError) return { error: itemError.message };
