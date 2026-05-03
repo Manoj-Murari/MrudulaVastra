@@ -104,15 +104,23 @@ export async function processOrderAfterPayment(
     let nextId = 1001;
     if (existingOrders && existingOrders.length > 0) {
       const validNumbers = existingOrders
-        .map((o: any) => parseInt(o.id, 10))
+        .map((o: any) => {
+          if (!o.id) return NaN;
+          if (o.id.startsWith("MV-")) {
+            return parseInt(o.id.replace("MV-", ""), 10);
+          }
+          return parseInt(o.id, 10);
+        })
         .filter((num: any) => !isNaN(num));
       if (validNumbers.length > 0) {
         nextId = Math.max(...validNumbers) + 1;
       }
     }
 
+    const orderId = `MV-${nextId}`;
+
     const insertPayload: OrderInsertPayload = {
-      id: String(nextId),
+      id: orderId,
       total_amount: totalAmount,
       status: "paid",
       user_id: user ? user.id : null,
@@ -135,7 +143,7 @@ export async function processOrderAfterPayment(
         const fallback = await (supabase as any)
           .from("orders")
           .insert({
-            id: String(nextId),
+            id: orderId,
             total_amount: totalAmount,
             status: "paid",
             user_id: user ? user.id : null,
