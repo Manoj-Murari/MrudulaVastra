@@ -67,8 +67,17 @@ export default async function HomePage() {
           <ScrollingDivider />
         </div>
         <CategorySection categories={
-          (categories || []).sort((a: any, b: any) => {
-            const order = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear"];
+          (categories || []).map((cat: any) => {
+            const title = cat?.title === "Kurtas" ? "Dresses" : cat?.title;
+            const link = cat?.title === "Kurtas" ? "/collections/dresses" : cat?.link;
+            let image = cat?.image;
+            if (title === "Sarees" || title === "Saree") image = "/images/Saree.jpeg";
+            if (title === "Dresses") image = "/images/Dresses.jpeg";
+            if (title === "Dress Materials") image = "/images/Dress-Materials.jpeg";
+            if (title === "Kids Wear") image = "/images/Kids-Wear.jpeg";
+            return { ...cat, title, link, image };
+          }).sort((a: any, b: any) => {
+            const order = ["Sarees", "Dresses", "Dress Materials", "Kids Wear"];
             const indexA = order.indexOf(a?.title);
             const indexB = order.indexOf(b?.title);
             if (indexA === -1) return 1;

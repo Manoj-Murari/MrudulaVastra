@@ -5,6 +5,6 @@ export const NAV_LINKS = [
   { label: "Contact", href: "/contact" },
 ] as const;
 
-export const PREFERRED_CATEGORY_ORDER = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear"];
+export const PREFERRED_CATEGORY_ORDER = ["Sarees", "Dresses", "Dress Materials", "Kids Wear"];
 
 export type NavLink = (typeof NAV_LINKS)[number] | { label: string; href: string; subLinks?: { label: string; href: string }[] };

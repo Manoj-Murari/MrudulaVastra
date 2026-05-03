@@ -79,10 +79,12 @@ export async function generateMetadata({
 export default async function CategoryPage({
   params,
 }: {
-  params: Promise<{ category: string }>;
+  params: Promise<{ category: string }> | { category: string };
 }) {
-  const { category } = await params;
-  const decodedCategory = decodeURIComponent(category);
+  console.log("Category params received:", params);
+  const resolvedParams = typeof (params as any).then === "function" ? await params : (params as any);
+  const { category } = resolvedParams;
+  const decodedCategory = decodeURIComponent(category || "");
   const normalizedCategory = decodedCategory.toLowerCase().replace(/\s+/g, '-');
   
   // Fallback for dynamically added categories
@@ -102,7 +104,7 @@ export default async function CategoryPage({
   const uniqueCategories = Array.from(new Set((allProducts as any[] || []).map(p => p.category).filter(Boolean)));
 
   // Sort categories according to preferred order
-  const PREFERRED_ORDER = ["Sarees", "Kurtas", "Dress Materials", "Kids Wear", "Dresses"];
+  const PREFERRED_ORDER = ["Sarees", "Dresses", "Dress Materials", "Kids Wear"];
   const sortedCategories = uniqueCategories.sort((a, b) => {
     const indexA = PREFERRED_ORDER.indexOf(a);
     const indexB = PREFERRED_ORDER.indexOf(b);
