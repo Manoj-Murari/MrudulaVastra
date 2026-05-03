@@ -130,13 +130,15 @@ export async function updateOrderStatus(
   orderId: string, 
   newStatus: string,
   carrierName?: string,
-  trackingId?: string
+  trackingId?: string,
+  customerEmail?: string
 ) {
   const supabase = await createClient();
   
   const updateData: any = { status: newStatus };
   if (carrierName) updateData.carrier_name = carrierName;
   if (trackingId) updateData.tracking_id = trackingId;
+  if (customerEmail) updateData.customer_email = customerEmail;
 
   const { data: orderData, error } = await (supabase as any)
     .from("orders")

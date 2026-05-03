@@ -54,7 +54,7 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
     return matchesSearch && matchesStatus && matchesSource;
   });
 
-  const [trackingForm, setTrackingForm] = useState({ carrierName: "", trackingId: "" });
+  const [trackingForm, setTrackingForm] = useState({ carrierName: "", trackingId: "", customerEmail: "" });
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
@@ -62,18 +62,23 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
     // Pass carrier details if marking as shipped
     let carrierName = undefined;
     let trackingId = undefined;
+    let customerEmail = undefined;
     if (newStatus === "shipped") {
       carrierName = trackingForm.carrierName || undefined;
       trackingId = trackingForm.trackingId || undefined;
+      customerEmail = trackingForm.customerEmail || undefined;
+    } else if (newStatus === "delivered") {
+      // Also allow email override for delivered if they didn't provide it before
+      customerEmail = trackingForm.customerEmail || undefined;
     }
 
     // Optimistic update
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, carrier_name: carrierName, tracking_id: trackingId } : o)));
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, carrier_name: carrierName, tracking_id: trackingId, ...(customerEmail && { customer_email: customerEmail }) } : o)));
     if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev: any) => ({ ...prev, status: newStatus, carrier_name: carrierName, tracking_id: trackingId }));
+      setSelectedOrder((prev: any) => ({ ...prev, status: newStatus, carrier_name: carrierName, tracking_id: trackingId, ...(customerEmail && { customer_email: customerEmail }) }));
     }
 
-    await updateOrderStatus(orderId, newStatus, carrierName, trackingId);
+    await updateOrderStatus(orderId, newStatus, carrierName, trackingId, customerEmail);
     setUpdatingId(null);
   };
 
@@ -372,6 +377,35 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                           value={trackingForm.trackingId}
                           onChange={(e) => setTrackingForm((prev) => ({ ...prev, trackingId: e.target.value }))}
                           placeholder="e.g. 123456789"
+                          className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
+                          style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                        />
+                      </div>
+                      {!selectedOrder.customer_email && (
+                        <div>
+                          <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-amber)" }}>Customer Email (Optional - For Updates)</label>
+                          <input
+                            type="email"
+                            value={trackingForm.customerEmail}
+                            onChange={(e) => setTrackingForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
+                            placeholder="To send shipping email..."
+                            className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
+                            style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {getNextStatus(selectedOrder.status) === "delivered" && !selectedOrder.customer_email && (
+                    <div className="mt-4 p-3 rounded-lg border space-y-3" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-amber)" }}>Customer Email (Optional - For Delivery Email)</label>
+                        <input
+                          type="email"
+                          value={trackingForm.customerEmail}
+                          onChange={(e) => setTrackingForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
+                          placeholder="To send delivery confirmation..."
                           className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
                           style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
                         />
