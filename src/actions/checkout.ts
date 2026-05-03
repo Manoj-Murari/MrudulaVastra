@@ -35,6 +35,7 @@ interface ShippingAddress {
 }
 
 interface OrderInsertPayload {
+  id?: string;
   total_amount: number;
   status: string;
   user_id: string | null;
@@ -99,7 +100,19 @@ export async function processOrderAfterPayment(
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    const { data: existingOrders } = await (supabase as any).from("orders").select("id");
+    let nextId = 1001;
+    if (existingOrders && existingOrders.length > 0) {
+      const validNumbers = existingOrders
+        .map((o: any) => parseInt(o.id, 10))
+        .filter((num: any) => !isNaN(num));
+      if (validNumbers.length > 0) {
+        nextId = Math.max(...validNumbers) + 1;
+      }
+    }
+
     const insertPayload: OrderInsertPayload = {
+      id: String(nextId),
       total_amount: totalAmount,
       status: "paid",
       user_id: user ? user.id : null,
@@ -122,6 +135,7 @@ export async function processOrderAfterPayment(
         const fallback = await (supabase as any)
           .from("orders")
           .insert({
+            id: String(nextId),
             total_amount: totalAmount,
             status: "paid",
             user_id: user ? user.id : null,
@@ -139,7 +153,7 @@ export async function processOrderAfterPayment(
       }
     }
 
-    const mockOrderId = order?.id || "MOCK-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+    const mockOrderId = order?.id || String(nextId);
 
     // Write order items to Supabase
     if (order && items.length > 0) {

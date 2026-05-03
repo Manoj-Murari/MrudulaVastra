@@ -176,7 +176,20 @@ export async function createOfflineOrder(data: {
   }
 
   const totalAmount = product.price * data.quantity;
+
+  const { data: existingOrders } = await (supabase as any).from("orders").select("id");
+  let nextId = 1001;
+  if (existingOrders && existingOrders.length > 0) {
+    const validNumbers = existingOrders
+      .map((o: any) => parseInt(o.id, 10))
+      .filter((num: any) => !isNaN(num));
+    if (validNumbers.length > 0) {
+      nextId = Math.max(...validNumbers) + 1;
+    }
+  }
+
   const { data: order, error: orderError } = await (supabase as any).from('orders').insert({
+    id: String(nextId),
     total_amount: totalAmount,
     status: 'paid',
     user_id: null,
