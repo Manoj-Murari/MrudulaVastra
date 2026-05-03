@@ -164,7 +164,7 @@ const hr = {
 };
 
 const shippingSection = {
-  padding: "20px",
+  padding: "16px",
   backgroundColor: "#f9f8f6",
   border: "1px solid rgba(184,150,62,0.1)",
   borderRadius: "4px",
@@ -172,18 +172,18 @@ const shippingSection = {
 };
 
 const shippingLabel = {
-  fontSize: "12px",
+  fontSize: "11px",
   textTransform: "uppercase" as const,
   letterSpacing: "0.05em",
   color: "#b8963e",
   fontWeight: "bold",
-  margin: "0 0 12px",
+  margin: "0 0 4px",
 };
 
 const shippingText = {
   fontSize: "14px",
   color: "#333333",
-  lineHeight: "24px",
+  lineHeight: "20px",
   margin: "0",
 };
 
