@@ -153,6 +153,8 @@ export async function updateOrderStatus(
   let email = orderData?.customer_email;
   const name = orderData?.customer_name || "Customer";
 
+  console.log(`[Order Status Email Trigger] Order ID: ${orderId}, Target Email: ${email}, Key Exists: ${!!process.env.RESEND_API_KEY}`);
+
   // Send Email Notifications if RESEND is configured and we have an email
   if (process.env.RESEND_API_KEY && email) {
     try {
