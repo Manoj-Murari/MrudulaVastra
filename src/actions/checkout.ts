@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { render } from "@react-email/render";
 import OrderReceipt from "@/emails/OrderReceipt";
 import { Resend } from "resend";
@@ -97,12 +97,13 @@ export async function processOrderAfterPayment(
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
+    const adminClient = await createAdminClient();
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     let nextId = 1001;
     try {
-      const { data: existingOrders } = await (supabase as any).from("orders").select("id");
+      const { data: existingOrders } = await adminClient.from("orders").select("id");
       if (existingOrders && existingOrders.length > 0) {
         const validNumbers = existingOrders
           .map((o: any) => {
@@ -135,7 +136,7 @@ export async function processOrderAfterPayment(
       insertPayload.razorpay_payment_id = paymentDetails.razorpay_payment_id;
     }
 
-    let { data: order, error: orderError } = await (supabase as any)
+    let { data: order, error: orderError } = await adminClient
       .from("orders")
       .insert(insertPayload)
       .select("id")
@@ -144,7 +145,7 @@ export async function processOrderAfterPayment(
     if (orderError) {
       // Fallback if razorpay columns haven't been created yet
       if (orderError.code === "42703") {
-        const fallback = await (supabase as any)
+        const fallback = await adminClient
           .from("orders")
           .insert({
             id: orderId,
@@ -159,9 +160,7 @@ export async function processOrderAfterPayment(
       }
       
       if (orderError) {
-        if (orderError.code !== "42501" && !orderError.message.includes("row-level security")) {
-          throw orderError;
-        }
+        throw orderError;
       }
     }
 
@@ -176,16 +175,16 @@ export async function processOrderAfterPayment(
         unit_price: item.unit_price,
       }));
 
-      const { error: itemsError } = await (supabase as any)
+      const { error: itemsError } = await adminClient
         .from("order_items")
         .insert(orderItems);
 
-      if (itemsError && itemsError.code !== "42501") throw itemsError;
+      if (itemsError) throw itemsError;
 
       // Deduct inventory from products table
       try {
         const updatePromises = items.map(async (item) => {
-          const { data: p } = await (supabase as any)
+          const { data: p } = await adminClient
             .from("products")
             .select("inventory_count")
             .eq("id", item.product_id)
@@ -193,7 +192,7 @@ export async function processOrderAfterPayment(
 
           if (p) {
             const newCount = Math.max(0, (p.inventory_count || 0) - item.quantity);
-            await (supabase as any)
+            await adminClient
               .from("products")
               .update({ inventory_count: newCount })
               .eq("id", item.product_id);
