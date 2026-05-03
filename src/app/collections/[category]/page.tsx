@@ -81,8 +81,8 @@ export default async function CategoryPage({
 }: {
   params: Promise<{ category: string }> | { category: string };
 }) {
-  console.log("Category params received:", params);
   const resolvedParams = typeof (params as any).then === "function" ? await params : (params as any);
+  console.log("Category params received:", resolvedParams);
   const { category } = resolvedParams;
   const decodedCategory = decodeURIComponent(category || "");
   const normalizedCategory = decodedCategory.toLowerCase().replace(/\s+/g, '-');

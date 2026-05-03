@@ -177,21 +177,25 @@ export async function createOfflineOrder(data: {
 
   const totalAmount = product.price * data.quantity;
 
-  const { data: existingOrders } = await (supabase as any).from("orders").select("id");
   let nextId = 1001;
-  if (existingOrders && existingOrders.length > 0) {
-    const validNumbers = existingOrders
-      .map((o: any) => {
-        if (!o.id) return NaN;
-        if (o.id.startsWith("MV-")) {
-          return parseInt(o.id.replace("MV-", ""), 10);
-        }
-        return parseInt(o.id, 10);
-      })
-      .filter((num: any) => !isNaN(num));
-    if (validNumbers.length > 0) {
-      nextId = Math.max(...validNumbers) + 1;
+  try {
+    const { data: existingOrders } = await (supabase as any).from("orders").select("id");
+    if (existingOrders && existingOrders.length > 0) {
+      const validNumbers = existingOrders
+        .map((o: any) => {
+          if (!o.id) return NaN;
+          if (o.id.startsWith("MV-")) {
+            return parseInt(o.id.replace("MV-", ""), 10);
+          }
+          return parseInt(o.id, 10);
+        })
+        .filter((num: any) => !isNaN(num));
+      if (validNumbers.length > 0) {
+        nextId = Math.max(...validNumbers) + 1;
+      }
     }
+  } catch (err) {
+    // ignore gracefully
   }
 
   const orderId = `MV-${nextId}`;
