@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { getShippingSettings } from "@/actions/shipping";
 
 export default function AnnouncementBar() {
@@ -32,18 +31,16 @@ export default function AnnouncementBar() {
 
   return (
     <div className="bg-forest h-8 sm:h-9 flex items-center overflow-hidden font-dm select-none border-b border-gold/10 relative">
-      <motion.div
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration: 55 // Much longer duration for slow, elegant, and calming motion
-        }}
+      <div
         className="flex whitespace-nowrap text-[11px] sm:text-[13px] tracking-[0.1em] sm:tracking-[0.15em] text-amber-200/80 uppercase font-medium select-none"
+        style={{
+          animation: "scroll-marquee 55s linear infinite",
+          willChange: "transform",
+        }}
       >
         <span>{repeatedText}</span>
         <span>{repeatedText}</span>
-      </motion.div>
+      </div>
     </div>
   );
 }
