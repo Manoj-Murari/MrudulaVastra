@@ -139,6 +139,9 @@ export interface Database {
           customer_name?: string | null
           phone?: string | null
           payment_mode?: string | null
+          carrier_name?: string | null
+          tracking_id?: string | null
+          customer_email?: string | null
         }
         Insert: {
           id?: string
@@ -149,6 +152,9 @@ export interface Database {
           customer_name?: string | null
           phone?: string | null
           payment_mode?: string | null
+          carrier_name?: string | null
+          tracking_id?: string | null
+          customer_email?: string | null
         }
         Update: {
           id?: string
@@ -159,6 +165,9 @@ export interface Database {
           customer_name?: string | null
           phone?: string | null
           payment_mode?: string | null
+          carrier_name?: string | null
+          tracking_id?: string | null
+          customer_email?: string | null
         }
       }
       order_items: {

@@ -121,6 +121,9 @@ export async function processOrderAfterPayment(
           total_amount: totalAmount,
           status: "paid",
           user_id: user ? user.id : null,
+          customer_name: addressData?.fullName || null,
+          customer_email: addressData?.email || user?.email || null,
+          phone: addressData?.phone || null,
           ...(paymentDetails?.razorpay_order_id && {
             razorpay_order_id: paymentDetails.razorpay_order_id,
             razorpay_payment_id: paymentDetails.razorpay_payment_id,

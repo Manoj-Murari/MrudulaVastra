@@ -54,14 +54,26 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
     return matchesSearch && matchesStatus && matchesSource;
   });
 
+  const [trackingForm, setTrackingForm] = useState({ carrierName: "", trackingId: "" });
+
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
-    // Optimistic update
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev: any) => ({ ...prev, status: newStatus }));
+    
+    // Pass carrier details if marking as shipped
+    let carrierName = undefined;
+    let trackingId = undefined;
+    if (newStatus === "shipped") {
+      carrierName = trackingForm.carrierName || undefined;
+      trackingId = trackingForm.trackingId || undefined;
     }
-    await updateOrderStatus(orderId, newStatus);
+
+    // Optimistic update
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, carrier_name: carrierName, tracking_id: trackingId } : o)));
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder((prev: any) => ({ ...prev, status: newStatus, carrier_name: carrierName, tracking_id: trackingId }));
+    }
+
+    await updateOrderStatus(orderId, newStatus, carrierName, trackingId);
     setUpdatingId(null);
   };
 
@@ -342,6 +354,31 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                       );
                     })}
                   </div>
+                  {getNextStatus(selectedOrder.status) === "shipped" && (
+                    <div className="mt-4 p-3 rounded-lg border space-y-3" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-text-dim)" }}>Courier Name</label>
+                        <input
+                          value={trackingForm.carrierName}
+                          onChange={(e) => setTrackingForm((prev) => ({ ...prev, carrierName: e.target.value }))}
+                          placeholder="e.g. Delhivery, Blue Dart"
+                          className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
+                          style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-text-dim)" }}>Tracking ID</label>
+                        <input
+                          value={trackingForm.trackingId}
+                          onChange={(e) => setTrackingForm((prev) => ({ ...prev, trackingId: e.target.value }))}
+                          placeholder="e.g. 123456789"
+                          className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
+                          style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {getNextStatus(selectedOrder.status) && (
                     <button
                       onClick={() => handleStatusChange(selectedOrder.id, getNextStatus(selectedOrder.status)!)}

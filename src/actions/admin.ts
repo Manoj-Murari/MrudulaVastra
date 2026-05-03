@@ -119,13 +119,75 @@ export async function getAdminOrders() {
   return data || [];
 }
 
-export async function updateOrderStatus(orderId: string, newStatus: string) {
+import { Resend } from "resend";
+import { render } from "@react-email/render";
+import OrderShipped from "@/emails/OrderShipped";
+import OrderDelivered from "@/emails/OrderDelivered";
+
+const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
+
+export async function updateOrderStatus(
+  orderId: string, 
+  newStatus: string,
+  carrierName?: string,
+  trackingId?: string
+) {
   const supabase = await createClient();
-  const { error } = await (supabase as any)
+  
+  const updateData: any = { status: newStatus };
+  if (carrierName) updateData.carrier_name = carrierName;
+  if (trackingId) updateData.tracking_id = trackingId;
+
+  const { data: orderData, error } = await (supabase as any)
     .from("orders")
-    .update({ status: newStatus })
-    .eq("id", orderId);
+    .update(updateData)
+    .eq("id", orderId)
+    .select("customer_name, customer_email, user_id, carrier_name, tracking_id")
+    .single();
+
   if (error) return { error: error.message };
+
+  // Fetch email if we have it, either from the order or the profiles
+  let email = orderData?.customer_email;
+  const name = orderData?.customer_name || "Customer";
+
+  // Send Email Notifications if RESEND is configured and we have an email
+  if (process.env.RESEND_API_KEY && email) {
+    try {
+      if (newStatus.toLowerCase() === "shipped") {
+        const html = await render(
+          OrderShipped({
+            orderId,
+            customerName: name,
+            carrierName: orderData.carrier_name || "Courier",
+            trackingId: orderData.tracking_id || "N/A",
+          }) as React.ReactElement
+        );
+        await resend.emails.send({
+          from: "Mrudula Vastra <orders@mrudulavastra.in>",
+          to: email,
+          subject: `Your Order ${orderId} has been Shipped!`,
+          html,
+        });
+      } else if (newStatus.toLowerCase() === "delivered") {
+        const html = await render(
+          OrderDelivered({
+            orderId,
+            customerName: name,
+          }) as React.ReactElement
+        );
+        await resend.emails.send({
+          from: "Mrudula Vastra <orders@mrudulavastra.in>",
+          to: email,
+          subject: `Your Order ${orderId} has been Delivered!`,
+          html,
+        });
+      }
+    } catch (e) {
+      console.error("Failed to send status update email:", e);
+    }
+  }
+
   revalidatePath("/admin/orders");
   revalidatePath("/admin");
   return { success: true };
