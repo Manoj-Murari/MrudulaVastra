@@ -149,9 +149,11 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                     )}
                     <div className="flex items-center justify-between gap-2 pt-2 border-t border-gold/10">
                       <div className="flex flex-col">
-                        <span className="text-gold line-through text-[10px]" style={{ letterSpacing: '0.05em' }}>
-                          ₹{product.original_price.toLocaleString("en-IN")}
-                        </span>
+                        {product.original_price > product.price && (
+                          <span className="text-gold line-through text-[10px]" style={{ letterSpacing: '0.05em' }}>
+                            ₹{product.original_price.toLocaleString("en-IN")}
+                          </span>
+                        )}
                         <span className="font-playfair text-forest font-bold text-[18px]">
                           ₹{product.price.toLocaleString("en-IN")}
                         </span>
