@@ -148,6 +148,14 @@ export const metadata: Metadata = {
   /* App-level metadata */
   applicationName: "Mrudula Vastra",
   category: "E-Commerce",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mrudula Vastra",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 
   /* Verification placeholders — add your codes when available */
   // verification: {

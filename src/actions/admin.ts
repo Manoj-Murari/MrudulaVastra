@@ -369,7 +369,20 @@ export async function createOfflineOrder(data: {
 export async function cancelOrder(orderId: string) {
   const supabase = await createClient();
 
-  // 1. Update order status
+  // 1. Fetch current order status first to prevent double-cancelling
+  const { data: order, error: fetchError } = await (supabase as any)
+    .from("orders")
+    .select("status")
+    .eq("id", orderId)
+    .single();
+
+  if (fetchError) return { error: fetchError.message };
+  if (!order) return { error: "Order not found" };
+  if (order.status === "cancelled") {
+    return { error: "Order is already cancelled" };
+  }
+
+  // 2. Update order status
   const { error: orderError } = await (supabase as any)
     .from("orders")
     .update({ status: "cancelled" })
@@ -449,11 +462,19 @@ export async function manageSubCategory(oldName: string, action: 'delete' | 'ren
   const supabase = await createClient();
   
   if (action === 'delete') {
-    const { error } = await (supabase as any)
+    // Check if there are any products linked to this sub_category
+    const { count, error: countError } = await (supabase as any)
       .from('products')
-      .update({ sub_category: null })
+      .select('*', { count: 'exact', head: true })
       .eq('sub_category', oldName);
-    if (error) return { error: error.message };
+      
+    if (countError) return { error: countError.message };
+    if (count && count > 0) {
+      return { error: `Cannot delete sub-category "${oldName}" because ${count} product(s) are currently linked to it.` };
+    }
+    // If no products, we can safely delete it (or if it's managed somewhere else).
+    // Wait, categories and subcategories are only tracked via the products table currently. 
+    // Deleting them just means updating the products that have it, but here we enforce not doing that.
   } else if (action === 'rename' && newName) {
     const { error } = await (supabase as any)
       .from('products')
@@ -471,11 +492,16 @@ export async function manageCategory(oldName: string, action: 'delete' | 'rename
   const supabase = await createClient();
   
   if (action === 'delete') {
-    const { error } = await (supabase as any)
+    // Check if there are any products linked to this category
+    const { count, error: countError } = await (supabase as any)
       .from('products')
-      .update({ category: "Uncategorized" })
+      .select('*', { count: 'exact', head: true })
       .eq('category', oldName);
-    if (error) return { error: error.message };
+      
+    if (countError) return { error: countError.message };
+    if (count && count > 0) {
+      return { error: `Cannot delete category "${oldName}" because ${count} product(s) are currently linked to it.` };
+    }
   } else if (action === 'rename' && newName) {
     const { error } = await (supabase as any)
       .from('products')

@@ -122,7 +122,7 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
+                className="object-cover transition-transform duration-700 lg:group-hover:scale-105 pointer-events-none"
               />
             </motion.div>
           </AnimatePresence>

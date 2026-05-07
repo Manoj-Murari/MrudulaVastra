@@ -205,11 +205,26 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`File ${file.name} is too large (max 5MB)`);
+        continue;
+      }
+      if (!file.type.startsWith("image/")) {
+        alert(`File ${file.name} is not a valid image format`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
+
     setIsUploading(true);
     const supabase = createClient();
     
-    const fileArray = Array.from(files);
-    const uploadPromises = fileArray.map(async (file) => {
+    const uploadPromises = validFiles.map(async (file) => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
         const { error } = await supabase.storage.from("product-images").upload(fileName, file);
@@ -241,12 +256,28 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
   const handleVariantImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`File ${file.name} is too large (max 5MB)`);
+        continue;
+      }
+      if (!file.type.startsWith("image/")) {
+        alert(`File ${file.name} is not a valid image format`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
+
     setIsUploading(true);
     const supabase = createClient();
-    const fileArray = Array.from(files);
     const uploadedUrls: string[] = [];
     
-    for (const file of fileArray) {
+    for (const file of validFiles) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
         const { error } = await supabase.storage.from("product-images").upload(fileName, file);

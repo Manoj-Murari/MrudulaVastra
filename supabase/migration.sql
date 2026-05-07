@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
 
 -- Orders (for future checkout flow)
 CREATE TABLE IF NOT EXISTS public.orders (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID,
+  id            TEXT PRIMARY KEY,
+  user_id       UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   total_amount  INTEGER NOT NULL,
   status        TEXT NOT NULL DEFAULT 'pending',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
 -- Order Items (line items for each order)
 CREATE TABLE IF NOT EXISTS public.order_items (
   id          SERIAL PRIMARY KEY,
-  order_id    UUID NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  order_id    TEXT NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
   product_id  INTEGER NOT NULL REFERENCES public.products(id),
   quantity    INTEGER NOT NULL DEFAULT 1,
   unit_price  INTEGER NOT NULL

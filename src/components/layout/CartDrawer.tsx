@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, ShoppingBag, CheckCircle, LogIn, HelpCircle } from "lucide-react";
 import Image from "next/image";
@@ -44,6 +44,7 @@ declare global {
 export default function CartDrawer() {
   const { isCartOpen, toggleCart, items, cartTotal, removeFromCart, updateQuantity, resetCart, isHydrated } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessingRef = useRef(false);
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<"cart" | "address" | "login">("cart");
@@ -139,12 +140,16 @@ export default function CartDrawer() {
   }, []);
 
   const handleCheckout = async () => {
+    // Prevent double execution from double clicks
+    if (isProcessingRef.current) return;
+    
     // Make sure they filled everything out
     if (!addressData.fullName || !addressData.phone || !addressData.pincode || !addressData.city || !addressData.state || !addressData.fullAddress) {
       alert("Please fill out all shipping details.");
       return;
     }
 
+    isProcessingRef.current = true;
     setIsProcessing(true);
     
     // Format items
@@ -161,10 +166,19 @@ export default function CartDrawer() {
     const finalAmountInRs = (appliedCoupon ? cartTotal - appliedCoupon.discountAmount : cartTotal) + shippingFee;
 
     // Step 1: Initialize razorpay order from backend
-    const orderResult = await createRazorpayOrder(finalAmountInRs);
+    const orderResult = await createRazorpayOrder(finalAmountInRs, checkoutItems, appliedCoupon?.code, addressData);
     
+    if (orderResult.error === "SESSION_EXPIRED") {
+      alert("Your session has expired. Please sign in again to complete your order.");
+      setCheckoutStep("login");
+      isProcessingRef.current = false;
+      setIsProcessing(false);
+      return;
+    }
+
     if (!orderResult.success) {
       alert("Failed to initialize checkout: " + orderResult.error);
+      isProcessingRef.current = false;
       setIsProcessing(false);
       return;
     }
@@ -190,6 +204,7 @@ export default function CartDrawer() {
           }
         );
 
+        isProcessingRef.current = false;
         setIsProcessing(false);
 
         if (verifyResult.success) {
@@ -222,6 +237,7 @@ export default function CartDrawer() {
       },
       modal: {
         ondismiss: function () {
+          isProcessingRef.current = false;
           setIsProcessing(false);
         }
       }
@@ -234,6 +250,7 @@ export default function CartDrawer() {
     
     rzp.on('payment.failed', function (response: RazorpayFailResponse) {
        alert("Payment Failed: " + response.error.description);
+       isProcessingRef.current = false;
        setIsProcessing(false);
     });
 
