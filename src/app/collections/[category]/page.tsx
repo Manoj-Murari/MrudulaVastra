@@ -147,6 +147,7 @@ export default async function CategoryPage({
         <CategoryGrid 
           products={products || []} 
           categoryTitle={cat.title} 
+          categorySlug={normalizedCategory}
           initialCategories={sortedCategories}
         />
       </Suspense>

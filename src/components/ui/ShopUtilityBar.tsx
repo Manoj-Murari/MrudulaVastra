@@ -20,6 +20,10 @@ interface ShopUtilityBarProps {
   categories?: string[];
   activeCategory?: string;
   onCategoryChange?: (cat: string) => void;
+  subCategories?: string[];
+  activeSubCategory?: string | null;
+  onSubCategoryChange?: (sub: string | null) => void;
+  parentCategoryTitle?: string;
   materialFilter?: string;
   onMaterialChange?: (val: string) => void;
   colorFilter?: string;
@@ -38,6 +42,10 @@ export default function ShopUtilityBar({
   categories,
   activeCategory,
   onCategoryChange,
+  subCategories,
+  activeSubCategory,
+  onSubCategoryChange,
+  parentCategoryTitle,
   materialFilter = "All",
   onMaterialChange,
   colorFilter = "All",
@@ -99,6 +107,38 @@ export default function ShopUtilityBar({
                     <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gold transition-all duration-500 ${
                       isActive ? "w-4" : "w-0 group-hover:w-4"
                     }`} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Subcategory Pills — shown on category pages that have subcategories */}
+          {subCategories && subCategories.length > 0 && onSubCategoryChange && (
+            <div className="flex items-center overflow-x-auto no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 gap-3 md:gap-4 scroll-smooth py-1">
+              <button
+                onClick={() => onSubCategoryChange(null)}
+                className={`group relative whitespace-nowrap flex-shrink-0 py-1.5 px-4 rounded-full text-[10px] uppercase tracking-[0.15em] font-bold transition-all duration-400 border ${
+                  !activeSubCategory
+                    ? "text-cream bg-forest border-forest shadow-sm"
+                    : "text-forest/70 bg-white border-gold/20 hover:border-forest/30 hover:text-forest"
+                }`}
+              >
+                All {parentCategoryTitle || "Products"}
+              </button>
+              {subCategories.map((sub) => {
+                const isActive = activeSubCategory?.toLowerCase() === sub.toLowerCase();
+                return (
+                  <button
+                    key={sub}
+                    onClick={() => onSubCategoryChange(sub)}
+                    className={`group relative whitespace-nowrap flex-shrink-0 py-1.5 px-4 rounded-full text-[10px] uppercase tracking-[0.15em] font-bold transition-all duration-400 border ${
+                      isActive
+                        ? "text-cream bg-forest border-forest shadow-sm"
+                        : "text-forest/70 bg-white border-gold/20 hover:border-forest/30 hover:text-forest"
+                    }`}
+                  >
+                    {sub}
                   </button>
                 );
               })}

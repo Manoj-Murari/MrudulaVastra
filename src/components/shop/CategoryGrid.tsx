@@ -19,10 +19,12 @@ import { createClient } from "@/lib/supabase/client";
 export default function CategoryGrid({
   products,
   categoryTitle,
+  categorySlug,
   initialCategories = ["All"],
 }: {
   products: Product[];
   categoryTitle: string;
+  categorySlug?: string;
   initialCategories?: string[];
 }) {
   const searchParams = useSearchParams();
@@ -101,6 +103,24 @@ export default function CategoryGrid({
   const subCategory = searchParams?.get("type");
   const searchFromUrl = searchParams?.get("q") || "";
 
+  // Extract unique subcategories from products for navigation pills
+  const subCategories = useMemo(() => {
+    const subs = Array.from(
+      new Set(products.map(p => p.sub_category).filter(Boolean) as string[])
+    ).sort();
+    return subs;
+  }, [products]);
+
+  // Handler to switch subcategories via URL
+  const handleSubCategoryChange = useCallback((sub: string | null) => {
+    const slug = categorySlug || categoryTitle.toLowerCase().replace(/\s+/g, '-');
+    if (sub) {
+      router.push(`/collections/${slug}?type=${encodeURIComponent(sub.toLowerCase())}`);
+    } else {
+      router.push(`/collections/${slug}`);
+    }
+  }, [categorySlug, categoryTitle, router]);
+
   const filtered = useMemo(() => {
     let result = [...products];
 
@@ -177,6 +197,10 @@ export default function CategoryGrid({
           if (cat === "All") router.push("/collections");
           else router.push(`/collections/${cat.toLowerCase().replace(/\s+/g, '-')}`);
         }}
+        subCategories={subCategories.length > 0 ? subCategories : undefined}
+        activeSubCategory={subCategory || null}
+        onSubCategoryChange={handleSubCategoryChange}
+        parentCategoryTitle={categoryTitle}
         materialFilter={materialFilter}
         onMaterialChange={setMaterialFilter}
         colorFilter={colorFilter}
