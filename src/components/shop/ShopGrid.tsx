@@ -76,7 +76,10 @@ export default function ShopGrid({
 
   const handleCategoryChange = useCallback((cat: string) => {
     setActiveCategory(cat);
+    // Clear search when switching categories to avoid stale cross-category filters
+    setSearch("");
     const params = new URLSearchParams(window.location.search);
+    params.delete("q"); // Clear search query
     if (cat && cat !== "All") {
       params.set("category", cat);
       params.delete("type"); // Clear subcategory when switching main category
@@ -135,19 +138,26 @@ export default function ShopGrid({
       result = result.filter((p) => p.sizes?.includes(sizeFilter));
     }
 
-    // Search filter
+    // Search filter — multi-word AND matching across all fields
     const currentSearch = search || searchFromUrl;
     if (currentSearch.trim()) {
-      const q = currentSearch.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.tag?.toLowerCase().includes(q) ||
-          p.material?.toLowerCase().includes(q) ||
-          p.color?.toLowerCase().includes(q) ||
-          p.badge?.toLowerCase().includes(q)
-      );
+      const words = currentSearch.toLowerCase().split(/\s+/).filter(Boolean);
+      result = result.filter((p) => {
+        const searchableText = [
+          p.name,
+          p.category,
+          p.sub_category,
+          p.tag,
+          p.material,
+          p.color,
+          p.badge,
+          p.description,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return words.every((word) => searchableText.includes(word));
+      });
     }
 
     // Sorting

@@ -142,18 +142,26 @@ export default function CategoryGrid({
       result = result.filter((p) => p.sizes?.includes(sizeFilter));
     }
 
-    // Search filter
+    // Search filter — multi-word AND matching across all fields
     const currentSearch = search || searchFromUrl;
     if (currentSearch.trim()) {
-      const q = currentSearch.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.tag?.toLowerCase().includes(q) ||
-          p.material?.toLowerCase().includes(q) ||
-          p.color?.toLowerCase().includes(q) ||
-          p.badge?.toLowerCase().includes(q)
-      );
+      const words = currentSearch.toLowerCase().split(/\s+/).filter(Boolean);
+      result = result.filter((p) => {
+        const searchableText = [
+          p.name,
+          p.category,
+          p.sub_category,
+          p.tag,
+          p.material,
+          p.color,
+          p.badge,
+          p.description,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return words.every((word) => searchableText.includes(word));
+      });
     }
 
     // Sorting
