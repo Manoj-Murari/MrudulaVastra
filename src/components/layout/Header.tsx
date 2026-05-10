@@ -158,13 +158,12 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
       const timer = setTimeout(async () => {
         try {
           const supabase = createClient();
-          const q = `%${trimmed}%`;
           
           // Search products across name, category, and sub_category using DB-side filtering
           const { data: matchedProducts } = await supabase
             .from("products")
-            .select("id, name, price, images, category, sub_category")
-            .or(`name.ilike.${q},category.ilike.${q},sub_category.ilike.${q}`)
+            .select("id, name, price, images, category, sub_category, material, tag")
+            .or(`name.ilike."%${trimmed}%",category.ilike."%${trimmed}%",sub_category.ilike."%${trimmed}%",material.ilike."%${trimmed}%",tag.ilike."%${trimmed}%"`)
             .limit(10); // Show up to 10 in dropdown
 
           if (matchedProducts && (matchedProducts as any[]).length > 0) {
