@@ -69,22 +69,50 @@ function NavDropdown({ label, href, subLinks }: { label: string; href: string, s
   );
 }
 
+// Category slugs for smart search routing
+const SEARCH_CATEGORY_MAP: Record<string, string> = {
+  "sarees": "sarees",
+  "saree": "sarees",
+  "kurtas": "kurtas",
+  "kurta": "kurtas",
+  "dress materials": "dress-materials",
+  "dress material": "dress-materials",
+  "kids wear": "kids-wear",
+  "kids": "kids-wear",
+  "kidswear": "kids-wear",
+  "dresses": "dresses",
+  "dress": "dresses",
+};
+
 function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Sync input with URL's q param on mount and when searchParams change
   useEffect(() => {
     const q = searchParams?.get("q");
     if (q) setInputValue(q);
-    else if (q === null) setInputValue("");
+    else setInputValue("");
   }, [searchParams]);
 
-  // Real-time search update as user types (debounced)
+  // Also listen for popstate events (triggered by ShopGrid/CategoryGrid clearing search)
   useEffect(() => {
-    const isCollectionsPage = window.location.pathname === "/collections" || window.location.pathname.startsWith("/collections/");
-    if (!isCollectionsPage) return;
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q) setInputValue(q);
+      else setInputValue("");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Real-time search update as user types (debounced) — only on /collections (not category pages)
+  useEffect(() => {
+    const isMainCollectionsPage = window.location.pathname === "/collections";
+    if (!isMainCollectionsPage) return;
 
     const timer = setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
@@ -95,10 +123,7 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
       }
       const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
       
-      // Update URL without triggering a full page refresh or server-side re-render
       window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
-      
-      // Dispatch popstate event so useSearchParams() hook in ShopGrid catches the change
       window.dispatchEvent(new PopStateEvent('popstate'));
     }, 400);
 
@@ -107,22 +132,34 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      const isCollectionsPage = window.location.pathname === "/collections" || window.location.pathname.startsWith("/collections/");
-      if (!isCollectionsPage) {
-        router.push(`/collections?q=${encodeURIComponent(inputValue.trim())}`);
-      }
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+
+    // Smart category routing: if search term matches a known category, go to that category page
+    const categorySlug = SEARCH_CATEGORY_MAP[trimmed.toLowerCase()];
+    if (categorySlug) {
+      setInputValue(""); // Clear input since we're navigating to the category directly
+      router.push(`/collections/${categorySlug}`);
       onSubmitCallback?.();
+      return;
     }
+
+    // Always redirect to main /collections for cross-category search
+    // (even if already on a category page — ensures all products are searched)
+    router.push(`/collections?q=${encodeURIComponent(trimmed)}`);
+    onSubmitCallback?.();
   };
 
   const handleClear = () => {
     setInputValue("");
-    const params = new URLSearchParams(window.location.search);
-    params.delete("q");
-    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
-    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    const isCollectionsPage = window.location.pathname === "/collections" || window.location.pathname.startsWith("/collections/");
+    if (isCollectionsPage) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete("q");
+      const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
   };
 
   return (
@@ -342,8 +379,8 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile Search Bar */}
-          <div className="block md:hidden w-full mt-1">
+          {/* Mobile + Tablet Search Bar (visible below lg, where desktop search takes over) */}
+          <div className="block lg:hidden w-full mt-1">
             <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
               <SearchBar />
             </Suspense>

@@ -296,10 +296,26 @@ export default function ShopUtilityBar({
           </div>
         </div>
 
-        <p className="hidden md:block text-text-muted font-dm text-xs mt-4 tracking-wider uppercase text-center">
+        {/* Active Search Chip — clearly shows search is filtering and offers one-click clear */}
+        {search.trim() && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-forest/5 border border-forest/15 rounded-full">
+              <span className="font-dm text-[11px] uppercase tracking-wider text-forest/60">Searching:</span>
+              <span className="font-dm text-[11px] uppercase tracking-wider text-forest font-bold">&ldquo;{search}&rdquo;</span>
+              <button
+                onClick={() => onSearchChange("")}
+                className="ml-1 p-0.5 text-forest/40 hover:text-forest hover:bg-forest/10 rounded-full transition-colors"
+                aria-label="Clear search"
+              >
+                <X size={12} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <p className="hidden md:block text-text-muted font-dm text-xs mt-3 tracking-wider uppercase text-center">
           {resultCount} product{resultCount !== 1 ? "s" : ""}
           {resultLabel || ""}
-          {search.trim() ? " matching \"" + search + "\"" : ""}
         </p>
       </section>
 
