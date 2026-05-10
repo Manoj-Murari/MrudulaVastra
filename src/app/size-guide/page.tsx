@@ -33,7 +33,8 @@ const KIDS_SIZES = [
   { age: "5–6 Years", chest: "27\"", length: "24\"", shoulder: "10.5\"" },
   { age: "6–7 Years", chest: "28\"", length: "26\"", shoulder: "11\"" },
   { age: "7–8 Years", chest: "30\"", length: "28\"", shoulder: "11.5\"" },
-  { age: "8–10 Years", chest: "32\"", length: "30\"", shoulder: "12\"" },
+  { age: "8–9 Years", chest: "31\"", length: "29\"", shoulder: "11.75\"" },
+  { age: "9–10 Years", chest: "32\"", length: "30\"", shoulder: "12\"" },
   { age: "10–12 Years", chest: "34\"", length: "34\"", shoulder: "13\"" },
 ];
 

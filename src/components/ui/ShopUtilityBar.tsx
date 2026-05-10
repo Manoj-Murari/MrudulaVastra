@@ -65,7 +65,9 @@ export default function ShopUtilityBar({
     "Maroon", "Teal", "Mustard", "Peach", "Lavender", "Emerald Green", "Olive", "Magenta", 
     "Cream", "Beige", "Turquoise", "Rust", "Coral", "Indigo", "Mint", "Wine", "Copper", "Coffee"
   ];
-  const SIZE_OPTS = ["All", "Unstitched", "S", "M", "L", "XL"];
+  const SIZE_OPTS = parentCategoryTitle === "Kids Wear"
+    ? ["All", "1-2Y", "2-3Y", "3-4Y", "4-5Y", "5-6Y", "6-7Y", "7-8Y", "8-9Y", "9-10Y"]
+    : ["All", "Unstitched", "S", "M", "L", "XL", "XXL", "3XL"];
 
   const hasActiveFilters = 
     materialFilter !== "All" || 

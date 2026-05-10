@@ -64,7 +64,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     "Standard": ["XS", "S", "M", "L", "XL", "XXL", "3XL"],
     "Numeric": ["32", "34", "36", "38", "40", "42", "44", "46", "48"],
     "Infant": ["New born", "0-3 M", "3-6 M", "6-9M", "9-12M"],
-    "Kids": ["1-2Y", "3-4Y", "5-6Y", "7-8Y"]
+    "Kids": ["1-2Y", "2-3Y", "3-4Y", "4-5Y", "5-6Y", "6-7Y", "7-8Y", "8-9Y", "9-10Y"]
   };
 
   const [formData, setFormData] = useState({
