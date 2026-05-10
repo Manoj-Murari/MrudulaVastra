@@ -160,18 +160,23 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
           const supabase = createClient();
           
           // Search products across name, category, and sub_category using DB-side filtering
-          const { data: matchedProducts } = await supabase
+          const { data: matchedProducts, error } = await supabase
             .from("products")
-            .select("id, name, price, images, category, sub_category, material, tag")
+            .select("id, name, price, image, category, sub_category, material, tag")
             .or(`name.ilike."%${trimmed}%",category.ilike."%${trimmed}%",sub_category.ilike."%${trimmed}%",material.ilike."%${trimmed}%",tag.ilike."%${trimmed}%"`)
-            .limit(10); // Show up to 10 in dropdown
+            .limit(10);
+
+          if (error) {
+            console.error("Supabase search error:", error);
+          }
 
           if (matchedProducts && (matchedProducts as any[]).length > 0) {
+            const products = matchedProducts as any[];
             // Extract unique categories from the matched products for suggestions
-            const uniqueCats = Array.from(new Set((matchedProducts as any[]).map(p => p.category).filter(Boolean)));
+            const uniqueCats = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
             
             setResults({
-              products: (matchedProducts as any[]).slice(0, 5),
+              products: products.slice(0, 5),
               categories: uniqueCats.slice(0, 3) as string[]
             });
           } else {
@@ -305,9 +310,9 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
                       className="flex items-center gap-3 p-2 hover:bg-gold/5 rounded-xl transition-colors group"
                     >
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-sand">
-                        {product.images?.[0] && (
+                        {product.image && (
                           <img
-                            src={product.images[0]}
+                            src={product.image}
                             alt={product.name}
                             className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
                           />
