@@ -123,14 +123,18 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Real-time search update and result fetching
+  // Effect 1: Sync URL with search input (debounced)
   useEffect(() => {
     const isMainCollectionsPage = window.location.pathname === "/collections";
-    const trimmed = inputValue.trim();
+    if (!isMainCollectionsPage) return;
 
-    if (isMainCollectionsPage) {
-      const timer = setTimeout(() => {
-        const params = new URLSearchParams(window.location.search);
+    const trimmed = inputValue.trim();
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const currentQ = params.get("q") || "";
+      
+      // Only update if the value actually changed to avoid unnecessary history entries/flicker
+      if (currentQ !== trimmed) {
         if (trimmed) {
           params.set("q", trimmed);
         } else {
@@ -139,39 +143,47 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
         const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
         window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
         window.dispatchEvent(new PopStateEvent('popstate'));
-      }, 400);
-      
-      // We still want to fetch results even if on collections page for the dropdown preview
-      // return () => clearTimeout(timer); // Moving the return down
-    }
+      }
+    }, 400);
 
-    // Fetch instant results for dropdown
+    return () => clearTimeout(timer);
+  }, [inputValue]);
+
+  // Effect 2: Fetch instant results for dropdown (debounced)
+  useEffect(() => {
+    const trimmed = inputValue.trim();
+    
     if (trimmed.length > 1) {
       setLoading(true);
       const timer = setTimeout(async () => {
-        const supabase = createClient();
-        const words = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
-        
-        // Multi-word search using Supabase text search if possible, or manual filter
-        const { data: allProducts } = await supabase
-          .from("products")
-          .select("id, name, price, images, category, sub_category")
-          .limit(100); // Fetch a chunk to filter client-side for better relevance
+        try {
+          const supabase = createClient();
+          const words = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
+          
+          const { data: allProducts } = await supabase
+            .from("products")
+            .select("id, name, price, images, category, sub_category")
+            .limit(100);
 
-        if (allProducts) {
-          const matchedProducts = (allProducts as any[]).filter(p => {
-            const searchableText = [p.name, p.category, p.sub_category].filter(Boolean).join(" ").toLowerCase();
-            return words.every(word => searchableText.includes(word));
-          });
+          if (allProducts) {
+            const matchedProducts = (allProducts as any[]).filter(p => {
+              const searchableText = [p.name, p.category, p.sub_category].filter(Boolean).join(" ").toLowerCase();
+              return words.every(word => searchableText.includes(word));
+            });
 
-          const uniqueCats = Array.from(new Set(matchedProducts.map(p => p.category))).slice(0, 3);
-          setResults({
-            products: matchedProducts.slice(0, 5),
-            categories: uniqueCats as string[]
-          });
+            const uniqueCats = Array.from(new Set(matchedProducts.map(p => p.category))).slice(0, 3);
+            setResults({
+              products: matchedProducts.slice(0, 5),
+              categories: uniqueCats as string[]
+            });
+          }
+        } catch (error) {
+          console.error("Search fetch error:", error);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }, 300);
+      
       return () => clearTimeout(timer);
     } else {
       setResults({ products: [], categories: [] });
