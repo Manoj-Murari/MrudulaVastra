@@ -152,30 +152,31 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   // Effect 2: Fetch instant results for dropdown (debounced)
   useEffect(() => {
     const trimmed = inputValue.trim();
-    
+        // Fetch instant results for dropdown
     if (trimmed.length > 1) {
       setLoading(true);
       const timer = setTimeout(async () => {
         try {
           const supabase = createClient();
-          const words = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
+          const q = `%${trimmed}%`;
           
-          const { data: allProducts } = await supabase
+          // Search products across name, category, and sub_category using DB-side filtering
+          const { data: matchedProducts } = await supabase
             .from("products")
             .select("id, name, price, images, category, sub_category")
-            .limit(100);
+            .or(`name.ilike.${q},category.ilike.${q},sub_category.ilike.${q}`)
+            .limit(10); // Show up to 10 in dropdown
 
-          if (allProducts) {
-            const matchedProducts = (allProducts as any[]).filter(p => {
-              const searchableText = [p.name, p.category, p.sub_category].filter(Boolean).join(" ").toLowerCase();
-              return words.every(word => searchableText.includes(word));
-            });
-
-            const uniqueCats = Array.from(new Set(matchedProducts.map(p => p.category))).slice(0, 3);
+          if (matchedProducts && (matchedProducts as any[]).length > 0) {
+            // Extract unique categories from the matched products for suggestions
+            const uniqueCats = Array.from(new Set((matchedProducts as any[]).map(p => p.category).filter(Boolean)));
+            
             setResults({
-              products: matchedProducts.slice(0, 5),
-              categories: uniqueCats as string[]
+              products: (matchedProducts as any[]).slice(0, 5),
+              categories: uniqueCats.slice(0, 3) as string[]
             });
+          } else {
+            setResults({ products: [], categories: [] });
           }
         } catch (error) {
           console.error("Search fetch error:", error);
