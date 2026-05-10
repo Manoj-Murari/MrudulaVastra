@@ -209,22 +209,32 @@ export default function ShopGrid({
       {/* Products Grid */}
       <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-24">
         {filtered.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 animate-in fade-in zoom-in-95 duration-500">
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-sand flex items-center justify-center">
               <Search size={24} className="text-gold/50" />
             </div>
-            <p className="font-playfair text-forest text-xl mb-2">
-              Nothing here yet
+            <p className="font-playfair text-forest text-2xl mb-2">
+              No results found
             </p>
-            <p className="text-text-muted/60 font-dm text-sm max-w-xs mx-auto mb-6">
-              We couldn't find what you're looking for. Try a different search or explore our full collection.
+            <p className="text-text-muted/60 font-dm text-sm max-w-xs mx-auto mb-8">
+              We couldn't find any products matching your current filters. Try adjusting your search or browsing our collections.
             </p>
-            <Link
-              href="/collections"
-              className="inline-flex items-center gap-2 px-8 py-3 uppercase font-bold font-dm text-[10px] tracking-[0.2em] bg-forest text-cream hover:bg-forest/90 transition-all active:scale-[0.97]"
-            >
-              Browse All
-            </Link>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              {(search || searchFromUrl) && (
+                <button
+                  onClick={() => handleSearchChange("")}
+                  className="px-8 py-3 uppercase font-bold font-dm text-[10px] tracking-[0.2em] bg-forest text-cream hover:bg-forest/90 transition-all active:scale-[0.97]"
+                >
+                  Clear Search
+                </button>
+              )}
+              <Link
+                href="/collections"
+                className="px-8 py-3 uppercase font-bold font-dm text-[10px] tracking-[0.2em] border border-forest/20 text-forest hover:bg-forest hover:text-cream transition-all active:scale-[0.97]"
+              >
+                Browse All
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">

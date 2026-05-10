@@ -87,6 +87,9 @@ const SEARCH_CATEGORY_MAP: Record<string, string> = {
 function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [results, setResults] = useState<{ products: any[], categories: string[] }>({ products: [], categories: [] });
+  const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -109,25 +112,71 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Real-time search update as user types (debounced) — only on /collections (not category pages)
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Real-time search update and result fetching
   useEffect(() => {
     const isMainCollectionsPage = window.location.pathname === "/collections";
-    if (!isMainCollectionsPage) return;
+    const trimmed = inputValue.trim();
 
-    const timer = setTimeout(() => {
-      const params = new URLSearchParams(window.location.search);
-      if (inputValue.trim()) {
-        params.set("q", inputValue.trim());
-      } else {
-        params.delete("q");
-      }
-      const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+    if (isMainCollectionsPage) {
+      const timer = setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (trimmed) {
+          params.set("q", trimmed);
+        } else {
+          params.delete("q");
+        }
+        const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+        window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }, 400);
       
-      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }, 400);
+      // We still want to fetch results even if on collections page for the dropdown preview
+      // return () => clearTimeout(timer); // Moving the return down
+    }
 
-    return () => clearTimeout(timer);
+    // Fetch instant results for dropdown
+    if (trimmed.length > 1) {
+      setLoading(true);
+      const timer = setTimeout(async () => {
+        const supabase = createClient();
+        const words = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
+        
+        // Multi-word search using Supabase text search if possible, or manual filter
+        const { data: allProducts } = await supabase
+          .from("products")
+          .select("id, name, price, images, category, sub_category")
+          .limit(100); // Fetch a chunk to filter client-side for better relevance
+
+        if (allProducts) {
+          const matchedProducts = (allProducts as any[]).filter(p => {
+            const searchableText = [p.name, p.category, p.sub_category].filter(Boolean).join(" ").toLowerCase();
+            return words.every(word => searchableText.includes(word));
+          });
+
+          const uniqueCats = Array.from(new Set(matchedProducts.map(p => p.category))).slice(0, 3);
+          setResults({
+            products: matchedProducts.slice(0, 5),
+            categories: uniqueCats as string[]
+          });
+        }
+        setLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setResults({ products: [], categories: [] });
+      setLoading(false);
+    }
   }, [inputValue]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -135,23 +184,24 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
 
-    // Smart category routing: if search term matches a known category, go to that category page
+    // Smart category routing
     const categorySlug = SEARCH_CATEGORY_MAP[trimmed.toLowerCase()];
     if (categorySlug) {
-      setInputValue(""); // Clear input since we're navigating to the category directly
+      setInputValue("");
+      setIsFocused(false);
       router.push(`/collections/${categorySlug}`);
       onSubmitCallback?.();
       return;
     }
 
-    // Always redirect to main /collections for cross-category search
-    // (even if already on a category page — ensures all products are searched)
+    setIsFocused(false);
     router.push(`/collections?q=${encodeURIComponent(trimmed)}`);
     onSubmitCallback?.();
   };
 
   const handleClear = () => {
     setInputValue("");
+    setResults({ products: [], categories: [] });
     const isCollectionsPage = window.location.pathname === "/collections" || window.location.pathname.startsWith("/collections/");
     if (isCollectionsPage) {
       const params = new URLSearchParams(window.location.search);
@@ -163,37 +213,118 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={`relative group flex items-center transition-all duration-500 ease-in-out ${isFocused ? "w-full max-w-[380px]" : "w-full max-w-[280px]"
-        }`}
-    >
-      <button
-        type="submit"
-        className={`absolute left-4 transition-colors duration-300 z-10 ${isFocused ? "text-gold" : "text-forest/30"
+    <div className="relative w-full flex justify-center lg:justify-start" ref={dropdownRef}>
+      <form
+        onSubmit={handleSubmit}
+        className={`relative group flex items-center transition-all duration-500 ease-in-out ${isFocused ? "w-full max-w-[420px]" : "w-full max-w-[280px]"
           }`}
       >
-        <Search size={15} strokeWidth={1.5} />
-      </button>
-      <input
-        type="text"
-        value={inputValue}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Search our collections..."
-        className="w-full py-2.5 pl-11 pr-10 bg-white/40 border border-gold/10 rounded-full font-dm text-[12px] tracking-wide text-forest placeholder:text-text-muted/40 focus:outline-none focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)] transition-all duration-500"
-      />
-      {inputValue && (
         <button
-          type="button"
-          onClick={handleClear}
-          className="absolute right-4 text-text-muted/40 hover:text-forest transition-colors p-1"
+          type="submit"
+          className={`absolute left-4 transition-colors duration-300 z-10 ${isFocused ? "text-gold" : "text-forest/30"
+            }`}
         >
-          <X size={14} />
+          <Search size={15} strokeWidth={1.5} />
         </button>
+        <input
+          type="text"
+          value={inputValue}
+          onFocus={() => setIsFocused(true)}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Search our collections..."
+          className="w-full py-2.5 pl-11 pr-10 bg-white/40 border border-gold/10 rounded-full font-dm text-[12px] tracking-wide text-forest placeholder:text-text-muted/40 focus:outline-none focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)] transition-all duration-500"
+        />
+        {inputValue && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-4 text-text-muted/40 hover:text-forest transition-colors p-1"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </form>
+
+      {/* Results Dropdown */}
+      {isFocused && (inputValue.trim().length > 1) && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gold/10 shadow-2xl rounded-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-300 max-h-[80vh] flex flex-col">
+          <div className="overflow-y-auto p-4 space-y-6">
+            {/* Categories Section */}
+            {results.categories.length > 0 && (
+              <div>
+                <p className="text-[10px] uppercase font-bold text-gold tracking-widest mb-3 px-2">Suggested Categories</p>
+                <div className="flex flex-wrap gap-2 px-2">
+                  {results.categories.map(cat => (
+                    <Link
+                      key={cat}
+                      href={`/collections/${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={() => setIsFocused(false)}
+                      className="px-3 py-1.5 bg-sand/30 hover:bg-gold/10 rounded-full text-[12px] font-dm text-forest transition-colors"
+                    >
+                      {cat}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Products Section */}
+            <div>
+              <p className="text-[10px] uppercase font-bold text-gold tracking-widest mb-3 px-2">Products</p>
+              {loading ? (
+                <div className="flex flex-col gap-3 px-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex gap-3 animate-pulse">
+                      <div className="w-12 h-12 bg-sand rounded-lg" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="h-3 bg-sand rounded w-3/4" />
+                        <div className="h-3 bg-sand rounded w-1/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : results.products.length > 0 ? (
+                <div className="space-y-1">
+                  {results.products.map(product => (
+                    <Link
+                      key={product.id}
+                      href={`/product/${product.id}`}
+                      onClick={() => setIsFocused(false)}
+                      className="flex items-center gap-3 p-2 hover:bg-gold/5 rounded-xl transition-colors group"
+                    >
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-sand">
+                        {product.images?.[0] && (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium text-forest truncate">{product.name}</p>
+                        <p className="text-[11px] text-text-muted/60 font-dm">₹{product.price.toLocaleString()}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[13px] text-text-muted/60 px-2 italic">No products found matching "{inputValue}"</p>
+              )}
+            </div>
+          </div>
+
+          <div className="p-3 border-t border-gold/5 bg-sand/10">
+            <button
+              onClick={handleSubmit}
+              className="w-full py-2 bg-forest text-cream text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-forest/90 transition-all active:scale-[0.98]"
+            >
+              View All Results
+            </button>
+          </div>
+        </div>
       )}
-    </form>
+    </div>
   );
 }
 
