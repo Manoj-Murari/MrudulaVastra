@@ -238,7 +238,9 @@ export async function processOrderAfterPayment(
       return { success: false, message: "Payment verification failed. Invalid signature." };
     }
 
+    const { createClient, createAdminClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
+    const supabaseAdmin = await createAdminClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     // Determine correct amount paid from Razorpay instead of trusting frontend totalAmount
@@ -271,8 +273,8 @@ export async function processOrderAfterPayment(
 
     const finalOrderId = dbOrder.id;
 
-    // Update order to paid
-    const { error: updateError } = await (supabase as any)
+    // Update order to paid using admin client to bypass RLS
+    const { error: updateError } = await (supabaseAdmin as any)
       .from("orders")
       .update({
         status: "paid",
@@ -312,7 +314,7 @@ export async function processOrderAfterPayment(
             }
           }
 
-          await (supabase as any)
+          await (supabaseAdmin as any)
             .from("products")
             .update(updatePayload)
             .eq("id", item.product_id);
