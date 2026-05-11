@@ -621,10 +621,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
           visibleProducts.map((product) => (
             <div
               key={product.id}
-              className="grid grid-cols-[48px_1fr_100px_100px_80px_80px_100px] gap-3 px-5 py-3 border-b items-center transition-colors duration-150"
+              className="grid grid-cols-[48px_1fr_100px_100px_80px_80px_100px] gap-3 px-5 py-3 border-b items-center transition-colors duration-150 admin-table-row-hover"
               style={{ borderColor: "var(--admin-border)", fontFamily: "'DM Sans', sans-serif" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               {/* Thumbnail */}
               <div className="w-10 h-10 rounded-lg overflow-hidden relative" style={{ background: "var(--admin-surface-elevated)" }}>
@@ -730,10 +728,8 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     });
                     setIsAdding(true);
                   }}
-                  className="p-1.5 rounded-lg transition-colors"
+                  className="p-1.5 rounded-lg transition-colors admin-table-row-hover"
                   style={{ color: "var(--admin-text-dim)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   <Edit3 size={14} />
                 </button>

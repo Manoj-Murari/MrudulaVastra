@@ -80,7 +80,7 @@ export default async function EnquiriesPage() {
                 </thead>
                 <tbody className="divide-y text-[13px]" style={{ borderColor: "var(--admin-border)", fontFamily: "'DM Sans', sans-serif" }}>
                   {enquiries.map((enq: any) => (
-                    <tr key={enq.id} className="transition-colors duration-150" onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                    <tr key={enq.id} className="transition-colors duration-150 admin-table-row-hover">
                       <td className="px-6 py-4 whitespace-nowrap" style={{ color: "var(--admin-text-muted)" }}>
                         {new Date(enq.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                       </td>

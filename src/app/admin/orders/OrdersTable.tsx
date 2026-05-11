@@ -253,14 +253,12 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
               <div
                 key={order.id}
                 onClick={() => setSelectedOrder(order)}
-                className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-4 border-b cursor-pointer transition-colors duration-150"
+                className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-4 border-b cursor-pointer transition-colors duration-150 admin-table-row-hover"
                 style={{ 
                   borderColor: "var(--admin-border)", 
                   fontFamily: "'DM Sans', sans-serif",
                   opacity: order.status === "cancelled" ? 0.6 : 1
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 <div className="flex flex-col">
                   <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>

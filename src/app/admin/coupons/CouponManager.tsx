@@ -196,7 +196,7 @@ export default function CouponManager({ initialCoupons }: { initialCoupons: Coup
                 </tr>
               ) : (
                 filtered.map((coupon) => (
-                  <tr key={coupon.id || coupon.code} className="border-b transition-colors duration-150" style={{ borderColor: "var(--admin-border)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                  <tr key={coupon.id || coupon.code} className="border-b transition-colors duration-150 admin-table-row-hover" style={{ borderColor: "var(--admin-border)" }}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-accent)" }}>
@@ -229,10 +229,8 @@ export default function CouponManager({ initialCoupons }: { initialCoupons: Coup
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => coupon.id && handleDelete(coupon.id)}
-                        className="p-2 transition-colors rounded-lg"
+                        className="p-2 transition-colors rounded-lg hover:text-red-500"
                         style={{ color: "var(--admin-text-dim)" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--admin-red)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--admin-text-dim)")}
                       >
                         <Trash2 size={16} />
                       </button>

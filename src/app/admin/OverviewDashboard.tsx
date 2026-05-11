@@ -463,10 +463,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               {recentOrders.map((order: any) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between p-3 rounded-lg transition-colors duration-150"
+                  className="flex items-center justify-between p-3 rounded-lg transition-colors duration-150 admin-table-row-hover"
                   style={{ fontFamily: "'DM Sans', sans-serif" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--admin-surface-elevated)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   <div>
                     <p className="text-[12px] font-semibold" style={{ color: "var(--admin-text)" }}>

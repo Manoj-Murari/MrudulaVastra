@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,7 +23,11 @@ import {
   Ticket,
   ExternalLink,
   Truck,
+  X,
+  CheckCircle2,
+  Info
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import "./admin.css";
 
 /* ─── Context ─────────────────────────────────────────────── */
@@ -42,6 +46,23 @@ const NAV_ITEMS = [
   { label: "Delivery Charges", icon: Truck, href: "/admin/settings" },
 ];
 
+/* ─── Types ───────────────────────────────────────────────── */
+type AppNotification = {
+  id: string;
+  title: string;
+  message: string;
+  read: boolean;
+  time: Date;
+  type: "order" | "enquiry";
+};
+
+type ToastMsg = {
+  id: string;
+  title: string;
+  message: string;
+  type: "order" | "enquiry";
+};
+
 /* ─── Main Shell ──────────────────────────────────────────── */
 export default function AdminShell({
   children,
@@ -53,7 +74,41 @@ export default function AdminShell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
   const pathname = usePathname();
+
+  // Notifications State
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [toasts, setToasts] = useState<ToastMsg[]>([]);
+  const [shakeBell, setShakeBell] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Persistence: Load from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("admin_notifications");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Convert ISO strings back to Date objects
+        const hydrated = parsed.map((n: any) => ({
+          ...n,
+          time: new Date(n.time)
+        }));
+        setNotifications(hydrated);
+      } catch (e) {
+        console.error("Failed to parse notifications", e);
+      }
+    }
+  }, []);
+
+  // Persistence: Save to localStorage
+  useEffect(() => {
+    localStorage.setItem("admin_notifications", JSON.stringify(notifications));
+  }, [notifications]);
+  
+  const supabase = createClient();
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // CMD+K listener
   useEffect(() => {
@@ -62,11 +117,79 @@ export default function AdminShell({
         e.preventDefault();
         setCmdOpen((v) => !v);
       }
-      if (e.key === "Escape") setCmdOpen(false);
+      if (e.key === "Escape") {
+        setCmdOpen(false);
+        setBellOpen(false);
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  // Click outside to close bell dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setBellOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Supabase Subscriptions
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        const order = payload.new as any;
+        addNotification(
+          "New Order",
+          `Order #${order.id.slice(0, 8)} received for ₹${order.total_amount}`,
+          "order"
+        );
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'enquiries' }, (payload) => {
+        const enq = payload.new as any;
+        addNotification(
+          "New Enquiry",
+          `From ${enq.name}: ${enq.subject || 'No Subject'}`,
+          "enquiry"
+        );
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
+  const addNotification = (title: string, message: string, type: "order" | "enquiry") => {
+    const id = Math.random().toString(36).substr(2, 9);
+    
+    // Add to notification list
+    setNotifications(prev => [{ id, title, message, read: false, time: new Date(), type }, ...prev].slice(0, 50));
+    
+    // Add to toasts
+    setToasts(prev => [...prev, { id, title, message, type }]);
+    
+    // Trigger bell shake
+    setShakeBell(true);
+    setTimeout(() => setShakeBell(false), 500);
+
+    // Auto remove toast
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 5000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((v) => !v) }}>
@@ -201,11 +324,11 @@ export default function AdminShell({
         </motion.aside>
 
         {/* ━━━ MAIN CONTENT ━━━ */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
           
           {/* ── TOP HEADER ── */}
           <header
-            className="h-16 shrink-0 flex items-center justify-between px-4 md:px-6 border-b"
+            className="h-16 shrink-0 flex items-center justify-between px-4 md:px-6 border-b z-[30]"
             style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
           >
             <div className="flex items-center gap-3 md:gap-4">
@@ -258,13 +381,87 @@ export default function AdminShell({
               </button>
 
               {/* Notifications */}
-              <button
-                className="relative p-1.5 md:p-2 rounded-lg transition-colors duration-200"
-                style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
-              >
-                <Bell size={16} />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: "var(--admin-red)" }} />
-              </button>
+              <div className="relative" ref={dropdownRef}>
+                <motion.button
+                  animate={shakeBell ? { rotate: [-10, 10, -10, 10, 0] } : {}}
+                  transition={{ duration: 0.4 }}
+                  onClick={() => setBellOpen(prev => !prev)}
+                  className="relative p-1.5 md:p-2 rounded-lg transition-colors duration-200"
+                  style={{ background: bellOpen ? "var(--admin-border)" : "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
+                >
+                  <Bell size={16} />
+                  {unreadCount > 0 && (
+                    <span 
+                      className="absolute top-1 right-1 w-2 h-2 rounded-full" 
+                      style={{ background: "var(--admin-red)" }} 
+                    />
+                  )}
+                </motion.button>
+                
+                {/* Notification Dropdown */}
+                <AnimatePresence>
+                  {bellOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 rounded-xl border shadow-2xl overflow-hidden z-50"
+                      style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
+                    >
+                      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
+                        <h3 className="text-[13px] font-semibold" style={{ color: "var(--admin-text)" }}>Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={markAllAsRead}
+                            className="text-[10px] uppercase tracking-wider font-bold hover:underline"
+                            style={{ color: "var(--admin-accent)" }}
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-80 overflow-y-auto admin-scroll">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center text-[12px]" style={{ color: "var(--admin-text-dim)" }}>
+                            No notifications yet
+                          </div>
+                        ) : (
+                          <div className="divide-y" style={{ borderColor: "var(--admin-border)" }}>
+                            {notifications.map((notif) => (
+                              <div 
+                                key={notif.id} 
+                                className={`px-4 py-3 flex gap-3 transition-colors ${!notif.read ? 'bg-amber-500/5' : ''}`}
+                                onClick={() => {
+                                  setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+                                }}
+                              >
+                                <div className="mt-0.5 shrink-0">
+                                  {notif.type === "order" ? (
+                                    <ShoppingCart size={14} className="text-emerald-500" />
+                                  ) : (
+                                    <MessageSquare size={14} className="text-amber-500" />
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-1 cursor-default">
+                                  <div className="text-[12px] font-medium leading-tight" style={{ color: "var(--admin-text)" }}>{notif.title}</div>
+                                  <div className="text-[11px] leading-snug" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>{notif.message}</div>
+                                  <div className="text-[9px] uppercase tracking-wider" style={{ color: "var(--admin-text-muted)" }}>
+                                    {notif.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                </div>
+                                {!notif.read && (
+                                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: "var(--admin-accent)" }} />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* User Avatar */}
               <div
@@ -287,6 +484,48 @@ export default function AdminShell({
           <main className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 lg:p-8">
             {children}
           </main>
+
+          {/* ── TOAST CONTAINER ── */}
+          <div className="absolute bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+            <AnimatePresence>
+              {toasts.map((toast) => (
+                <motion.div
+                  key={toast.id}
+                  layout
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+                  className="pointer-events-auto flex items-start gap-3 w-72 md:w-80 p-4 rounded-xl shadow-xl border backdrop-blur-md"
+                  style={{ 
+                    background: "rgba(10, 10, 10, 0.8)", 
+                    borderColor: "var(--admin-border-active)"
+                  }}
+                >
+                  <div className="shrink-0 mt-0.5">
+                    {toast.type === "order" ? (
+                      <CheckCircle2 size={16} className="text-emerald-500" />
+                    ) : (
+                      <Info size={16} className="text-amber-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-[13px] font-semibold" style={{ color: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
+                      {toast.title}
+                    </h4>
+                    <p className="text-[12px] mt-1" style={{ color: "rgba(255,255,255,0.7)" }}>
+                      {toast.message}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => removeToast(toast.id)}
+                    className="shrink-0 text-gray-500 hover:text-white transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
 
         {/* ━━━ COMMAND PALETTE ━━━ */}
