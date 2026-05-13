@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { revalidatePath } from "next/cache";
 
@@ -25,7 +25,7 @@ interface CategoryBreakdown {
 /* ─── Analytics Aggregators ───────────────────────────── */
 
 export async function getAdminOverview() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const [
     { data: orders },
@@ -111,7 +111,7 @@ export async function getAdminOverview() {
 /* ─── Order Management ────────────────────────────────── */
 
 export async function getAdminOrders() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data: orders } = await (supabase as any)
     .from("orders")
     .select("*, order_items(*, products(name, image, category))")
@@ -183,7 +183,7 @@ export async function updateOrderStatus(
   console.log(`  trackingId: ${trackingId}`);
   console.log(`  customerEmail (param): ${customerEmail}`);
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   const updateData: any = { status: newStatus };
   if (carrierName) updateData.carrier_name = carrierName;
@@ -297,7 +297,7 @@ export async function createOfflineOrder(data: {
   quantity: number;
   paymentMode: string;
 }) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   const { data: product } = await (supabase as any)
     .from('products')
@@ -410,7 +410,7 @@ export async function createOfflineOrder(data: {
 }
 
 export async function cancelOrder(orderId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // 1. Fetch current order status first to prevent double-cancelling
   const { data: order, error: fetchError } = await (supabase as any)
@@ -469,7 +469,7 @@ export async function cancelOrder(orderId: string) {
 /* ─── Product Management ──────────────────────────────── */
 
 export async function getAdminProducts() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data } = await (supabase as any)
     .from("products")
     .select("*")
@@ -478,7 +478,7 @@ export async function getAdminProducts() {
 }
 
 export async function updateProductField(productId: number, field: string, value: string | number | boolean) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { error } = await (supabase as any)
     .from("products")
     .update({ [field]: value })
@@ -490,7 +490,7 @@ export async function updateProductField(productId: number, field: string, value
 }
 
 export async function deleteProduct(productId: number) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { error } = await (supabase as any)
     .from("products")
     .delete()
@@ -502,7 +502,7 @@ export async function deleteProduct(productId: number) {
 }
 
 export async function manageSubCategory(oldName: string, action: 'delete' | 'rename', newName?: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   if (action === 'delete') {
     // Check if there are any products linked to this sub_category
@@ -532,7 +532,7 @@ export async function manageSubCategory(oldName: string, action: 'delete' | 'ren
 }
 
 export async function manageCategory(oldName: string, action: 'delete' | 'rename', newName?: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   if (action === 'delete') {
     // Check if there are any products linked to this category
@@ -559,7 +559,7 @@ export async function manageCategory(oldName: string, action: 'delete' | 'rename
 }
 
 export async function upsertProduct(product: Database["public"]["Tables"]["products"]["Insert"]) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await (supabase as any)
     .from("products")
     .upsert(product)
@@ -575,7 +575,7 @@ export async function upsertProduct(product: Database["public"]["Tables"]["produ
 /* ─── Customer Data ───────────────────────────────────── */
 
 export async function getAdminCustomers() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const [{ data: profiles }, { data: orders }] = await Promise.all([
     (supabase as any).from("profiles").select("*"),
