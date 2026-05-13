@@ -112,11 +112,54 @@ export async function getAdminOverview() {
 
 export async function getAdminOrders() {
   const supabase = await createClient();
-  const { data } = await (supabase as any)
+  const { data: orders } = await (supabase as any)
     .from("orders")
     .select("*, order_items(*, products(name, image, category))")
     .order("created_at", { ascending: false });
-  return data || [];
+
+  if (!orders || orders.length === 0) return [];
+
+  // For orders missing shipping address, look up from user's saved addresses
+  const userIds = [...new Set(
+    orders
+      .filter((o: any) => o.user_id && !o.shipping_address)
+      .map((o: any) => o.user_id)
+  )];
+
+  if (userIds.length > 0) {
+    const { data: addresses } = await (supabase as any)
+      .from("addresses")
+      .select("*")
+      .in("user_id", userIds)
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (addresses && addresses.length > 0) {
+      // Group addresses by user_id, pick default/first
+      const addressMap: Record<string, any> = {};
+      for (const addr of addresses) {
+        if (!addressMap[addr.user_id]) {
+          addressMap[addr.user_id] = addr;
+        }
+      }
+
+      // Merge into orders that are missing shipping address
+      for (const order of orders) {
+        if (order.user_id && !order.shipping_address && addressMap[order.user_id]) {
+          const addr = addressMap[order.user_id];
+          order.shipping_address = addr.full_address;
+          order.shipping_city = addr.city;
+          order.shipping_state = addr.state;
+          order.shipping_pincode = addr.pincode;
+          // Also fill customer name/phone if missing
+          if (!order.customer_name) order.customer_name = addr.full_name;
+          if (!order.phone) order.phone = addr.phone;
+        }
+      }
+    }
+  }
+
+  return orders;
 }
 
 import { Resend } from "resend";
