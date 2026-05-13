@@ -249,8 +249,9 @@ export async function processOrderAfterPayment(
     const supabaseAdmin = await createAdminClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Determine correct amount paid from Razorpay instead of trusting frontend totalAmount
+    // Determine correct amount paid and payment mode from Razorpay instead of trusting frontend
     let finalTotalAmount = totalAmount;
+    let paymentMode = "ONLINE";
     if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
       const razorpay = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID,
@@ -258,6 +259,15 @@ export async function processOrderAfterPayment(
       });
       const orderData = await razorpay.orders.fetch(paymentDetails.razorpay_order_id);
       finalTotalAmount = (orderData.amount as number) / 100;
+
+      try {
+        const paymentData = await razorpay.payments.fetch(paymentDetails.razorpay_payment_id);
+        if (paymentData && paymentData.method) {
+          paymentMode = paymentData.method.toUpperCase();
+        }
+      } catch {
+        // silent fallback
+      }
     }
 
     // ==========================================
@@ -285,7 +295,8 @@ export async function processOrderAfterPayment(
       .update({
         status: "paid",
         razorpay_payment_id: paymentDetails.razorpay_payment_id,
-        total_amount: finalTotalAmount // Ensure it matches Razorpay's actual amount
+        total_amount: finalTotalAmount, // Ensure it matches Razorpay's actual amount
+        payment_mode: paymentMode
       })
       .eq("id", finalOrderId);
 

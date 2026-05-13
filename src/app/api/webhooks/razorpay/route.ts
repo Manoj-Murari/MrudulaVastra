@@ -59,7 +59,8 @@ export async function POST(req: Request) {
           .update({
             status: "paid",
             razorpay_payment_id: paymentPayload.id,
-            total_amount: paymentPayload.amount / 100
+            total_amount: paymentPayload.amount / 100,
+            payment_mode: paymentPayload.method ? paymentPayload.method.toUpperCase() : "ONLINE"
           })
           .eq("id", order.id);
 
