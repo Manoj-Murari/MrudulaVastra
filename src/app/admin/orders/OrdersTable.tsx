@@ -14,6 +14,7 @@ import {
   Plus,
   XCircle,
   RotateCcw,
+  MapPin,
 } from "lucide-react";
 import { updateOrderStatus, createOfflineOrder, cancelOrder } from "@/actions/admin";
 
@@ -485,6 +486,31 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                     </div>
                   </div>
                 </div>
+
+                {/* Shipping Address */}
+                {(selectedOrder.shipping_address || selectedOrder.shipping_city || selectedOrder.shipping_state || selectedOrder.shipping_pincode) && (
+                  <div className="rounded-lg border p-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold mb-3 flex items-center gap-1.5" style={{ color: "var(--admin-text-dim)" }}>
+                      <MapPin size={12} />
+                      Shipping Address
+                    </p>
+                    <div className="space-y-2">
+                      {selectedOrder.shipping_address && (
+                        <p className="text-[13px] leading-relaxed" style={{ color: "var(--admin-text)", fontFamily: "'DM Sans', sans-serif" }}>
+                          {selectedOrder.shipping_address}
+                        </p>
+                      )}
+                      <p className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>
+                        {[selectedOrder.shipping_city, selectedOrder.shipping_state].filter(Boolean).join(", ")}
+                        {selectedOrder.shipping_pincode && (
+                          <span className="ml-1.5 text-[11px] font-mono font-bold px-1.5 py-0.5 rounded" style={{ background: "var(--admin-accent-glow)", color: "var(--admin-accent)", border: "1px solid var(--admin-border-active)" }}>
+                            {selectedOrder.shipping_pincode}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Payment Details */}
                 <div className="rounded-lg border p-4" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}>

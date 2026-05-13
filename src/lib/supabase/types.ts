@@ -142,6 +142,10 @@ export interface Database {
           carrier_name?: string | null
           tracking_id?: string | null
           customer_email?: string | null
+          shipping_address?: string | null
+          shipping_city?: string | null
+          shipping_state?: string | null
+          shipping_pincode?: string | null
         }
         Insert: {
           id?: string
@@ -155,6 +159,10 @@ export interface Database {
           carrier_name?: string | null
           tracking_id?: string | null
           customer_email?: string | null
+          shipping_address?: string | null
+          shipping_city?: string | null
+          shipping_state?: string | null
+          shipping_pincode?: string | null
         }
         Update: {
           id?: string
@@ -168,6 +176,10 @@ export interface Database {
           carrier_name?: string | null
           tracking_id?: string | null
           customer_email?: string | null
+          shipping_address?: string | null
+          shipping_city?: string | null
+          shipping_state?: string | null
+          shipping_pincode?: string | null
         }
       }
       order_items: {

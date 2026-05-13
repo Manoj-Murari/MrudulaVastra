@@ -165,7 +165,11 @@ export async function createRazorpayOrder(
           customer_name: addressData?.fullName || null,
           customer_email: addressData?.email || user?.email || null,
           phone: addressData?.phone || null,
-          razorpay_order_id: order.id
+          razorpay_order_id: order.id,
+          shipping_address: addressData?.fullAddress || null,
+          shipping_city: addressData?.city || null,
+          shipping_state: addressData?.state || null,
+          shipping_pincode: addressData?.pincode || null,
         })
         .select("id")
         .single();
