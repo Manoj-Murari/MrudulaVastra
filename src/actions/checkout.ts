@@ -134,9 +134,12 @@ export async function createRazorpayOrder(
     // ==========================================
     // INSERT PENDING ORDER INTO DATABASE HERE
     // ==========================================
+    const { createAdminClient } = await import("@/lib/supabase/server");
+    const supabaseAdmin = await createAdminClient();
+
     let nextId = 1001;
     try {
-      const { data: existingOrders } = await (supabase as any).from("orders").select("id");
+      const { data: existingOrders } = await (supabaseAdmin as any).from("orders").select("id");
       if (existingOrders && existingOrders.length > 0) {
         const nums = existingOrders
           .map((o: any) => {
@@ -148,14 +151,14 @@ export async function createRazorpayOrder(
         if (nums.length > 0) nextId = Math.max(...nums) + 1;
       }
     } catch {
-      // RLS may limit visibility — fall back to default
+      // Fallback
     }
 
     let orderId = `MV-${nextId}`;
     let dbOrder: any = null;
 
     for (let attempt = 0; attempt < 10; attempt++) {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabaseAdmin as any)
         .from("orders")
         .insert({
           id: orderId,
@@ -183,7 +186,6 @@ export async function createRazorpayOrder(
         orderId = `MV-${nextId}`;
         continue;
       }
-      if (error.code === "42501") break;
       throw error;
     }
 
@@ -198,11 +200,11 @@ export async function createRazorpayOrder(
         variant: item.variant || null,
       }));
 
-      const { error: itemsError } = await (supabase as any)
+      const { error: itemsError } = await (supabaseAdmin as any)
         .from("order_items")
         .insert(orderItems);
 
-      if (itemsError && itemsError.code !== "42501") throw itemsError;
+      if (itemsError) throw itemsError;
     }
     // ==========================================
 
@@ -260,7 +262,7 @@ export async function processOrderAfterPayment(
 
     // ==========================================
     // Fetch the pending order created in createRazorpayOrder
-    const { data: dbOrder, error: fetchError } = await (supabase as any)
+    const { data: dbOrder, error: fetchError } = await (supabaseAdmin as any)
       .from("orders")
       .select("id, status, total_amount")
       .eq("razorpay_order_id", paymentDetails.razorpay_order_id)
