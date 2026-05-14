@@ -37,10 +37,11 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
   const [offlineForm, setOfflineForm] = useState({
     customerName: "",
     phone: "",
+    customerEmail: "",
     productId: "",
     size: "",
     quantity: 1,
-    paymentMode: "Cash"
+    paymentMode: "UPI"
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,31 +56,29 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
     return matchesSearch && matchesStatus && matchesSource;
   });
 
-  const [trackingForm, setTrackingForm] = useState({ carrierName: "", trackingId: "", customerEmail: "" });
+  const [trackingForm, setTrackingForm] = useState({ carrierName: "", trackingId: "", trackingUrl: "" });
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     
-    // Pass carrier details if marking as shipped
     let carrierName = undefined;
     let trackingId = undefined;
-    let customerEmail = undefined;
+    let trackingUrl = undefined;
     if (newStatus === "shipped") {
       carrierName = trackingForm.carrierName || undefined;
       trackingId = trackingForm.trackingId || undefined;
-      customerEmail = trackingForm.customerEmail || undefined;
+      trackingUrl = trackingForm.trackingUrl || undefined;
     } else if (newStatus === "delivered") {
-      // Also allow email override for delivered if they didn't provide it before
-      customerEmail = trackingForm.customerEmail || undefined;
+      // no-op
     }
 
     // Optimistic update
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, carrier_name: carrierName, tracking_id: trackingId, ...(customerEmail && { customer_email: customerEmail }) } : o)));
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, carrier_name: carrierName, tracking_id: trackingId, tracking_url: trackingUrl } : o)));
     if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev: any) => ({ ...prev, status: newStatus, carrier_name: carrierName, tracking_id: trackingId, ...(customerEmail && { customer_email: customerEmail }) }));
+      setSelectedOrder((prev: any) => ({ ...prev, status: newStatus, carrier_name: carrierName, tracking_id: trackingId, tracking_url: trackingUrl }));
     }
 
-    await updateOrderStatus(orderId, newStatus, carrierName, trackingId, customerEmail);
+    await updateOrderStatus(orderId, newStatus, carrierName, trackingId, trackingUrl);
     setUpdatingId(null);
   };
 
@@ -380,34 +379,25 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                           style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
                         />
                       </div>
-                      {!selectedOrder.customer_email && (
-                        <div>
-                          <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-amber)" }}>Customer Email (Optional - For Updates)</label>
-                          <input
-                            type="email"
-                            value={trackingForm.customerEmail}
-                            onChange={(e) => setTrackingForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
-                            placeholder="To send shipping email..."
-                            className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
-                            style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {getNextStatus(selectedOrder.status) === "delivered" && !selectedOrder.customer_email && (
-                    <div className="mt-4 p-3 rounded-lg border space-y-3" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
                       <div>
-                        <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-amber)" }}>Customer Email (Optional - For Delivery Email)</label>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-text-dim)" }}>Tracking Link (URL)</label>
                         <input
-                          type="email"
-                          value={trackingForm.customerEmail}
-                          onChange={(e) => setTrackingForm((prev) => ({ ...prev, customerEmail: e.target.value }))}
-                          placeholder="To send delivery confirmation..."
+                          type="url"
+                          value={trackingForm.trackingUrl}
+                          onChange={(e) => setTrackingForm((prev) => ({ ...prev, trackingUrl: e.target.value }))}
+                          placeholder="https://..."
                           className="w-full bg-transparent border rounded-md px-3 py-2 outline-none text-[12px]"
                           style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
                         />
+                      </div>
+                    </div>
+                  )}
+
+                  {getNextStatus(selectedOrder.status) === "delivered" && (
+                    <div className="mt-4 p-3 rounded-lg border space-y-3" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold mb-1" style={{ color: "var(--admin-amber)" }}>Confirm Delivery</label>
+                        <p className="text-[12px] text-[var(--admin-text-dim)]">Marking this as delivered will notify the customer.</p>
                       </div>
                     </div>
                   )}
@@ -653,6 +643,7 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                     const res = await createOfflineOrder({
                       customerName: offlineForm.customerName,
                       phone: offlineForm.phone,
+                      customerEmail: offlineForm.customerEmail || undefined,
                       productId: Number(offlineForm.productId),
                       size: offlineForm.size || undefined,
                       quantity: Number(offlineForm.quantity),
@@ -674,6 +665,10 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Phone Number</label>
                     <input required value={offlineForm.phone} onChange={e => setOfflineForm({...offlineForm, phone: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Email (Optional)</label>
+                    <input type="email" value={offlineForm.customerEmail} onChange={e => setOfflineForm({...offlineForm, customerEmail: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
                   </div>
                   <div>
                     <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product</label>

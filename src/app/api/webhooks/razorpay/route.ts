@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js"; // Use service role for webhooks
+import { render } from "@react-email/render";
+import OrderReceipt from "@/emails/OrderReceipt";
+import { Resend } from "resend";
 
 export async function POST(req: Request) {
   try {
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
       // Check if order exists with this razorpay_order_id
       const { data: order, error } = await supabaseAdmin
         .from("orders")
-        .select("id, status, total_amount, customer_email, customer_name")
+        .select("id, status, total_amount, customer_email, customer_name, shipping_address, shipping_city, shipping_state, shipping_pincode")
         .eq("razorpay_order_id", razorpayOrderId)
         .single();
 
@@ -105,7 +108,47 @@ export async function POST(req: Request) {
               }
             }
           }
-          // Email sending could be triggered here or separated
+          // Guarantee Email Sending from Webhook
+          try {
+            if (process.env.RESEND_API_KEY && order.customer_email) {
+              const resend = new Resend(process.env.RESEND_API_KEY);
+              const orderItemsForEmail = [];
+              
+              if (items && items.length > 0) {
+                for (const item of items) {
+                  const { data: p } = await supabaseAdmin.from("products").select("name, price").eq("id", item.product_id).single();
+                  orderItemsForEmail.push({
+                    name: p?.name || `Product ${item.product_id}`,
+                    variant: item.variant,
+                    quantity: item.quantity,
+                    price: p?.price || 0
+                  });
+                }
+              }
+
+              const shippingAddressFormatted = `${order.shipping_address || ""}${order.shipping_city ? `, ${order.shipping_city}` : ""}${order.shipping_state ? `, ${order.shipping_state}` : ""} - ${order.shipping_pincode || ""}`;
+
+              const html = await render(
+                OrderReceipt({
+                  orderId: order.id,
+                  customerName: order.customer_name || "Valued Customer",
+                  totalAmount: `₹${order.total_amount.toLocaleString("en-IN")}`,
+                  items: orderItemsForEmail,
+                  shippingAddress: shippingAddressFormatted,
+                }) as React.ReactElement
+              );
+
+              await resend.emails.send({
+                from: "Mrudula Vastra <orders@mrudulavastra.in>",
+                to: order.customer_email,
+                bcc: "mrudulavastra@gmail.com",
+                subject: "Order Confirmed - Mrudula Vastra",
+                html,
+              });
+            }
+          } catch (emailError) {
+            console.error("Webhook Email Send Error:", emailError);
+          }
         }
       }
     }

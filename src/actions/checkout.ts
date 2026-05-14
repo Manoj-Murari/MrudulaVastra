@@ -91,7 +91,11 @@ export async function createRazorpayOrder(
       }
       
       if (availableStock < item.quantity) {
-        return { error: `Insufficient stock for ${product.name}. Only ${availableStock} left.` };
+        return { 
+          error: `Insufficient stock for ${product.name}. Only ${availableStock} left.`,
+          outOfStockProductId: item.product_id,
+          availableStock: availableStock
+        };
       }
       
       calculatedCartTotal += product.price * item.quantity;
@@ -341,36 +345,8 @@ export async function processOrderAfterPayment(
       console.error("Inventory deduction error:", err);
     }
 
-    // Send email receipt
-    if (addressData) {
-      try {
-        const html = await render(
-          OrderReceipt({
-            orderId: finalOrderId,
-            customerName: addressData.fullName,
-            totalAmount: `₹${totalAmount.toLocaleString("en-IN")}`,
-            items: items.map((i) => ({
-              name: i.name || `Product ID: ${i.product_id}`,
-              variant: i.variant,
-              quantity: i.quantity,
-              price: i.unit_price,
-            })),
-            shippingAddress: `${addressData.fullAddress}${addressData.city ? `, ${addressData.city}` : ""}${addressData.state ? `, ${addressData.state}` : ""} - ${addressData.pincode}`,
-          }) as React.ReactElement
-        );
-
-        if (process.env.RESEND_API_KEY) {
-          await resend.emails.send({
-            from: "Mrudula Vastra <orders@mrudulavastra.in>",
-            to: addressData.email || user?.email || "customer@example.com",
-            subject: "Order Confirmed - Mrudula Vastra",
-            html,
-          });
-        }
-      } catch {
-        // Don't abort checkout if email fails
-      }
-    }
+    // Email receipt is now handled securely by the Razorpay Webhook (route.ts)
+    // to guarantee delivery even if the customer closes their browser.
 
     return {
       success: true,

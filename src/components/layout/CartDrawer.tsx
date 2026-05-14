@@ -42,7 +42,7 @@ declare global {
 }
 
 export default function CartDrawer() {
-  const { isCartOpen, toggleCart, items, cartTotal, removeFromCart, updateQuantity, resetCart, isHydrated } = useCart();
+  const { isCartOpen, toggleCart, items, cartTotal, removeFromCart, updateQuantity, resetCart, isHydrated, setWarning, syncItemStock } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const isProcessingRef = useRef(false);
   const [success, setSuccess] = useState(false);
@@ -177,7 +177,12 @@ export default function CartDrawer() {
     }
 
     if (!orderResult.success) {
-      alert("Failed to initialize checkout: " + orderResult.error);
+      if (orderResult.outOfStockProductId) {
+        syncItemStock(orderResult.outOfStockProductId, orderResult.availableStock || 0);
+        setWarning(orderResult.error || "An item in your cart is out of stock.");
+      } else {
+        alert("Failed to initialize checkout: " + orderResult.error);
+      }
       isProcessingRef.current = false;
       setIsProcessing(false);
       return;

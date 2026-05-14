@@ -25,7 +25,8 @@ import {
   Truck,
   X,
   CheckCircle2,
-  Info
+  Info,
+  Zap
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import "./admin.css";
@@ -81,6 +82,9 @@ export default function AdminShell({
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const [shakeBell, setShakeBell] = useState(false);
+  const [missedActivity, setMissedActivity] = useState<{
+    ordersCount: number; totalAmount: number; enquiriesCount: number;
+  } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Persistence: Load from localStorage
@@ -163,6 +167,87 @@ export default function AdminShell({
       supabase.removeChannel(channel);
     };
   }, [supabase]);
+
+  // Check for missed activity while admin was away
+  useEffect(() => {
+    const checkMissedActivity = async () => {
+      const lastActive = localStorage.getItem('admin_last_active');
+      const now = new Date().toISOString();
+
+      if (!lastActive) {
+        localStorage.setItem('admin_last_active', now);
+        return;
+      }
+
+      try {
+        const ordersRes = await supabase
+          .from('orders')
+          .select('id, total_amount, status, created_at')
+          .gt('created_at', lastActive)
+          .neq('status', 'pending')
+          .order('created_at', { ascending: false });
+        const enquiriesRes = await supabase
+          .from('enquiries')
+          .select('id, name, subject, created_at')
+          .gt('created_at', lastActive)
+          .order('created_at', { ascending: false });
+
+        const orders = (ordersRes.data || []) as any[];
+        const enquiries = (enquiriesRes.data || []) as any[];
+
+        if (orders.length > 0 || enquiries.length > 0) {
+          const totalAmt = orders.reduce((s: number, o: any) => s + (o.total_amount || 0), 0);
+          setMissedActivity({ ordersCount: orders.length, totalAmount: totalAmt, enquiriesCount: enquiries.length });
+
+          // Add missed orders to bell notifications (deduplicated)
+          orders.forEach((order: any) => {
+            const prefix = order.id.slice(0, 8);
+            setNotifications(prev => {
+              if (prev.some(n => n.message.includes(prefix))) return prev;
+              return [{
+                id: `missed-${order.id}`,
+                title: 'New Order',
+                message: `Order #${prefix} received for ₹${order.total_amount}`,
+                read: false,
+                time: new Date(order.created_at),
+                type: 'order' as const,
+              }, ...prev].slice(0, 50);
+            });
+          });
+
+          enquiries.forEach((enq: any) => {
+            const enqId = String(enq.id);
+            setNotifications(prev => {
+              if (prev.some(n => n.id === `missed-enq-${enqId}`)) return prev;
+              return [{
+                id: `missed-enq-${enqId}`,
+                title: 'New Enquiry',
+                message: `From ${enq.name}: ${enq.subject || 'No Subject'}`,
+                read: false,
+                time: new Date(enq.created_at),
+                type: 'enquiry' as const,
+              }, ...prev].slice(0, 50);
+            });
+          });
+        }
+      } catch (err) {
+        console.error('Failed to check missed activity:', err);
+      }
+
+      localStorage.setItem('admin_last_active', now);
+    };
+
+    checkMissedActivity();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep last-active timestamp fresh while admin is using the panel
+  useEffect(() => {
+    const tick = setInterval(() => {
+      localStorage.setItem('admin_last_active', new Date().toISOString());
+    }, 60_000);
+    return () => clearInterval(tick);
+  }, []);
 
   const addNotification = (title: string, message: string, type: "order" | "enquiry") => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -479,6 +564,74 @@ export default function AdminShell({
               </div>
             </div>
           </header>
+
+          {/* ── "WHILE YOU WERE AWAY" BANNER ── */}
+          <AnimatePresence>
+            {missedActivity && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden shrink-0"
+              >
+                <div
+                  className="mx-4 sm:mx-6 lg:mx-8 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl border"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(184,150,62,0.08), rgba(52,211,153,0.05))',
+                    borderColor: 'rgba(184,150,62,0.2)',
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: 'var(--admin-accent-glow)' }}
+                    >
+                      <Zap size={14} style={{ color: 'var(--admin-accent)' }} />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold" style={{ color: 'var(--admin-text)', fontFamily: "'DM Sans', sans-serif" }}>
+                        While you were away
+                      </p>
+                      <p className="text-[12px] mt-0.5" style={{ color: 'var(--admin-text-muted)', fontFamily: "'DM Sans', sans-serif" }}>
+                        {missedActivity.ordersCount > 0 && (
+                          <span>
+                            <strong>{missedActivity.ordersCount}</strong> new order{missedActivity.ordersCount > 1 ? 's' : ''}{' '}
+                            (₹{missedActivity.totalAmount.toLocaleString('en-IN')})
+                          </span>
+                        )}
+                        {missedActivity.ordersCount > 0 && missedActivity.enquiriesCount > 0 && ' and '}
+                        {missedActivity.enquiriesCount > 0 && (
+                          <span>
+                            <strong>{missedActivity.enquiriesCount}</strong> new enquir{missedActivity.enquiriesCount > 1 ? 'ies' : 'y'}
+                          </span>
+                        )}
+                        {' '}received
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {missedActivity.ordersCount > 0 && (
+                      <Link
+                        href="/admin/orders"
+                        className="text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors"
+                        style={{ color: 'var(--admin-accent)', background: 'var(--admin-accent-glow)' }}
+                        onClick={() => setMissedActivity(null)}
+                      >
+                        Review Orders
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => setMissedActivity(null)}
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: 'var(--admin-text-dim)' }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ── MAIN SCROLL AREA ── */}
           <main className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 lg:p-8">

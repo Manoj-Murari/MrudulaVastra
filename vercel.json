@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/unshipped-orders",
+      "schedule": "30 14 * * *"
+    }
+  ]
+}

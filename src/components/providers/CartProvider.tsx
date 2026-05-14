@@ -25,6 +25,7 @@ interface CartContextType {
   isHydrated: boolean;
   warning: string | null;
   setWarning: (msg: string | null) => void;
+  syncItemStock: (productId: number, newStock: number) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -118,6 +119,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsCartOpen((prev) => (open !== undefined ? open : !prev));
   }, []);
 
+  const syncItemStock = useCallback((productId: number, newStock: number) => {
+    setItems((prev) => 
+      prev.map((item) => {
+        if (item.product.id === productId) {
+          return {
+            ...item,
+            product: { ...item.product, inventory_count: newStock },
+            quantity: item.quantity > newStock ? newStock : item.quantity
+          };
+        }
+        return item;
+      }).filter((item) => item.quantity > 0)
+    );
+  }, []);
+
   return (
     <CartContext.Provider
       value={{
@@ -133,6 +149,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         isHydrated,
         warning,
         setWarning,
+        syncItemStock,
       }}
     >
       {children}

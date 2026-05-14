@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Ruler, Scissors, Info } from "lucide-react";
+import Image from "next/image";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
@@ -8,8 +9,26 @@ import Footer from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "Size Guide — Mrudula Vastra",
   description:
-    "Find the perfect fit with Mrudula Vastra's comprehensive size guide for sarees, dress materials, and kids wear.",
+    "Find the perfect fit with Mrudula Vastra's comprehensive size guide for tops, dresses, sets, bottoms, kids wear, sarees, and dress materials.",
 };
+
+const TOPS_SIZES = [
+  { size: "XS", bust: '32"', waist: '24–26"', hip: '34–36"', label: "Extra Small" },
+  { size: "S", bust: '34"', waist: '26–28"', hip: '36–38"', label: "Small" },
+  { size: "M", bust: '36"', waist: '28–30"', hip: '38–40"', label: "Medium" },
+  { size: "L", bust: '38"', waist: '30–32"', hip: '40–42"', label: "Large" },
+  { size: "XL", bust: '40"', waist: '32–34"', hip: '42–44"', label: "Extra Large" },
+  { size: "XXL", bust: '42"', waist: '34–36"', hip: '44–46"', label: "Double XL" },
+  { size: "3XL", bust: '44"', waist: '36–38"', hip: '46–48"', label: "Triple XL" },
+];
+
+const BOTTOMS_SIZES = [
+  { size: "XS", waist: '24–26"', hip: '34–36"' },
+  { size: "S", waist: '26–28"', hip: '36–38"' },
+  { size: "M", waist: '28–30"', hip: '38–40"' },
+  { size: "L", waist: '30–32"', hip: '40–42"' },
+  { size: "XL", waist: '32–34"', hip: '42–44"' },
+];
 
 const SAREE_SPECS = [
   { label: "Standard Saree Length", value: "5.5 meters (approx. 18 feet)" },
@@ -26,16 +45,31 @@ const DRESS_MATERIAL_SPECS = [
 ];
 
 const KIDS_SIZES = [
-  { age: "1–2 Years", chest: "20\"", length: "16\"", shoulder: "8\"" },
-  { age: "2–3 Years", chest: "22\"", length: "18\"", shoulder: "9\"" },
-  { age: "3–4 Years", chest: "24\"", length: "20\"", shoulder: "9.5\"" },
-  { age: "4–5 Years", chest: "26\"", length: "22\"", shoulder: "10\"" },
-  { age: "5–6 Years", chest: "27\"", length: "24\"", shoulder: "10.5\"" },
-  { age: "6–7 Years", chest: "28\"", length: "26\"", shoulder: "11\"" },
-  { age: "7–8 Years", chest: "30\"", length: "28\"", shoulder: "11.5\"" },
-  { age: "8–9 Years", chest: "31\"", length: "29\"", shoulder: "11.75\"" },
-  { age: "9–10 Years", chest: "32\"", length: "30\"", shoulder: "12\"" },
-  { age: "10–12 Years", chest: "34\"", length: "34\"", shoulder: "13\"" },
+  { age: "1–2 Years", chest: '20"', length: '16"', shoulder: '8"' },
+  { age: "2–3 Years", chest: '22"', length: '18"', shoulder: '9"' },
+  { age: "3–4 Years", chest: '24"', length: '20"', shoulder: '9.5"' },
+  { age: "4–5 Years", chest: '26"', length: '22"', shoulder: '10"' },
+  { age: "5–6 Years", chest: '27"', length: '24"', shoulder: '10.5"' },
+  { age: "6–7 Years", chest: '28"', length: '26"', shoulder: '11"' },
+  { age: "7–8 Years", chest: '30"', length: '28"', shoulder: '11.5"' },
+  { age: "8–9 Years", chest: '31"', length: '29"', shoulder: '11.75"' },
+  { age: "9–10 Years", chest: '32"', length: '30"', shoulder: '12"' },
+  { age: "10–12 Years", chest: '34"', length: '34"', shoulder: '13"' },
+];
+
+const HOW_TO_MEASURE = [
+  {
+    title: "Bust",
+    text: "Measure around the fullest part of the chest, keeping the tape level and snug but not tight.",
+  },
+  {
+    title: "Waist",
+    text: "Measure around the narrowest part of the waist, typically just above the belly button.",
+  },
+  {
+    title: "Hip",
+    text: "Measure around the fullest part of the hips, keeping the tape level all the way around.",
+  },
 ];
 
 const MEASUREMENT_TIPS = [
@@ -50,18 +84,6 @@ const MEASUREMENT_TIPS = [
   {
     title: "Stand Naturally",
     text: "Stand relaxed with arms at your sides. Don't hold your breath or suck in your stomach.",
-  },
-  {
-    title: "Chest / Bust",
-    text: "Wrap the tape around the fullest part of the chest/bust, keeping it level and snug but not tight.",
-  },
-  {
-    title: "Length",
-    text: "Measure from the highest point of the shoulder, straight down to the desired hemline.",
-  },
-  {
-    title: "Shoulder",
-    text: "Measure from one shoulder edge to the other across the back of the shoulders.",
   },
 ];
 
@@ -92,6 +114,90 @@ export default function SizeGuidePage() {
               Use our detailed size charts and measurement tips to find the ideal fit
               for every garment in our collection.
             </p>
+          </div>
+        </section>
+
+        {/* Tops / Dresses / Sets Size Chart */}
+        <section className="max-w-4xl mx-auto px-6 lg:px-10 pb-16">
+          <div className="bg-white border border-gold/10 p-8 lg:p-10">
+            <div className="flex items-center gap-3 mb-6">
+              <Ruler size={22} className="text-gold" />
+              <h2 className="font-playfair text-forest font-bold text-2xl">
+                Tops / Dresses / Sets
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gold/15">
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Size
+                    </th>
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Bust (in)
+                    </th>
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Waist (in)
+                    </th>
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Hip (in)
+                    </th>
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider hidden sm:table-cell">
+                      Label
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TOPS_SIZES.map((row) => (
+                    <tr key={row.size} className="border-b border-gold/5">
+                      <td className="py-4 font-dm text-forest text-sm font-bold">{row.size}</td>
+                      <td className="py-4 font-dm text-text-muted text-sm">{row.bust}</td>
+                      <td className="py-4 font-dm text-text-muted text-sm">{row.waist}</td>
+                      <td className="py-4 font-dm text-text-muted text-sm">{row.hip}</td>
+                      <td className="py-4 font-dm text-text-muted/70 text-sm hidden sm:table-cell">{row.label}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottoms / Pants Size Chart */}
+        <section className="max-w-4xl mx-auto px-6 lg:px-10 pb-16">
+          <div className="bg-white border border-gold/10 p-8 lg:p-10">
+            <div className="flex items-center gap-3 mb-6">
+              <Scissors size={22} className="text-gold" />
+              <h2 className="font-playfair text-forest font-bold text-2xl">
+                Bottoms / Pants
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gold/15">
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Size
+                    </th>
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Waist (in)
+                    </th>
+                    <th className="text-left py-3 font-dm text-forest font-semibold text-sm uppercase tracking-wider">
+                      Hip (in)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {BOTTOMS_SIZES.map((row) => (
+                    <tr key={row.size} className="border-b border-gold/5">
+                      <td className="py-4 font-dm text-forest text-sm font-bold">{row.size}</td>
+                      <td className="py-4 font-dm text-text-muted text-sm">{row.waist}</td>
+                      <td className="py-4 font-dm text-text-muted text-sm">{row.hip}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
@@ -209,7 +315,7 @@ export default function SizeGuidePage() {
           </div>
         </section>
 
-        {/* Measurement Tips */}
+        {/* How to Measure + Tips */}
         <section className="max-w-4xl mx-auto px-6 lg:px-10 pb-24">
           <div className="text-center mb-12">
             <p className="uppercase text-gold font-dm font-medium tracking-[0.3em] mb-3 text-[10px]">
@@ -219,7 +325,40 @@ export default function SizeGuidePage() {
               How to Measure
             </h2>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          {/* Measurement Guide Illustration */}
+          <div className="flex justify-center mb-12">
+            <div className="bg-white border border-gold/10 p-6 lg:p-8 inline-block shadow-sm">
+              <Image
+                src="/measurement-guide.png"
+                alt="How to measure - Bust, Waist and Hip measurement guide"
+                width={360}
+                height={480}
+                className="mx-auto"
+                style={{ maxHeight: "420px", width: "auto" }}
+              />
+            </div>
+          </div>
+
+          {/* Key measurements */}
+          <div className="grid sm:grid-cols-3 gap-6 mb-8">
+            {HOW_TO_MEASURE.map((item) => (
+              <div
+                key={item.title}
+                className="bg-forest/5 border border-forest/10 p-6 text-center"
+              >
+                <h3 className="font-playfair text-forest font-bold text-lg mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-text-muted font-dm text-sm leading-relaxed">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* General tips */}
+          <div className="grid sm:grid-cols-3 gap-6">
             {MEASUREMENT_TIPS.map((tip) => (
               <div
                 key={tip.title}

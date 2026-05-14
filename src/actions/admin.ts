@@ -174,21 +174,21 @@ export async function updateOrderStatus(
   newStatus: string,
   carrierName?: string,
   trackingId?: string,
-  customerEmail?: string
+  trackingUrl?: string
 ) {
   console.log(`\n=== [updateOrderStatus] START ===`);
   console.log(`  orderId: ${orderId}`);
   console.log(`  newStatus: ${newStatus}`);
   console.log(`  carrierName: ${carrierName}`);
   console.log(`  trackingId: ${trackingId}`);
-  console.log(`  customerEmail (param): ${customerEmail}`);
+  console.log(`  trackingUrl: ${trackingUrl}`);
 
   const supabase = await createAdminClient();
   
   const updateData: any = { status: newStatus };
   if (carrierName) updateData.carrier_name = carrierName;
   if (trackingId) updateData.tracking_id = trackingId;
-  if (customerEmail) updateData.customer_email = customerEmail;
+  if (trackingUrl) updateData.tracking_url = trackingUrl;
 
   console.log(`  updateData:`, JSON.stringify(updateData));
 
@@ -208,7 +208,7 @@ export async function updateOrderStatus(
   // Step 2: Fetch the updated order data separately
   const { data: orderData, error: selectError } = await (supabase as any)
     .from("orders")
-    .select("customer_name, customer_email, user_id, carrier_name, tracking_id")
+    .select("customer_name, customer_email, user_id, carrier_name, tracking_id, tracking_url")
     .eq("id", orderId)
     .single();
 
@@ -245,6 +245,7 @@ export async function updateOrderStatus(
             customerName: name,
             carrierName: orderData.carrier_name || "Courier",
             trackingId: orderData.tracking_id || "N/A",
+            trackingUrl: orderData.tracking_url || "",
           }) as React.ReactElement
         );
         console.log(`  [RENDER OK] HTML length: ${html.length}`);
@@ -292,6 +293,7 @@ export async function updateOrderStatus(
 export async function createOfflineOrder(data: {
   customerName: string;
   phone: string;
+  customerEmail?: string;
   productId: number;
   size?: string;
   quantity: number;
@@ -364,6 +366,7 @@ export async function createOfflineOrder(data: {
       status: 'paid',
       user_id: null,
       customer_name: data.customerName,
+      customer_email: data.customerEmail || null,
       phone: data.phone,
       payment_mode: data.paymentMode
     }).select().single();

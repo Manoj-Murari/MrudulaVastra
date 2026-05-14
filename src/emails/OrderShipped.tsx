@@ -18,6 +18,7 @@ interface OrderShippedEmailProps {
   customerName: string;
   carrierName: string;
   trackingId: string;
+  trackingUrl?: string;
 }
 
 export default function OrderShipped({
@@ -25,22 +26,26 @@ export default function OrderShipped({
   customerName,
   carrierName,
   trackingId,
+  trackingUrl: providedTrackingUrl,
 }: OrderShippedEmailProps) {
-  // Simple check for common carriers to construct a tracking link if possible
-  let trackingUrl = "";
-  const carrier = carrierName.toLowerCase();
-  if (carrier.includes("delhivery")) {
-    trackingUrl = `https://www.delhivery.com/track/package/${trackingId}`;
-  } else if (carrier.includes("bluedart") || carrier.includes("blue dart")) {
-    trackingUrl = `https://www.bluedart.com/tracking`;
-  } else if (carrier.includes("dtdc")) {
-    trackingUrl = `https://www.dtdc.in/tracking/shipment-tracking.asp`;
-  } else if (carrier.includes("xpressbees")) {
-    trackingUrl = `https://www.xpressbees.com/track?trackingId=${trackingId}`;
-  } else if (carrier.includes("ecom")) {
-    trackingUrl = `https://ecomexpress.in/tracking/?awb=${trackingId}`;
-  } else if (carrier.includes("shadowfax")) {
-    trackingUrl = `https://www.shadowfax.in/track-shipment?orderId=${trackingId}`;
+  // Use provided tracking URL if available, otherwise try to guess it
+  let trackingUrl = providedTrackingUrl || "";
+  
+  if (!trackingUrl) {
+    const carrier = carrierName.toLowerCase();
+    if (carrier.includes("delhivery")) {
+      trackingUrl = `https://www.delhivery.com/track/package/${trackingId}`;
+    } else if (carrier.includes("bluedart") || carrier.includes("blue dart")) {
+      trackingUrl = `https://www.bluedart.com/tracking`;
+    } else if (carrier.includes("dtdc")) {
+      trackingUrl = `https://www.dtdc.in/tracking/shipment-tracking.asp`;
+    } else if (carrier.includes("xpressbees")) {
+      trackingUrl = `https://www.xpressbees.com/track?trackingId=${trackingId}`;
+    } else if (carrier.includes("ecom")) {
+      trackingUrl = `https://ecomexpress.in/tracking/?awb=${trackingId}`;
+    } else if (carrier.includes("shadowfax")) {
+      trackingUrl = `https://www.shadowfax.in/track-shipment?orderId=${trackingId}`;
+    }
   }
 
   return (
