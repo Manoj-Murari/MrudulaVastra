@@ -13,7 +13,6 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { motion } from "framer-motion";
 import {
   IndianRupee,
   ShoppingCart,
@@ -50,15 +49,6 @@ interface OverviewData {
 /* ─── Palette ─────────────────────────────────────────────── */
 const PIE_COLORS = ["#B8963E", "#34D399", "#60A5FA", "#F87171", "#A78BFA", "#FBBF24"];
 
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.4, 0.25, 1] as const } },
-};
 
 /* ─── Custom Tooltip ──────────────────────────────────────── */
 function ChartTooltip({ active, payload, label }: any) {
@@ -143,14 +133,9 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
   ];
 
   return (
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      animate="visible"
-      className="space-y-8"
-    >
+    <div className="space-y-8 animate-fade-in">
       {/* ── Header ── */}
-      <motion.div variants={fadeUp}>
+      <div>
         <h1
           className="text-2xl font-bold tracking-tight"
           style={{ fontFamily: "'Playfair Display', serif", color: "var(--admin-text)" }}
@@ -160,15 +145,14 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
         <p className="text-[13px] mt-1" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
           Real-time snapshot of your Mrudula Vastra operations
         </p>
-      </motion.div>
+      </div>
 
       {/* ── KPI Matrix ── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {kpiCards.map((kpi, i) => (
-          <motion.div
+          <div
             key={kpi.label}
-            whileHover={{ y: -2, transition: { duration: 0.15 } }}
-            className="rounded-xl border p-3 sm:p-5 flex flex-col justify-between"
+            className="rounded-xl border p-3 sm:p-5 flex flex-col justify-between transition-transform duration-150 hover:-translate-y-0.5"
             style={{
               background: "var(--admin-surface)",
               borderColor: "var(--admin-border)",
@@ -210,15 +194,14 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
                 {kpi.value}
               </p>
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* ── Charts Row ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Revenue Chart — 2/3 width */}
-        <motion.div
-          variants={fadeUp}
+        <div
           className="xl:col-span-2 rounded-xl border p-6"
           style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
         >
@@ -295,11 +278,10 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               </ResponsiveContainer>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* Category Donut — 1/3 width */}
-        <motion.div
-          variants={fadeUp}
+        <div
           className="rounded-xl border p-6"
           style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
         >
@@ -353,14 +335,13 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* ── Bottom Row: Action Center + Recent Orders ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Action Center */}
-        <motion.div
-          variants={fadeUp}
+        <div
           className="rounded-xl border p-6"
           style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
         >
@@ -440,11 +421,10 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* Recent Orders */}
-        <motion.div
-          variants={fadeUp}
+        <div
           className="rounded-xl border p-6"
           style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
         >
@@ -507,8 +487,8 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
               ))}
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
