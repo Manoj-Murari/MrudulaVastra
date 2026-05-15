@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import Image from "next/image";
 import {
   Search,
@@ -481,9 +481,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
               fontFamily: "'DM Sans', sans-serif"
             }}
           >
-            <option value="All">All Categories</option>
+            <option value="All" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>All Categories</option>
             {categories.map(c => (
-              <option key={c as string} value={c as string}>{c as string}</option>
+              <option key={c as string} value={c as string} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>{c as string}</option>
             ))}
           </select>
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-60">
@@ -555,11 +555,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     border: `1px solid ${product.is_trending ? "var(--admin-accent)" : "var(--admin-border)"}`,
                   }}
                 >
-                  <motion.div
-                    animate={{ x: product.is_trending ? 16 : 2 }}
-                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                    className="absolute top-0.5 w-3.5 h-3.5 rounded-full"
-                    style={{ background: product.is_trending ? "#000" : "var(--admin-text-dim)" }}
+                  <div
+                    className="absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-200"
+                    style={{ background: product.is_trending ? "#000" : "var(--admin-text-dim)", transform: product.is_trending ? "translateX(16px)" : "translateX(2px)" }}
                   />
                 </button>
                 <div className="flex items-center gap-1">
@@ -693,11 +691,9 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                     border: `1px solid ${product.is_trending ? "var(--admin-accent)" : "var(--admin-border)"}`,
                   }}
                 >
-                  <motion.div
-                    animate={{ x: product.is_trending ? 14 : 2 }}
-                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
-                    className="absolute top-0.5 w-3.5 h-3.5 rounded-full"
-                    style={{ background: product.is_trending ? "#000" : "var(--admin-text-dim)" }}
+                  <div
+                    className="absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform duration-200"
+                    style={{ background: product.is_trending ? "#000" : "var(--admin-text-dim)", transform: product.is_trending ? "translateX(14px)" : "translateX(2px)" }}
                   />
                 </button>
               </div>
@@ -763,23 +759,15 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
       </div>
 
       {/* ── Delete Confirmation Modal ── */}
-      <AnimatePresence>
-        {deleteTarget && (
+      {deleteTarget && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setDeleteTarget(null)}
-              className="fixed inset-0 z-[200]"
-              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+              className="fixed inset-0 z-[200] animate-fade-in"
+              style={{ background: "rgba(0,0,0,0.7)" }}
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] rounded-xl border p-6"
+            <div
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] rounded-xl border p-6 admin-fade-scale-in"
               style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -825,27 +813,20 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   Delete Forever
                 </button>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
 
         {/* ── Slide-Out Form for Add Product ── */}
         {isAdding && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => { setIsAdding(false); setEditId(null); }}
-              className="fixed inset-0 z-[150]"
-              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+              className="fixed inset-0 z-[150] animate-fade-in"
+              style={{ background: "rgba(0,0,0,0.6)" }}
             />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 260 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md z-[151] overflow-y-auto admin-scroll border-l"
+            <div
+              className="fixed top-0 right-0 h-full w-full max-w-md z-[151] overflow-y-auto admin-scroll border-l admin-slide-in-right"
               style={{ background: "var(--admin-bg)", borderColor: "var(--admin-border)", color: "var(--admin-text)" }}
             >
               <div className="p-6">
@@ -1057,7 +1038,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                               <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded shadow-sm text-[9px] font-bold uppercase tracking-wider z-10" style={{ background: "var(--admin-accent)", color: "#000" }}>
                                 Primary
                               </div>
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-1.5 md:backdrop-blur-[1px] z-20">
+                              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-1.5 z-20">
                                 <div className="flex justify-end">
                                   <button 
                                     type="button" 
@@ -1088,7 +1069,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                               style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}
                             >
                               <Image src={url} alt={`Gallery Preview ${i+1}`} fill sizes="112px" className="object-cover" />
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-1.5 md:backdrop-blur-[1px] z-20">
+                              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-1.5 z-20">
                                 <div className="flex justify-end">
                                   <button 
                                     type="button" 
@@ -1243,14 +1224,13 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                   </div>
                 </form>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
 
       {/* Category Manager Modal */}
       {isManagingCategories && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 animate-fade-in">
           <div className="rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl border" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}>
             <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "var(--admin-border-active)" }}>
               <h3 className="font-bold text-[14px] uppercase tracking-wider" style={{ color: "var(--admin-text)" }}>Manage Categories</h3>
@@ -1306,7 +1286,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
 
       {/* Sub Category Manager Modal */}
       {isManagingSubCategories && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 animate-fade-in">
           <div className="rounded-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh] shadow-2xl border" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}>
             <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: "var(--admin-border-active)" }}>
               <h3 className="font-bold text-[14px] uppercase tracking-wider" style={{ color: "var(--admin-text)" }}>Manage Sub Categories</h3>
@@ -1362,7 +1342,7 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
 
       {/* Global Action Modal (Rename/Delete) */}
       {actionModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-black/70 animate-fade-in">
           <div className="rounded-2xl w-full max-w-sm overflow-hidden flex flex-col shadow-2xl border p-6" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}>
             <h3 className="font-bold text-[14px] uppercase tracking-wider mb-4" style={{ color: "var(--admin-text)" }}>
               {actionModal.action === 'rename' ? 'Rename' : 'Delete'} {actionModal.type === 'category' ? 'Category' : 'Sub Category'}

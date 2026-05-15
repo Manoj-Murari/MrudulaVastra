@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { 
   Plus, 
   Trash2, 
@@ -244,22 +244,15 @@ export default function CouponManager({ initialCoupons }: { initialCoupons: Coup
       </div>
 
       {/* Modal Form */}
-      <AnimatePresence>
-        {isAdding && (
+      {isAdding && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsAdding(false)}
-              className="fixed inset-0 z-[200]"
-              style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+              className="fixed inset-0 z-[200] animate-fade-in"
+              style={{ background: "rgba(0,0,0,0.7)" }}
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] p-8 rounded-2xl border shadow-2xl"
+            <div
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-[201] p-8 rounded-2xl border shadow-2xl admin-fade-scale-in"
               style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)", fontFamily: "'DM Sans', sans-serif" }}
             >
               <div className="flex items-center justify-between mb-6">
@@ -334,10 +327,9 @@ export default function CouponManager({ initialCoupons }: { initialCoupons: Coup
                   {isSaving ? "Saving..." : <><CheckCircle2 size={16} /> Save Coupon</>}
                 </button>
               </form>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
     </div>
   );
 }

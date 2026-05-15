@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   LayoutDashboard,
   Package,
@@ -280,53 +280,34 @@ export default function AdminShell({
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((v) => !v) }}>
       <div className="flex h-[100dvh] overflow-hidden bg-black" style={{ background: "var(--admin-bg)", color: "var(--admin-text)" }}>
         {/* ━━━ MOBILE BACKDROP ━━━ */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 z-[40] md:hidden"
-              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
-            />
-          )}
-        </AnimatePresence>
+        {mobileOpen && (
+          <div
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 z-[40] md:hidden animate-fade-in"
+            style={{ background: "rgba(0,0,0,0.6)" }}
+          />
+        )}
 
         {/* ━━━ SIDEBAR ━━━ */}
-        <motion.aside
-          initial={false}
-          animate={{ 
-            width: collapsed ? 72 : 260,
-            x: 0,
-          }}
-          transition={{ type: "spring", damping: 24, stiffness: 260 }}
-          className={`fixed md:relative z-[50] h-full border-r shrink-0 overflow-hidden flex flex-col transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
-          style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
+        <aside
+          className={`admin-sidebar fixed md:relative z-[50] h-full border-r shrink-0 overflow-hidden flex flex-col transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} ${collapsed ? "admin-sidebar-collapsed" : ""}`}
+          style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)", width: collapsed ? 72 : 260 }}
         >
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 px-5 h-16 border-b shrink-0 hover:opacity-80 transition-opacity" style={{ borderColor: "var(--admin-border)" }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--admin-accent)" }}>
               <Layers size={16} className="text-black" />
             </div>
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.div
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.15 }}
-                  className="overflow-hidden whitespace-nowrap"
-                >
-                  <p className="text-sm font-bold tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>
-                    Mrudula Vastra
-                  </p>
-                  <p className="text-[9px] uppercase tracking-[0.25em]" style={{ color: "var(--admin-text-muted)" }}>
-                    Command Center
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {!collapsed && (
+              <div className="admin-sidebar-label">
+                <p className="text-sm font-bold tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  Mrudula Vastra
+                </p>
+                <p className="text-[9px] uppercase tracking-[0.25em]" style={{ color: "var(--admin-text-muted)" }}>
+                  Command Center
+                </p>
+              </div>
+            )}
           </Link>
 
           {/* Navigation */}
@@ -346,28 +327,17 @@ export default function AdminShell({
                   }}
                 >
                   {active && (
-                    <motion.div
-                      layoutId="sidebar-active"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full"
-                      style={{ background: "var(--admin-accent)" }}
-                      transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    />
+                    <div className="admin-active-indicator" />
                   )}
                   <item.icon size={18} className="shrink-0" />
-                  <AnimatePresence>
-                    {!collapsed && (
-                      <motion.span
-                        initial={{ opacity: 0, width: 0 }}
-                        animate={{ opacity: 1, width: "auto" }}
-                        exit={{ opacity: 0, width: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="text-[13px] font-medium whitespace-nowrap overflow-hidden"
-                        style={{ fontFamily: "'DM Sans', sans-serif" }}
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                  {!collapsed && (
+                    <span
+                      className="admin-sidebar-label text-[13px] font-medium"
+                      style={{ fontFamily: "'DM Sans', sans-serif" }}
+                    >
+                      {item.label}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -392,21 +362,14 @@ export default function AdminShell({
               style={{ background: "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
             >
               {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-[11px] font-medium uppercase tracking-wider"
-                  >
-                    Collapse
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              {!collapsed && (
+                <span className="text-[11px] font-medium uppercase tracking-wider">
+                  Collapse
+                </span>
+              )}
             </button>
           </div>
-        </motion.aside>
+        </aside>
 
         {/* ━━━ MAIN CONTENT ━━━ */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -467,11 +430,9 @@ export default function AdminShell({
 
               {/* Notifications */}
               <div className="relative" ref={dropdownRef}>
-                <motion.button
-                  animate={shakeBell ? { rotate: [-10, 10, -10, 10, 0] } : {}}
-                  transition={{ duration: 0.4 }}
+                <button
                   onClick={() => setBellOpen(prev => !prev)}
-                  className="relative p-1.5 md:p-2 rounded-lg transition-colors duration-200"
+                  className={`relative p-1.5 md:p-2 rounded-lg transition-colors duration-200 ${shakeBell ? 'admin-bell-shake' : ''}`}
                   style={{ background: bellOpen ? "var(--admin-border)" : "var(--admin-surface-elevated)", color: "var(--admin-text-dim)" }}
                 >
                   <Bell size={16} />
@@ -481,19 +442,14 @@ export default function AdminShell({
                       style={{ background: "var(--admin-red)" }} 
                     />
                   )}
-                </motion.button>
+                </button>
                 
                 {/* Notification Dropdown */}
-                <AnimatePresence>
-                  {bellOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-80 rounded-xl border shadow-2xl overflow-hidden z-50"
-                      style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
-                    >
+                {bellOpen && (
+                  <div
+                    className="absolute right-0 mt-2 w-80 rounded-xl border shadow-2xl overflow-hidden z-50 admin-fade-scale-in"
+                    style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
+                  >
                       <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface-elevated)" }}>
                         <h3 className="text-[13px] font-semibold" style={{ color: "var(--admin-text)" }}>Notifications</h3>
                         {unreadCount > 0 && (
@@ -543,9 +499,8 @@ export default function AdminShell({
                           </div>
                         )}
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                  </div>
+                )}
               </div>
 
               {/* User Avatar */}
@@ -556,24 +511,16 @@ export default function AdminShell({
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "var(--admin-accent)", color: "#000" }}>
                   {user?.email?.[0]?.toUpperCase() || "A"}
                 </div>
-                <AnimatePresence>
-                  <span className="text-[11px] font-medium hidden sm:block" style={{ color: "var(--admin-text-muted)" }}>
+                <span className="text-[11px] font-medium hidden sm:block" style={{ color: "var(--admin-text-muted)" }}>
                     {user?.email?.split("@")[0] || "Admin"}
                   </span>
-                </AnimatePresence>
               </div>
             </div>
           </header>
 
           {/* ── "WHILE YOU WERE AWAY" BANNER ── */}
-          <AnimatePresence>
-            {missedActivity && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden shrink-0"
-              >
+          {missedActivity && (
+            <div className="overflow-hidden shrink-0 admin-slide-up">
                 <div
                   className="mx-4 sm:mx-6 lg:mx-8 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl border"
                   style={{
@@ -629,9 +576,8 @@ export default function AdminShell({
                     </button>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )}
 
           {/* ── MAIN SCROLL AREA ── */}
           <main 
@@ -643,17 +589,12 @@ export default function AdminShell({
 
           {/* ── TOAST CONTAINER ── */}
           <div className="absolute bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
-            <AnimatePresence>
               {toasts.map((toast) => (
-                <motion.div
+                <div
                   key={toast.id}
-                  layout
-                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                  className="pointer-events-auto flex items-start gap-3 w-72 md:w-80 p-4 rounded-xl shadow-xl border backdrop-blur-md"
+                  className="admin-toast-in pointer-events-auto flex items-start gap-3 w-72 md:w-80 p-4 rounded-xl shadow-xl border"
                   style={{ 
-                    background: "rgba(10, 10, 10, 0.8)", 
+                    background: "rgba(10, 10, 10, 0.95)", 
                     borderColor: "var(--admin-border-active)"
                   }}
                 >
@@ -678,32 +619,23 @@ export default function AdminShell({
                   >
                     <X size={14} />
                   </button>
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
           </div>
         </div>
 
         {/* ━━━ COMMAND PALETTE ━━━ */}
-        <AnimatePresence>
-          {cmdOpen && (
-            <>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setCmdOpen(false)}
-                className="fixed inset-0 z-[200]"
-                style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
-              />
-              <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.97 }}
-                transition={{ type: "spring", damping: 28, stiffness: 350 }}
-                className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[201] rounded-xl overflow-hidden border"
-                style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}
-              >
+        {cmdOpen && (
+          <>
+            <div
+              onClick={() => setCmdOpen(false)}
+              className="fixed inset-0 z-[200] animate-fade-in"
+              style={{ background: "rgba(0,0,0,0.7)" }}
+            />
+            <div
+              className="fixed top-[15%] left-1/2 -translate-x-1/2 w-full max-w-lg z-[201] rounded-xl overflow-hidden border admin-fade-scale-in"
+              style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border-active)" }}
+            >
                 <div className="flex items-center gap-3 px-5 py-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
                   <Search size={18} style={{ color: "var(--admin-text-dim)" }} />
                   <input
@@ -740,10 +672,9 @@ export default function AdminShell({
                     </Link>
                   ))}
                 </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
+            </div>
+          </>
+        )}
       </div>
     </SidebarContext.Provider>
   );

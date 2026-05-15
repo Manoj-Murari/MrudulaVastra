@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Filter,
@@ -303,23 +302,15 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
       </div>
 
       {/* ── Order Detail Side Panel ── */}
-      <AnimatePresence>
-        {selectedOrder && (
+      {selectedOrder && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setSelectedOrder(null)}
-              className="fixed inset-0 z-[150]"
-              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+              className="fixed inset-0 z-[150] animate-fade-in"
+              style={{ background: "rgba(0,0,0,0.6)" }}
             />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 260 }}
-              className="fixed top-0 right-0 h-full w-full max-w-lg z-[151] overflow-y-auto admin-scroll border-l"
+            <div
+              className="fixed top-0 right-0 h-full w-full max-w-lg z-[151] overflow-y-auto admin-scroll border-l admin-slide-in-right"
               style={{ background: "var(--admin-bg)", borderColor: "var(--admin-border)" }}
             >
               <div className="p-6 space-y-6">
@@ -611,29 +602,20 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
 
       {/* ── Offline Order Modal ── */}
-      <AnimatePresence>
-        {isAddingOffline && (
+      {isAddingOffline && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsAddingOffline(false)}
-              className="fixed inset-0 z-[150]"
-              style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+              className="fixed inset-0 z-[150] animate-fade-in"
+              style={{ background: "rgba(0,0,0,0.6)" }}
             />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 260 }}
-              className="fixed top-0 right-0 h-full w-full max-w-md z-[151] overflow-y-auto admin-scroll border-l"
+            <div
+              className="fixed top-0 right-0 h-full w-full max-w-md z-[151] overflow-y-auto admin-scroll border-l admin-slide-in-right"
               style={{ background: "var(--admin-bg)", borderColor: "var(--admin-border)", color: "var(--admin-text)" }}
             >
               <div className="p-6 space-y-6">
@@ -842,10 +824,9 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                   </button>
                 </form>
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
     </div>
   );
 }

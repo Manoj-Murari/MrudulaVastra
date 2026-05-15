@@ -54,3 +54,95 @@
 .admin-table-row-hover:hover {
   background: var(--admin-surface-elevated) !important;
 }
+
+/* ─── GPU-safe CSS animations (replace framer-motion) ─── */
+
+@keyframes admin-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: admin-fade-in 0.4s ease-out both;
+}
+
+@keyframes admin-bell-shake {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-12deg); }
+  30% { transform: rotate(10deg); }
+  45% { transform: rotate(-8deg); }
+  60% { transform: rotate(6deg); }
+  75% { transform: rotate(-3deg); }
+}
+.admin-bell-shake {
+  animation: admin-bell-shake 0.5s ease-in-out;
+}
+
+@keyframes admin-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.admin-slide-in-right {
+  animation: admin-slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes admin-fade-scale-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.admin-fade-scale-in {
+  animation: admin-fade-scale-in 0.15s ease-out both;
+}
+
+@keyframes admin-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.admin-slide-up {
+  animation: admin-slide-up 0.3s ease-out both;
+}
+
+/* Sidebar width transition (replaces motion.aside spring) */
+.admin-sidebar {
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width;
+}
+
+/* Sidebar label visibility */
+.admin-sidebar-label {
+  transition: opacity 0.15s ease, width 0.15s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.admin-sidebar-collapsed .admin-sidebar-label {
+  opacity: 0;
+  width: 0;
+}
+
+/* Toast enter */
+@keyframes admin-toast-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.admin-toast-in {
+  animation: admin-toast-in 0.25s ease-out both;
+}
+
+/* Mobile overlay */
+.admin-overlay {
+  transition: opacity 0.25s ease;
+}
+.admin-overlay-enter {
+  opacity: 1;
+}
+
+/* Active sidebar indicator */
+.admin-active-indicator {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--admin-accent);
+}
