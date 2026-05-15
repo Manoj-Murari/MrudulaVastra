@@ -464,7 +464,7 @@ export default function Header() {
           style={{ paddingTop: scrolled ? "12px" : "18px", paddingBottom: scrolled ? "8px" : "12px" }}
         >
           {/* Main Row */}
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full relative">
             {/* Left: Search Bar + Hamburger */}
             <div className="flex items-center gap-2 lg:gap-4 flex-1">
               <button
@@ -482,8 +482,8 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Center: Brand Logo */}
-            <Link href="/" prefetch={true} className="text-center flex-shrink-0 px-2 sm:px-4">
+            {/* Center: Brand Logo — absolutely centered on mobile for perfect alignment */}
+            <Link href="/" prefetch={true} className="text-center flex-shrink-0 px-2 sm:px-4 absolute left-1/2 -translate-x-1/2 lg:relative lg:left-auto lg:translate-x-0">
               <p
                 className="font-playfair text-forest font-bold transition-all duration-300 whitespace-nowrap"
                 style={{
@@ -495,10 +495,10 @@ export default function Header() {
                 MRUDULA VASTRA
               </p>
               <p
-                className="uppercase text-gold font-dm font-medium overflow-hidden transition-all duration-300"
+                className="uppercase text-gold font-dm font-medium overflow-hidden transition-all duration-300 whitespace-nowrap"
                 style={{
                   fontSize: "10px",
-                  letterSpacing: "0.25em",
+                  letterSpacing: "0.12em",
                   height: scrolled ? 0 : "auto",
                   opacity: scrolled ? 0 : 1,
                   marginTop: scrolled ? 0 : 4,
@@ -555,9 +555,9 @@ export default function Header() {
 
           {/* Mobile expanding search bar — always in DOM, shown/hidden via CSS to avoid Suspense hydration errors */}
           <div
-            className="lg:hidden w-full overflow-hidden transition-all duration-200"
+            className={`lg:hidden w-full transition-all duration-200 ${mobileSearchOpen ? "overflow-visible" : "overflow-hidden"}`}
             style={{
-              maxHeight: mobileSearchOpen ? "60px" : "0px",
+              maxHeight: mobileSearchOpen ? "600px" : "0px", // Increased max-height to allow dropdown to expand if needed, but overflow-visible does the real work
               opacity: mobileSearchOpen ? 1 : 0,
               marginTop: mobileSearchOpen ? "8px" : "0px",
               paddingBottom: mobileSearchOpen ? "4px" : "0px",
@@ -643,12 +643,7 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Search */}
-          <div className="px-5 py-3 flex-shrink-0" style={{ borderBottom: "1px solid rgba(184,150,62,0.1)" }}>
-            <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
-              <SearchBar onSubmitCallback={() => setMenuOpen(false)} dark={true} />
-            </Suspense>
-          </div>
+
 
           {/* Quick-access pill: Trending */}
           <div className="px-5 pt-4 pb-2 flex-shrink-0">

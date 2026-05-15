@@ -18,7 +18,7 @@ export default function HeroSection() {
           MOBILE HERO — Cinematic full-bleed editorial layout
           Only visible on screens < 1024px (lg breakpoint)
           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="lg:hidden relative w-full h-[65vh] flex flex-col justify-end overflow-hidden">
+      <section className="lg:hidden relative w-full h-[65svh] flex flex-col justify-end overflow-hidden bg-[#0E2219] -mb-[1px]">
         {/* Background Image with Ken Burns */}
         <div
           className="absolute inset-0 z-0"
