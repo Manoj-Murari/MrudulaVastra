@@ -222,8 +222,8 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* SEO Hidden Block */}
-        <div className="max-w-7xl mx-auto mt-8 text-center text-[8px] text-cream/5 uppercase tracking-tighter">
+        {/* SEO Hidden Block — invisible to users, readable by crawlers */}
+        <div aria-hidden="true" className="max-w-7xl mx-auto mt-4 text-[0px] select-none pointer-events-none overflow-hidden h-0">
           <p>
             Mrudula Vastra (also searched as MrudulaVastra, mrudulavastra, Mrudula Vasthram, MrudulaVasthra, Mrudhula Vastra, Mrudula Vastram, మృదుల వస్త్ర) is a premium ethnic wear destination.
           </p>

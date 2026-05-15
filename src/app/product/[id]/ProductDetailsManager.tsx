@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getShippingSettings } from "@/actions/shipping";
 import ProductGallery from "./ProductGallery";
 import ProductActions from "./ProductActions";
@@ -58,8 +58,22 @@ export default function ProductDetailsManager({
     "Mint": "#98FF98", "Wine": "#722F37", "Copper": "#B87333", "Coffee": "#6F4E37"
   };
 
+  const [isCTAVisible, setIsCTAVisible] = useState(false);
+  const addToBagRef = useRef<HTMLDivElement>(null);
+
+  // Show sticky bottom bar when inline CTA scrolls out of view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsCTAVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    if (addToBagRef.current) observer.observe(addToBagRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="max-w-7xl mx-auto px-6 lg:px-10 py-10 lg:py-20 flex flex-col lg:flex-row gap-10 lg:gap-24">
+    <>
+      <section className="max-w-7xl mx-auto px-6 lg:px-10 py-10 lg:py-20 flex flex-col lg:flex-row gap-10 lg:gap-24">
       <ProductGallery 
         primaryImage={displayImage} 
         galleryImages={displayGallery} 
@@ -74,7 +88,7 @@ export default function ProductDetailsManager({
         <p className="text-xs uppercase tracking-[0.2em] text-text-muted font-dm mb-2">
           {product.category}
         </p>
-        <h1 className="font-cormorant text-forest font-medium text-4xl lg:text-[42px] leading-snug mb-4">
+        <h1 className="font-cormorant text-forest font-medium text-2xl sm:text-3xl lg:text-[42px] leading-snug mb-4">
           {product.name}
         </h1>
         
@@ -132,7 +146,7 @@ export default function ProductDetailsManager({
                       <div className="w-full h-[1px] bg-forest/40 rotate-45" />
                     </div>
                   )}
-                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 bg-white px-2 py-1 shadow-sm rounded border border-gold/10">
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] uppercase font-bold sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity whitespace-nowrap z-10 bg-white px-2 py-1 shadow-sm rounded border border-gold/10">
                     {product.color} {product.inventory_count === 0 ? "(Sold Out)" : ""}
                   </div>
                 </button>
@@ -199,7 +213,10 @@ export default function ProductDetailsManager({
           )}
         </div>
 
-        <ProductActions product={product} isSoldOut={displayStock === 0} />
+        {/* Inline CTA anchor — tracked for sticky bar visibility */}
+        <div ref={addToBagRef}>
+          <ProductActions product={product} isSoldOut={displayStock === 0} isCTAVisible={isCTAVisible} />
+        </div>
 
         {/* Easy Returns UI */}
         <Link href="/returns" className="mt-6 flex items-center justify-center gap-2 p-3.5 rounded-xl border border-gold/20 bg-[#F9F6F0] text-forest font-dm text-sm font-medium transition-colors hover:bg-gold/10">
@@ -240,5 +257,6 @@ export default function ProductDetailsManager({
         </div>
       </div>
     </section>
+    </>
   );
 }

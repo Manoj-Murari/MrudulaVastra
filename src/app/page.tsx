@@ -8,9 +8,10 @@ import TrendingSection from "@/components/sections/TrendingSection";
 import InstagramBanner from "@/components/sections/InstagramBanner";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import ScrollingDivider from "@/components/ui/ScrollingDivider";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
+import WelcomeBanner from "@/components/layout/WelcomeBanner";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 /* ── Homepage-specific metadata (overrides layout template) ──── */
 export const metadata: Metadata = {
@@ -23,45 +24,25 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const supabase = await createClient();
+  const supabase = await createPublicClient();
 
   // Run all independent queries in parallel for performance
   const [
     { data: categories },
     { data: products },
-    { data: testimonials },
-    { data: { user } }
+    { data: testimonials }
   ] = await Promise.all([
     supabase.from("categories").select("*").order("id", { ascending: true }),
     supabase.from("products").select("*").eq("is_trending", true).order("id", { ascending: false }).limit(8),
-    supabase.from("testimonials").select("*").order("id", { ascending: true }),
-    supabase.auth.getUser()
+    supabase.from("testimonials").select("*").order("id", { ascending: true })
   ]);
-
-  let profile: any = null;
-  if (user) {
-    const { data } = await (supabase as any)
-      .from("profiles")
-      .select("full_name")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-  }
 
   return (
     <>
       <AnnouncementBar />
       <Header />
       <main>
-        {profile?.full_name && (
-          <div className="hidden sm:block w-full bg-cream py-3.5 border-b border-gold/15 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-6 text-center animate-fade-in">
-              <p className="font-cormorant text-[1rem] lg:text-xl text-forest italic tracking-wide">
-                Welcome back to Mrudula Vastra, {profile.full_name.split(' ')[0]} ✨
-              </p>
-            </div>
-          </div>
-        )}
+        <WelcomeBanner />
         <HeroSection />
         <div className="hidden lg:block">
           <ScrollingDivider />

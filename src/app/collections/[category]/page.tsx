@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryGrid from "@/components/shop/CategoryGrid";
@@ -7,7 +7,7 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 /* ── Slug → DB category mapping ──────────────────────── */
 const CATEGORY_MAP: Record<string, { dbName: string; title: string; subtitle: string; seoDescription: string }> = {
@@ -94,7 +94,7 @@ export default async function CategoryPage({
     subtitle: `Explore our elegant collection of ${decodedCategory.replace(/[-]/g, " ")}.`,
   };
 
-  const supabase = await createClient();
+  const supabase = await createPublicClient();
 
   // Fetch all unique categories for the filter bar
   const { data: allProducts } = await (supabase as any)

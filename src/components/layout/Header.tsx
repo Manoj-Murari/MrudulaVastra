@@ -84,7 +84,7 @@ const SEARCH_CATEGORY_MAP: Record<string, string> = {
   "dress": "dresses",
 };
 
-function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
+function SearchBar({ onSubmitCallback, fullWidth, dark }: { onSubmitCallback?: () => void; fullWidth?: boolean; dark?: boolean }) {
   const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [results, setResults] = useState<{ products: any[], categories: string[] }>({ products: [], categories: [] });
@@ -132,7 +132,7 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
     const timer = setTimeout(() => {
       const params = new URLSearchParams(window.location.search);
       const currentQ = params.get("q") || "";
-      
+
       // Only update if the value actually changed to avoid unnecessary history entries/flicker
       if (currentQ !== trimmed) {
         if (trimmed) {
@@ -152,13 +152,13 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
   // Effect 2: Fetch instant results for dropdown (debounced)
   useEffect(() => {
     const trimmed = inputValue.trim();
-        // Fetch instant results for dropdown
+    // Fetch instant results for dropdown
     if (trimmed.length > 1) {
       setLoading(true);
       const timer = setTimeout(async () => {
         try {
           const supabase = createClient();
-          
+
           // Search products across name, category, and sub_category using DB-side filtering
           const { data: matchedProducts, error } = await supabase
             .from("products")
@@ -174,7 +174,7 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
             const products = matchedProducts as any[];
             // Extract unique categories from the matched products for suggestions
             const uniqueCats = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
-            
+
             setResults({
               products: products.slice(0, 5),
               categories: uniqueCats.slice(0, 3) as string[]
@@ -188,7 +188,7 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
           setLoading(false);
         }
       }, 300);
-      
+
       return () => clearTimeout(timer);
     } else {
       setResults({ products: [], categories: [] });
@@ -233,12 +233,12 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
     <div className="relative w-full flex justify-center lg:justify-start" ref={dropdownRef}>
       <form
         onSubmit={handleSubmit}
-        className={`relative group flex items-center transition-all duration-500 ease-in-out ${isFocused ? "w-full max-w-[420px]" : "w-full max-w-[280px]"
+        className={`relative group flex items-center transition-all duration-500 ease-in-out ${fullWidth ? "w-full max-w-full" : isFocused ? "w-full max-w-[420px]" : "w-full max-w-[280px]"
           }`}
       >
         <button
           type="submit"
-          className={`absolute left-4 transition-colors duration-300 z-10 ${isFocused ? "text-gold" : "text-forest/30"
+          className={`absolute left-4 transition-colors duration-300 z-10 ${isFocused ? "text-gold" : dark ? "text-cream/30" : "text-forest/30"
             }`}
         >
           <Search size={15} strokeWidth={1.5} />
@@ -249,7 +249,10 @@ function SearchBar({ onSubmitCallback }: { onSubmitCallback?: () => void }) {
           onFocus={() => setIsFocused(true)}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Search our collections..."
-          className="w-full py-2.5 pl-11 pr-10 bg-white/40 border border-gold/10 rounded-full font-dm text-[12px] tracking-wide text-forest placeholder:text-text-muted/40 focus:outline-none focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)] transition-all duration-500"
+          className={`w-full py-2.5 pl-11 pr-10 rounded-full font-dm text-[12px] tracking-wide focus:outline-none transition-all duration-500 ${dark
+              ? "bg-white/10 border border-white/15 text-cream placeholder:text-cream/30 focus:border-gold/40 focus:bg-white/15"
+              : "bg-white/40 border border-gold/10 text-forest placeholder:text-text-muted/40 focus:border-gold/30 focus:bg-white shadow-[0_2px_10px_rgba(184,150,62,0.02)] focus:shadow-[0_4px_20px_rgba(184,150,62,0.08)]"
+            }`}
         />
         {inputValue && (
           <button
@@ -352,6 +355,7 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [expandedNav, setExpandedNav] = useState<string | null>(null);
   const [dynamicNavLinks, setDynamicNavLinks] = useState<any[]>([...NAV_LINKS]);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { cartCount, toggleCart } = useCart();
   const ticking = useRef(false);
 
@@ -418,6 +422,20 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    if (menuOpen || mobileSearchOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    };
+  }, [menuOpen, mobileSearchOpen]);
+
+  useEffect(() => {
     const onScroll = () => {
       if (!ticking.current) {
         requestAnimationFrame(() => {
@@ -433,7 +451,7 @@ export default function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 transition-all duration-300"
+      className={`sticky top-0 transition-all duration-300 ${(menuOpen || mobileSearchOpen) ? "z-[70]" : "z-50"}`}
       style={{
         background: scrolled ? "rgba(253,251,247,0.97)" : "#FDFBF7",
         boxShadow: scrolled ? "0 1px 16px rgba(26,60,46,0.05)" : "none",
@@ -502,6 +520,14 @@ export default function Header() {
                   ADMIN
                 </Link>
               )}
+              {/* Mobile Search Icon */}
+              <button
+                onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMenuOpen(false); }}
+                className="lg:hidden text-text-nav hover:text-forest transition-colors p-1"
+                aria-label="Search"
+              >
+                <Search size={19} strokeWidth={1.3} />
+              </button>
               <Link
                 href="/profile"
                 className="hidden sm:block text-text-nav hover:text-forest transition-colors p-1"
@@ -527,12 +553,21 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Mobile + Tablet Search Bar (visible below lg, where desktop search takes over) */}
-          <div className="block lg:hidden w-full mt-1">
+          {/* Mobile expanding search bar — always in DOM, shown/hidden via CSS to avoid Suspense hydration errors */}
+          <div
+            className="lg:hidden w-full overflow-hidden transition-all duration-200"
+            style={{
+              maxHeight: mobileSearchOpen ? "60px" : "0px",
+              opacity: mobileSearchOpen ? 1 : 0,
+              marginTop: mobileSearchOpen ? "8px" : "0px",
+              paddingBottom: mobileSearchOpen ? "4px" : "0px",
+            }}
+          >
             <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
-              <SearchBar />
+              <SearchBar fullWidth onSubmitCallback={() => setMobileSearchOpen(false)} />
             </Suspense>
           </div>
+
         </div>
       </div>
 
@@ -555,45 +590,52 @@ export default function Header() {
         </div>
       </nav>
 
-      {/* Mobile Menu — Full-screen overlay */}
+      {/* Mobile Menu — Full-screen overlay, forest-green branded */}
       {menuOpen && (
         <div
-          className="fixed inset-0 top-0 lg:hidden z-[60] animate-fade-in flex flex-col"
-          style={{ background: "rgba(253,251,247,0.99)" }}
+          className="fixed inset-0 w-screen lg:hidden z-[60] flex flex-col overflow-hidden"
+          style={{ background: "#0E2219", height: "100dvh" }}
         >
-          {/* Menu Header — mirrors the real header */}
-          <div className="px-4 flex items-center justify-between" style={{ paddingTop: "18px", paddingBottom: "12px" }}>
+          {/* Menu Header */}
+          <div
+            className="px-5 flex items-center justify-between flex-shrink-0"
+            style={{
+              paddingTop: "18px",
+              paddingBottom: "14px",
+              borderBottom: "1px solid rgba(184,150,62,0.15)",
+            }}
+          >
             <button
               onClick={() => setMenuOpen(false)}
-              className="text-text-nav hover:text-forest transition-colors p-1"
+              className="text-cream/60 hover:text-cream transition-colors p-2 -ml-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Close menu"
             >
               <X size={22} strokeWidth={1.3} />
             </button>
             <Link href="/" onClick={() => setMenuOpen(false)} className="text-center flex-shrink-0">
               <p
-                className="font-playfair text-forest font-bold whitespace-nowrap"
-                style={{ fontSize: "clamp(18px, 3vw, 30px)", letterSpacing: "0.08em", lineHeight: 1.1 }}
+                className="font-playfair text-cream font-bold whitespace-nowrap"
+                style={{ fontSize: "clamp(16px, 3vw, 22px)", letterSpacing: "0.08em", lineHeight: 1.1 }}
               >
                 MRUDULA VASTRA
               </p>
               <p
                 className="uppercase text-gold font-dm font-medium"
-                style={{ fontSize: "10px", letterSpacing: "0.25em", marginTop: 4 }}
+                style={{ fontSize: "9px", letterSpacing: "0.25em", marginTop: 3 }}
               >
                 Elegance Woven in Every Thread
               </p>
             </Link>
             <button
-              onClick={() => toggleCart()}
-              className="text-text-nav hover:text-forest transition-colors p-1 relative"
+              onClick={() => { toggleCart(); setMenuOpen(false); }}
+              className="text-cream/60 hover:text-cream transition-colors p-2 -mr-2 relative min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Shopping bag"
             >
               <ShoppingBag size={19} strokeWidth={1.3} />
               {cartCount > 0 && (
                 <span
-                  className="absolute -top-1.5 -right-1.5 bg-forest text-white rounded-full flex items-center justify-center font-bold font-dm"
-                  style={{ width: "17px", height: "17px", fontSize: "9px" }}
+                  className="absolute top-1 right-1 bg-gold text-forest rounded-full flex items-center justify-center font-bold font-dm"
+                  style={{ width: "16px", height: "16px", fontSize: "9px" }}
                 >
                   {cartCount}
                 </span>
@@ -602,37 +644,49 @@ export default function Header() {
           </div>
 
           {/* Search */}
-          <div className="px-6 py-3">
+          <div className="px-5 py-3 flex-shrink-0" style={{ borderBottom: "1px solid rgba(184,150,62,0.1)" }}>
             <Suspense fallback={<div className="h-10 w-full bg-white/10 rounded-full animate-pulse" />}>
-              <SearchBar onSubmitCallback={() => setMenuOpen(false)} />
+              <SearchBar onSubmitCallback={() => setMenuOpen(false)} dark={true} />
             </Suspense>
           </div>
 
-          {/* Nav Links */}
-          <nav className="flex-1 px-8 pt-4 overflow-y-auto">
+          {/* Quick-access pill: Trending */}
+          <div className="px-5 pt-4 pb-2 flex-shrink-0">
+            <Link
+              href="/trending"
+              onClick={() => setMenuOpen(false)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] font-dm transition-colors"
+              style={{ background: "rgba(184,150,62,0.15)", color: "#D4AF37", border: "1px solid rgba(184,150,62,0.25)" }}
+            >
+              ✦ &nbsp; Trending
+            </Link>
+          </div>
+
+          {/* Nav Links — scrollable */}
+          <nav className="flex-1 px-5 overflow-y-auto">
             {dynamicNavLinks.map((link) => {
               const hasSubLinks = 'subLinks' in link && link.subLinks && link.subLinks.length > 0;
-              
+
               if (hasSubLinks) {
                 const isExpanded = expandedNav === link.label;
                 return (
-                  <div key={link.label} className="border-b border-gold/10">
+                  <div key={link.label} style={{ borderBottom: "1px solid rgba(184,150,62,0.1)" }}>
                     <button
                       onClick={() => setExpandedNav(isExpanded ? null : link.label)}
-                      className="w-full flex items-center justify-between py-4 text-forest font-medium font-dm text-[15px]"
+                      className="w-full flex items-center justify-between py-4 text-cream font-medium font-dm text-[16px] min-h-[56px]"
                     >
                       {link.label}
                       <ChevronDown
                         size={16}
-                        className={`transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                        className={`text-gold/60 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
                       />
                     </button>
                     {isExpanded && (
-                      <div className="flex flex-col pb-4 pl-4 space-y-4 animate-fade-in">
+                      <div className="flex flex-col pb-3 pl-4 animate-fade-in">
                         <Link
                           href={link.href}
                           onClick={() => { setMenuOpen(false); setExpandedNav(null); }}
-                          className="text-forest/80 text-[14px] font-dm hover:text-forest transition-colors"
+                          className="py-3 min-h-[44px] flex items-center text-gold text-[14px] font-dm hover:text-gold/70 transition-colors"
                         >
                           All {link.label}
                         </Link>
@@ -641,7 +695,7 @@ export default function Header() {
                             key={subLink.label}
                             href={subLink.href}
                             onClick={() => { setMenuOpen(false); setExpandedNav(null); }}
-                            className="text-text-muted text-[14px] font-dm hover:text-forest transition-colors"
+                            className="py-3 min-h-[44px] flex items-center text-cream/50 text-[14px] font-dm hover:text-cream transition-colors"
                           >
                             {subLink.label}
                           </Link>
@@ -656,7 +710,8 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => { setMenuOpen(false); setExpandedNav(null); }}
-                  className="block py-4 text-forest font-medium font-dm text-[15px] border-b border-gold/10"
+                  className="flex items-center py-4 min-h-[56px] text-cream font-medium font-dm text-[16px]"
+                  style={{ borderBottom: "1px solid rgba(184,150,62,0.1)" }}
                 >
                   {link.label}
                 </Link>
@@ -665,16 +720,18 @@ export default function Header() {
             <Link
               href="/profile"
               onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-3 py-4 text-forest font-medium font-dm text-[15px] border-b border-gold/10"
+              className="flex items-center gap-3 py-4 min-h-[56px] text-cream font-medium font-dm text-[16px]"
+              style={{ borderBottom: "1px solid rgba(184,150,62,0.1)" }}
             >
-              <User size={16} strokeWidth={1.3} />
+              <User size={16} strokeWidth={1.3} className="text-gold/60" />
               My Account
             </Link>
             {isAdmin && (
               <Link
                 href="/admin"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 py-4 text-gold font-bold font-dm text-[15px] border-b border-gold/10"
+                className="flex items-center gap-3 py-4 min-h-[56px] text-gold font-bold font-dm text-[16px]"
+                style={{ borderBottom: "1px solid rgba(184,150,62,0.1)" }}
               >
                 <Shield size={16} strokeWidth={1.5} />
                 Admin Dashboard
@@ -682,14 +739,51 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Bottom Branding */}
-          <div className="px-8 py-6 text-center border-t border-gold/10">
-            <p className="text-text-muted/40 font-dm text-[11px] tracking-wider uppercase">
+          {/* Bottom — Social links + branding */}
+          <div
+            className="px-6 pt-5 pb-8 flex-shrink-0 flex flex-col items-center gap-4"
+            style={{ borderTop: "1px solid rgba(184,150,62,0.12)" }}
+          >
+            {/* Social buttons */}
+            <div className="flex items-center gap-6">
+              <a
+                href="https://www.instagram.com/mrudulavastra/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 min-w-[44px] min-h-[44px] justify-center"
+              >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ border: "1px solid rgba(184,150,62,0.3)" }}>
+                  {/* Instagram icon SVG */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="17.5" cy="6.5" r="0.5" fill="#D4AF37" />
+                  </svg>
+                </div>
+                <span className="text-[9px] uppercase tracking-widest text-gold/50 font-dm">Instagram</span>
+              </a>
+              <a
+                href="https://api.whatsapp.com/send/?phone=917208903117&text&type=phone_number&app_absent=0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 min-w-[44px] min-h-[44px] justify-center"
+              >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ border: "1px solid rgba(184,150,62,0.3)" }}>
+                  {/* WhatsApp icon SVG */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#D4AF37">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                  </svg>
+                </div>
+                <span className="text-[9px] uppercase tracking-widest text-gold/50 font-dm">WhatsApp</span>
+              </a>
+            </div>
+            <p className="text-cream/20 font-dm text-[10px] tracking-[0.3em] uppercase">
               Handpicked Ethnic Elegance
             </p>
           </div>
         </div>
       )}
+
     </header>
   );
 }

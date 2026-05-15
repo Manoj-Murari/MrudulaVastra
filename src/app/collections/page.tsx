@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import ShopGrid from "@/components/shop/ShopGrid";
 import { Suspense } from "react";
@@ -6,7 +6,7 @@ import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Shop All Collections — Sarees, Dress Materials & Kids Wear",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CollectionsPage() {
-  const supabase = await createClient();
+  const supabase = await createPublicClient();
 
   const { data: products } = await (supabase as any)
     .from("products")

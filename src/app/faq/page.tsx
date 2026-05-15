@@ -13,7 +13,7 @@ const FAQ_CATEGORIES = [
     faqs: [
       {
         q: "What payment methods do you accept?",
-        a: "We accept UPI (GPay, PhonePe, Paytm), credit/debit cards (Visa, Mastercard, RuPay), net banking, and Cash on Delivery (COD). All online payments are processed securely through Razorpay.",
+        a: "We accept UPI (GPay, PhonePe, Paytm), credit/debit cards (Visa, Mastercard, RuPay), net banking. All online payments are processed securely through Razorpay.",
       },
       {
         q: "How do I place an order?",
@@ -38,11 +38,11 @@ const FAQ_CATEGORIES = [
       },
       {
         q: "Do you offer free shipping?",
-        a: "Yes! We offer free shipping on all prepaid orders above ₹1,999. For orders below ₹1,999, a flat shipping fee of ₹99 is applicable.",
+        a: "Yes! We offer free shipping on all prepaid orders above ₹999. For orders below ₹999, a flat shipping fee of ₹150 is applicable.",
       },
       {
         q: "Can I track my order?",
-        a: "Yes, once your order is shipped, you'll receive a tracking link via email and SMS. You can also visit our 'Track Your Order' page with your order ID.",
+        a: "Yes, once your order is shipped, you'll receive a tracking link via email. You can also visit courier partner's website with tracking id sent to your email.",
       },
       {
         q: "Do you ship internationally?",
@@ -119,15 +119,13 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <span className="font-dm text-forest font-medium text-sm pr-4">{q}</span>
         <ChevronDown
           size={18}
-          className={`text-gold flex-shrink-0 transition-transform duration-300 ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`text-gold flex-shrink-0 transition-transform duration-300 ${open ? "rotate-180" : ""
+            }`}
         />
       </button>
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        }`}
+        className={`overflow-hidden transition-all duration-300 ${open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
       >
         <p className="px-5 lg:px-6 pb-5 lg:pb-6 text-text-muted font-dm text-sm leading-relaxed">
           {a}

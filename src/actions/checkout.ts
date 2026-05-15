@@ -327,8 +327,11 @@ export async function processOrderAfterPayment(
             const sizeInvIdx = variantsCopy.findIndex((v: any) => v && v.type === "size_inventory");
             if (sizeInvIdx !== -1 && variantsCopy[sizeInvIdx].data) {
               const sizeData = { ...variantsCopy[sizeInvIdx].data };
-              if (sizeData[item.variant] !== undefined) {
-                sizeData[item.variant] = Math.max(0, (sizeData[item.variant] as number) - item.quantity);
+              // Parse "Color | Size" format to extract the size name
+              const variantParts = item.variant!.split(" | ");
+              const sizeName = variantParts.length > 1 ? variantParts[variantParts.length - 1] : item.variant!;
+              if (sizeData[sizeName] !== undefined) {
+                sizeData[sizeName] = Math.max(0, (sizeData[sizeName] as number) - item.quantity);
                 variantsCopy[sizeInvIdx] = { ...variantsCopy[sizeInvIdx], data: sizeData };
                 updatePayload.variants = variantsCopy;
               }

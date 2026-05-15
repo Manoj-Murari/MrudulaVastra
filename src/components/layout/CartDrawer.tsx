@@ -50,7 +50,7 @@ export default function CartDrawer() {
   const [checkoutStep, setCheckoutStep] = useState<"cart" | "address" | "login">("cart");
   const [addressData, setAddressData] = useState({ fullName: "", phone: "", pincode: "", city: "", state: "", fullAddress: "" });
   const [hasProfileFetched, setHasProfileFetched] = useState(false);
-  
+
   // Coupon State
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number } | null>(null);
@@ -139,10 +139,25 @@ export default function CartDrawer() {
     checkCoupons();
   }, []);
 
+  // Scroll Lock when cart is open
+  useEffect(() => {
+    if (isCartOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+    };
+  }, [isCartOpen]);
+
   const handleCheckout = async () => {
     // Prevent double execution from double clicks
     if (isProcessingRef.current) return;
-    
+
     // Make sure they filled everything out
     if (!addressData.fullName || !addressData.phone || !addressData.pincode || !addressData.city || !addressData.state || !addressData.fullAddress) {
       alert("Please fill out all shipping details.");
@@ -151,7 +166,7 @@ export default function CartDrawer() {
 
     isProcessingRef.current = true;
     setIsProcessing(true);
-    
+
     // Format items
     const checkoutItems = items.map((item) => ({
       product_id: item.product.id,
@@ -167,7 +182,7 @@ export default function CartDrawer() {
 
     // Step 1: Initialize razorpay order from backend
     const orderResult = await createRazorpayOrder(finalAmountInRs, checkoutItems, appliedCoupon?.code, addressData);
-    
+
     if (orderResult.error === "SESSION_EXPIRED") {
       alert("Your session has expired. Please sign in again to complete your order.");
       setCheckoutStep("login");
@@ -227,7 +242,7 @@ export default function CartDrawer() {
               city: addressData.city,
               state: addressData.state,
               pincode: addressData.pincode,
-            }).catch(() => {}); // silent — don't block success
+            }).catch(() => { }); // silent — don't block success
           }
         } else {
           alert("Order processing failed: " + verifyResult.message);
@@ -252,11 +267,11 @@ export default function CartDrawer() {
     options.amount = finalAmountInRs * 100;
 
     const rzp = new window.Razorpay(options);
-    
+
     rzp.on('payment.failed', function (response: RazorpayFailResponse) {
-       alert("Payment Failed: " + response.error.description);
-       isProcessingRef.current = false;
-       setIsProcessing(false);
+      alert("Payment Failed: " + response.error.description);
+      isProcessingRef.current = false;
+      setIsProcessing(false);
     });
 
     rzp.open();
@@ -271,7 +286,7 @@ export default function CartDrawer() {
       setAppliedCoupon(null);
       setCouponInput("");
       setCouponError("");
-    }, 500); 
+    }, 500);
   };
 
   return (
@@ -315,7 +330,7 @@ export default function CartDrawer() {
             <div className="flex-1 overflow-y-auto p-6 flex flex-col lg:max-h-[calc(100vh-320px)]">
               {success ? (
                 /* Success State */
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center justify-center h-full text-center space-y-4"
@@ -357,11 +372,10 @@ export default function CartDrawer() {
                         {savedAddresses.map(addr => (
                           <label
                             key={addr.id}
-                            className={`block p-3 border cursor-pointer transition-all ${
-                              selectedAddressId === addr.id && !useNewAddress
+                            className={`block p-3 border cursor-pointer transition-all ${selectedAddressId === addr.id && !useNewAddress
                                 ? "border-forest bg-forest/[0.03]"
                                 : "border-gold/15 hover:border-gold/30"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -396,9 +410,8 @@ export default function CartDrawer() {
                           setSelectedAddressId(null);
                           setAddressData({ fullName: "", phone: "", pincode: "", city: "", state: "", fullAddress: "" });
                         }}
-                        className={`w-full py-2.5 text-xs font-dm uppercase tracking-wider font-bold border-2 border-dashed transition-all ${
-                          useNewAddress ? "border-forest text-forest bg-forest/[0.03]" : "border-gold/20 text-text-muted hover:border-forest/30"
-                        }`}
+                        className={`w-full py-2.5 text-xs font-dm uppercase tracking-wider font-bold border-2 border-dashed transition-all ${useNewAddress ? "border-forest text-forest bg-forest/[0.03]" : "border-gold/20 text-text-muted hover:border-forest/30"
+                          }`}
                       >
                         + Use a Different Address
                       </button>
@@ -409,11 +422,11 @@ export default function CartDrawer() {
                   {(useNewAddress || savedAddresses.length === 0) && (
                     <div className="space-y-4">
                       {savedAddresses.length > 0 && <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-text-muted font-dm">New Address</p>}
-                      <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({...addressData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                      <input type="tel" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({...addressData, phone: e.target.value.replace(/\D/g, '').slice(0, 15)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                      
+                      <input type="text" placeholder="Full Name" value={addressData.fullName} onChange={e => setAddressData({ ...addressData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '') })} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                      <input type="tel" placeholder="WhatsApp Number" value={addressData.phone} onChange={e => setAddressData({ ...addressData, phone: e.target.value.replace(/\D/g, '').slice(0, 15) })} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+
                       <div className="grid grid-cols-2 gap-4">
-                        <select required value={addressData.state} onChange={e => setAddressData({...addressData, state: e.target.value})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors border-0">
+                        <select required value={addressData.state} onChange={e => setAddressData({ ...addressData, state: e.target.value })} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest font-dm transition-colors border-0">
                           <option value="" disabled>Select State</option>
                           {[
                             "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
@@ -423,11 +436,11 @@ export default function CartDrawer() {
                             "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
                           ].map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        <input type="text" placeholder="City" value={addressData.city} onChange={e => setAddressData({...addressData, city: e.target.value.replace(/[^A-Za-z\s]/g, '')})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                        <input type="text" placeholder="City" value={addressData.city} onChange={e => setAddressData({ ...addressData, city: e.target.value.replace(/[^A-Za-z\s]/g, '') })} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
                       </div>
 
-                      <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({...addressData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
-                      <textarea placeholder="House No, Building, Street Area" value={addressData.fullAddress} onChange={e => setAddressData({...addressData, fullAddress: e.target.value})} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
+                      <input type="text" placeholder="Pincode" value={addressData.pincode} onChange={e => setAddressData({ ...addressData, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors" />
+                      <textarea placeholder="House No, Building, Street Area" value={addressData.fullAddress} onChange={e => setAddressData({ ...addressData, fullAddress: e.target.value })} rows={3} className="w-full bg-transparent border-b border-gold/30 py-2 focus:outline-none focus:border-forest text-forest placeholder:text-text-muted/50 font-dm transition-colors resize-none" />
 
                       {/* Save this address checkbox */}
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -473,7 +486,7 @@ export default function CartDrawer() {
                         <h4 className="font-cormorant text-forest font-medium text-xl leading-tight line-clamp-2">
                           {item.product.name}
                         </h4>
-                        
+
                         {/* Variant Info */}
                         {(item.selectedSize || item.product.color) && (
                           <p className="text-[11px] font-dm text-text-muted mt-0.5">
@@ -504,7 +517,7 @@ export default function CartDrawer() {
                               +
                             </button>
                           </div>
-                          
+
                           <button
                             onClick={() => removeFromCart(item.cartItemId)}
                             className="text-text-muted hover:text-red-500 transition-colors p-2"
@@ -522,14 +535,14 @@ export default function CartDrawer() {
             {/* Footer / Checkout Button */}
             {!success && items.length > 0 && (
               <div className="p-6 border-t border-gold/20 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
-                
+
                 {/* Coupon Code Section */}
                 {hasActiveCoupons && (
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[11px] uppercase tracking-widest font-bold text-text-muted">Apply Coupon</span>
                       {appliedCoupon && (
-                        <button 
+                        <button
                           onClick={() => { setAppliedCoupon(null); setCouponError(""); }}
                           className="text-[10px] text-red-500 font-bold uppercase tracking-wider hover:underline"
                         >
@@ -537,17 +550,17 @@ export default function CartDrawer() {
                         </button>
                       )}
                     </div>
-                    
+
                     {!appliedCoupon ? (
                       <div className="flex gap-2">
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={couponInput}
                           onChange={(e) => { setCouponInput(e.target.value); setCouponError(""); }}
                           placeholder="Enter Code (e.g. MRUDULA10)"
                           className="flex-1 bg-sand/50 border border-gold/20 rounded px-3 py-2 text-sm font-dm focus:outline-none focus:border-forest transition-colors"
                         />
-                        <button 
+                        <button
                           disabled={!couponInput || isApplyingCoupon}
                           onClick={async () => {
                             setIsApplyingCoupon(true);
@@ -575,7 +588,7 @@ export default function CartDrawer() {
                         <span className="text-xs font-bold text-emerald-700">- ₹{appliedCoupon.discountAmount.toLocaleString("en-IN")}</span>
                       </div>
                     )}
-                    
+
                     {couponError && <p className="text-[10px] text-red-500 mt-1.5 font-medium">{couponError}</p>}
                   </div>
                 )}
@@ -644,7 +657,7 @@ export default function CartDrawer() {
                     <span className="font-semibold text-forest">Within 3 - 7 business days</span>
                   </div>
                 </div>
-                
+
                 {checkoutStep === "login" ? (
                   /* Login Gate */
                   <div className="text-center space-y-4">
@@ -695,7 +708,7 @@ export default function CartDrawer() {
                     )}
                   </button>
                 )}
-                
+
                 {/* Removed Shipping & Taxes message */}
               </div>
             )}

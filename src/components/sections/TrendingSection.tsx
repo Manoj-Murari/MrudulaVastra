@@ -38,7 +38,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
 
         <div className="max-w-7xl lg:max-w-6xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-up">
+          <div className="text-center mb-6 sm:mb-16 lg:mb-20 animate-fade-up">
             <p
               className="hidden sm:block uppercase font-bold mb-4 text-gold tracking-[0.5em] text-[9px]"
             >
@@ -55,7 +55,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
               <div className="h-px w-12 bg-gold/40" />
             </div>
             
-            <div className="mt-8 flex justify-center">
+            <div className="mt-4 sm:mt-8 flex justify-center">
               <Link
                 href="/collections"
                 className="relative py-2 uppercase font-bold text-forest transition-all group overflow-hidden inline-block"
@@ -74,7 +74,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
           </div>
 
           {/* Product Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-6 sm:gap-6 lg:gap-10">
             {products.map((product, idx) => (
               <Link
                 key={product.id}
@@ -168,7 +168,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                             addToCart(product, product.sizes?.[0]);
                           }
                         }}
-                        className="sm:px-5 px-3 py-2.5 bg-forest text-cream uppercase font-black text-[9px] tracking-[0.2em] transition-all duration-300 hover:bg-forest/90 active:scale-95 shadow-md flex items-center justify-center gap-1.5"
+                        className="sm:px-5 px-2.5 py-2.5 bg-forest text-cream uppercase font-black text-[9px] tracking-[0.2em] transition-all duration-300 hover:bg-forest/90 active:scale-95 shadow-md flex items-center justify-center gap-1.5 shrink-0"
                       >
                         <ShoppingBag size={12} className="sm:hidden" />
                         <span className="hidden sm:inline">Add to Bag</span>

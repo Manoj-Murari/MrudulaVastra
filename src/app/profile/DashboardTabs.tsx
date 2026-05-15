@@ -246,6 +246,7 @@ export default function DashboardTabs({ profile, orders, userEmail, addresses: i
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState("");
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [visibleOrdersCount, setVisibleOrdersCount] = useState(5);
 
   // Address state
   const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
@@ -313,7 +314,7 @@ export default function DashboardTabs({ profile, orders, userEmail, addresses: i
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.map((order) => {
+                {orders.slice(0, visibleOrdersCount).map((order) => {
                   const isExpanded = expandedOrderId === order.id;
 
                   return (
@@ -330,7 +331,7 @@ export default function DashboardTabs({ profile, orders, userEmail, addresses: i
                         <p className="font-dm text-forest font-medium text-sm">
                           Order #{order.id.slice(0, 8)}
                         </p>
-                        <p className="text-text-muted font-dm text-xs mt-0.5">
+                        <p suppressHydrationWarning className="text-text-muted font-dm text-xs mt-0.5">
                           {new Date(order.created_at).toLocaleDateString("en-IN", {
                             year: "numeric",
                             month: "short",
@@ -415,6 +416,14 @@ export default function DashboardTabs({ profile, orders, userEmail, addresses: i
                     )}
                   </div>
                 )})}
+                {visibleOrdersCount < orders.length && (
+                  <button
+                    onClick={() => setVisibleOrdersCount(prev => prev + 5)}
+                    className="w-full py-3 mt-4 border border-gold/20 text-forest hover:bg-forest/5 transition-all font-dm text-sm uppercase tracking-wider font-bold"
+                  >
+                    View More Orders
+                  </button>
+                )}
               </div>
             )}
           </div>

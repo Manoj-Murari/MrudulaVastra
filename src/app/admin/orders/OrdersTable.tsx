@@ -34,24 +34,33 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [isAddingOffline, setIsAddingOffline] = useState(false);
+  const emptyLineItem = () => ({ productId: "", size: "", quantity: 1 });
   const [offlineForm, setOfflineForm] = useState({
     customerName: "",
     phone: "",
     customerEmail: "",
-    productId: "",
-    size: "",
-    quantity: 1,
-    paymentMode: "UPI"
+    paymentMode: "UPI",
+    lineItems: [emptyLineItem()]
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateLineItem = (idx: number, field: string, value: any) => {
+    setOfflineForm(prev => {
+      const items = [...prev.lineItems];
+      items[idx] = { ...items[idx], [field]: value };
+      return { ...prev, lineItems: items };
+    });
+  };
+  const addLineItem = () => setOfflineForm(prev => ({ ...prev, lineItems: [...prev.lineItems, emptyLineItem()] }));
+  const removeLineItem = (idx: number) => setOfflineForm(prev => ({ ...prev, lineItems: prev.lineItems.filter((_, i) => i !== idx) }));
 
   const filtered = orders.filter((o) => {
     const matchesSearch = o.id.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || o.status === statusFilter;
-    const matchesSource = sourceFilter === "all" 
-      ? true 
-      : sourceFilter === "offline" 
-        ? !o.user_id 
+    const matchesSource = sourceFilter === "all"
+      ? true
+      : sourceFilter === "offline"
+        ? !o.user_id
         : !!o.user_id;
     return matchesSearch && matchesStatus && matchesSource;
   });
@@ -60,7 +69,7 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
-    
+
     let carrierName = undefined;
     let trackingId = undefined;
     let trackingUrl = undefined;
@@ -231,65 +240,65 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
         <div className="min-w-[650px] w-full">
           {/* Table Header */}
           <div
-          className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-3 border-b text-[10px] uppercase tracking-[0.2em] font-bold"
-          style={{ borderColor: "var(--admin-border)", color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}
-        >
-          <span>Order ID</span>
-          <span>Date</span>
-          <span>Status</span>
-          <span className="text-right">Total</span>
-          <span />
-        </div>
-
-        {/* Rows */}
-        {filtered.length === 0 ? (
-          <div className="text-center py-12 text-[13px]" style={{ color: "var(--admin-text-dim)" }}>
-            No orders match your filters
+            className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-3 border-b text-[10px] uppercase tracking-[0.2em] font-bold"
+            style={{ borderColor: "var(--admin-border)", color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}
+          >
+            <span>Order ID</span>
+            <span>Date</span>
+            <span>Status</span>
+            <span className="text-right">Total</span>
+            <span />
           </div>
-        ) : (
-          filtered.map((order) => {
-            const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-            return (
-              <div
-                key={order.id}
-                onClick={() => setSelectedOrder(order)}
-                className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-4 border-b cursor-pointer transition-colors duration-150 admin-table-row-hover"
-                style={{ 
-                  borderColor: "var(--admin-border)", 
-                  fontFamily: "'DM Sans', sans-serif",
-                  opacity: order.status === "cancelled" ? 0.6 : 1
-                }}
-              >
-                <div className="flex flex-col">
-                  <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
-                    #{order.id.slice(0, 8).toUpperCase()}
+
+          {/* Rows */}
+          {filtered.length === 0 ? (
+            <div className="text-center py-12 text-[13px]" style={{ color: "var(--admin-text-dim)" }}>
+              No orders match your filters
+            </div>
+          ) : (
+            filtered.map((order) => {
+              const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+              return (
+                <div
+                  key={order.id}
+                  onClick={() => setSelectedOrder(order)}
+                  className="grid grid-cols-[1fr_1fr_1fr_1fr_40px] gap-4 px-5 py-4 border-b cursor-pointer transition-colors duration-150 admin-table-row-hover"
+                  style={{
+                    borderColor: "var(--admin-border)",
+                    fontFamily: "'DM Sans', sans-serif",
+                    opacity: order.status === "cancelled" ? 0.6 : 1
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <span className={`text-[13px] font-semibold ${order.status === "cancelled" ? "line-through" : ""}`} style={{ color: "var(--admin-text)" }}>
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-wider opacity-60 font-bold" style={{ color: order.user_id ? "var(--admin-blue)" : "var(--admin-accent)" }}>
+                      {order.user_id ? "Online Store" : "In-Store / Offline"}
+                    </span>
+                  </div>
+                  <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>
+                    {new Date(order.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
-                  <span className="text-[9px] uppercase tracking-wider opacity-60 font-bold" style={{ color: order.user_id ? "var(--admin-blue)" : "var(--admin-accent)" }}>
-                    {order.user_id ? "Online Store" : "In-Store / Offline"}
+                  <span>
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold"
+                      style={{ background: cfg.bg, color: cfg.color }}
+                    >
+                      <cfg.icon size={11} />
+                      {cfg.label}
+                    </span>
+                  </span>
+                  <span className="text-[13px] font-semibold text-right" style={{ color: "var(--admin-text)" }}>
+                    ₹{order.total_amount.toLocaleString("en-IN")}
+                  </span>
+                  <span className="flex items-center justify-center">
+                    <ChevronRight size={14} style={{ color: "var(--admin-text-dim)" }} />
                   </span>
                 </div>
-                <span className="text-[12px]" style={{ color: "var(--admin-text-muted)" }}>
-                  {new Date(order.created_at).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
-                </span>
-                <span>
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold"
-                    style={{ background: cfg.bg, color: cfg.color }}
-                  >
-                    <cfg.icon size={11} />
-                    {cfg.label}
-                  </span>
-                </span>
-                <span className="text-[13px] font-semibold text-right" style={{ color: "var(--admin-text)" }}>
-                  ₹{order.total_amount.toLocaleString("en-IN")}
-                </span>
-                <span className="flex items-center justify-center">
-                  <ChevronRight size={14} style={{ color: "var(--admin-text-dim)" }} />
-                </span>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -636,100 +645,200 @@ export default function OrdersTable({ initialOrders, products = [] }: { initialO
                     <X size={18} />
                   </button>
                 </div>
-                <form 
+
+                <form
                   onSubmit={async (e) => {
                     e.preventDefault();
                     setIsSubmitting(true);
-                    const res = await createOfflineOrder({
-                      customerName: offlineForm.customerName,
-                      phone: offlineForm.phone,
-                      customerEmail: offlineForm.customerEmail || undefined,
-                      productId: Number(offlineForm.productId),
-                      size: offlineForm.size || undefined,
-                      quantity: Number(offlineForm.quantity),
-                      paymentMode: offlineForm.paymentMode
-                    });
+                    // Submit each line item as a separate order (they share customer info)
+                    let lastError = "";
+                    for (const item of offlineForm.lineItems) {
+                      if (!item.productId) continue;
+                      const res = await createOfflineOrder({
+                        customerName: offlineForm.customerName,
+                        phone: offlineForm.phone,
+                        customerEmail: offlineForm.customerEmail || undefined,
+                        productId: Number(item.productId),
+                        size: item.size || undefined,
+                        quantity: Number(item.quantity),
+                        paymentMode: offlineForm.paymentMode
+                      });
+                      if (res.error) { lastError = res.error; break; }
+                    }
                     setIsSubmitting(false);
-                    if (res.error) alert(res.error);
+                    if (lastError) { alert(lastError); }
                     else {
                       setIsAddingOffline(false);
+                      setOfflineForm({ customerName: "", phone: "", customerEmail: "", paymentMode: "UPI", lineItems: [emptyLineItem()] });
                       window.location.reload();
                     }
                   }}
-                  className="space-y-4"
+                  className="space-y-5"
                 >
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Customer Name</label>
-                    <input required value={offlineForm.customerName} onChange={e => setOfflineForm({...offlineForm, customerName: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                  {/* ── Customer Info ── */}
+                  <div className="space-y-4 pb-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
+                    <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: "var(--admin-accent)" }}>Customer Details</p>
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Customer Name</label>
+                      <input
+                        required
+                        value={offlineForm.customerName}
+                        onChange={e => {
+                          // Allow only alphabets and spaces
+                          const val = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                          setOfflineForm({ ...offlineForm, customerName: val });
+                        }}
+                        placeholder="Full name (letters only)"
+                        className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]"
+                        style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Phone Number</label>
+                      <input
+                        required
+                        value={offlineForm.phone}
+                        onChange={e => {
+                          // Allow only digits, max 10
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          setOfflineForm({ ...offlineForm, phone: val });
+                        }}
+                        placeholder="10-digit number"
+                        inputMode="numeric"
+                        pattern="[0-9]{10}"
+                        maxLength={10}
+                        className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]"
+                        style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Email (Optional)</label>
+                      <input
+                        type="email"
+                        value={offlineForm.customerEmail}
+                        onChange={e => setOfflineForm({ ...offlineForm, customerEmail: e.target.value })}
+                        placeholder="customer@email.com"
+                        className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]"
+                        style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Payment Mode</label>
+                      <select value={offlineForm.paymentMode} onChange={e => setOfflineForm({ ...offlineForm, paymentMode: e.target.value })} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
+                        <option value="Cash" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Cash</option>
+                        <option value="UPI" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>UPI</option>
+                        <option value="Bank Transfer" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Bank Transfer</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Phone Number</label>
-                    <input required value={offlineForm.phone} onChange={e => setOfflineForm({...offlineForm, phone: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Email (Optional)</label>
-                    <input type="email" value={offlineForm.customerEmail} onChange={e => setOfflineForm({...offlineForm, customerEmail: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Product</label>
-                    <select required value={offlineForm.productId} onChange={e => setOfflineForm({...offlineForm, productId: e.target.value, size: ""})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
-                      <option value="" disabled style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select a product...</option>
-                      {products.map(p => {
-                        const sizeInvVariant = (p.variants || []).find((v: any) => v.type === "size_inventory");
-                        const hasSizes = sizeInvVariant && Object.keys(sizeInvVariant.data).length > 0;
-                        const totalStock = p.inventory_count;
-                        return (
-                          <option key={p.id} value={p.id} disabled={totalStock < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
-                            {p.name} {hasSizes ? `(Sizes Available)` : `(Stock: ${totalStock})`}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                  {offlineForm.productId && (() => {
-                    const selectedProduct = products.find(p => p.id === Number(offlineForm.productId));
-                    const sizeInvVariant = (selectedProduct?.variants || []).find((v: any) => v.type === "size_inventory");
-                    if (sizeInvVariant && Object.keys(sizeInvVariant.data).length > 0) {
+
+                  {/* ── Product Line Items ── */}
+                  <div className="space-y-4">
+                    <p className="text-[10px] uppercase tracking-widest font-bold" style={{ color: "var(--admin-accent)" }}>Products Ordered</p>
+
+                    {offlineForm.lineItems.map((item, idx) => {
+                      const selectedProduct = products.find(p => p.id === Number(item.productId));
+                      const sizeInvVariant = (selectedProduct?.variants || []).find((v: any) => v.type === "size_inventory");
+                      const hasSizes = sizeInvVariant && Object.keys(sizeInvVariant.data).length > 0;
+
                       return (
-                        <div>
-                          <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Size</label>
-                          <select required value={offlineForm.size} onChange={e => setOfflineForm({...offlineForm, size: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
-                            <option value="" disabled style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Select a size...</option>
-                            {Object.entries(sizeInvVariant.data).map(([size, count]) => (
-                              <option key={size} value={size} disabled={(count as number) < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
-                                {size} (Stock: {count as number})
-                              </option>
-                            ))}
-                          </select>
+                        <div key={idx} className="p-3 rounded-xl border space-y-3" style={{ borderColor: "var(--admin-border-active)", background: "var(--admin-surface-elevated)" }}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-dim)" }}>Item {idx + 1}</span>
+                            {offlineForm.lineItems.length > 1 && (
+                              <button type="button" onClick={() => removeLineItem(idx)} className="p-1 rounded" style={{ color: "var(--admin-red)" }}>
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider font-bold mb-1.5" style={{ color: "var(--admin-text-dim)" }}>Product</label>
+                            <select
+                              required
+                              value={item.productId}
+                              onChange={e => { updateLineItem(idx, "productId", e.target.value); updateLineItem(idx, "size", ""); }}
+                              className="w-full bg-transparent border rounded-lg px-3 py-2 outline-none text-[12px]"
+                              style={{ borderColor: "var(--admin-border)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
+                            >
+                              <option value="" disabled>Select product...</option>
+                              {products.map(p => {
+                                const sv = (p.variants || []).find((v: any) => v.type === "size_inventory");
+                                const hs = sv && Object.keys(sv.data).length > 0;
+                                return (
+                                  <option key={p.id} value={p.id} disabled={p.inventory_count < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                                    {p.name} {hs ? "(Sizes)" : `(Stock: ${p.inventory_count})`}
+                                  </option>
+                                );
+                              })}
+                            </select>
+                          </div>
+
+                          {hasSizes && (
+                            <div>
+                              <label className="block text-[11px] uppercase tracking-wider font-bold mb-1.5" style={{ color: "var(--admin-text-dim)" }}>Size</label>
+                              <select
+                                required
+                                value={item.size}
+                                onChange={e => updateLineItem(idx, "size", e.target.value)}
+                                className="w-full bg-transparent border rounded-lg px-3 py-2 outline-none text-[12px]"
+                                style={{ borderColor: "var(--admin-border)", color: "var(--admin-text)", background: "var(--admin-surface)" }}
+                              >
+                                <option value="" disabled>Select size...</option>
+                                {Object.entries(sizeInvVariant.data).map(([size, count]) => (
+                                  <option key={size} value={size} disabled={(count as number) < 1} style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>
+                                    {size} (Stock: {count as number})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          <div>
+                            <label className="block text-[11px] uppercase tracking-wider font-bold mb-1.5" style={{ color: "var(--admin-text-dim)" }}>Quantity</label>
+                            <input
+                              required
+                              type="number"
+                              min="1"
+                              onFocus={(e) => e.target.select()}
+                              max={(() => {
+                                const p = products.find(p => p.id === Number(item.productId));
+                                if (!p) return 1;
+                                if (item.size) {
+                                  const sizeInv = (p.variants || []).find((v: any) => v.type === "size_inventory")?.data;
+                                  return sizeInv ? sizeInv[item.size] || 1 : 1;
+                                }
+                                return p.inventory_count;
+                              })()}
+                              value={item.quantity}
+                              onChange={e => updateLineItem(idx, "quantity", parseInt(e.target.value) || 1)}
+                              className="w-full bg-transparent border rounded-lg px-3 py-2 outline-none text-[12px]"
+                              style={{ borderColor: "var(--admin-border)", color: "var(--admin-text)" }}
+                            />
+                          </div>
                         </div>
                       );
-                    }
-                    return null;
-                  })()}
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Quantity</label>
-                    <input required type="number" min="1" max={
-                      (() => {
-                        const p = products.find(p => p.id === Number(offlineForm.productId));
-                        if (!p) return 1;
-                        if (offlineForm.size) {
-                          const sizeInv = (p.variants || []).find((v: any) => v.type === "size_inventory")?.data;
-                          return sizeInv ? sizeInv[offlineForm.size] || 1 : 1;
-                        }
-                        return p.inventory_count;
-                      })()
-                    } value={offlineForm.quantity} onChange={e => setOfflineForm({...offlineForm, quantity: parseInt(e.target.value) || 1})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)" }} />
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={addLineItem}
+                      className="w-full py-2 rounded-lg text-[11px] uppercase tracking-wider font-bold border-dashed border-2 flex items-center justify-center gap-2 transition-colors"
+                      style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text-dim)" }}
+                      onMouseEnter={e => { e.currentTarget.style.color = "var(--admin-accent)"; e.currentTarget.style.borderColor = "var(--admin-accent)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = "var(--admin-text-dim)"; e.currentTarget.style.borderColor = "var(--admin-border-active)"; }}
+                    >
+                      <Plus size={14} /> Add Another Product
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-[11px] uppercase tracking-wider font-bold mb-2" style={{ color: "var(--admin-text-dim)" }}>Payment Mode</label>
-                    <select value={offlineForm.paymentMode} onChange={e => setOfflineForm({...offlineForm, paymentMode: e.target.value})} className="w-full bg-transparent border rounded-lg px-3 py-2.5 outline-none text-[13px]" style={{ borderColor: "var(--admin-border-active)", color: "var(--admin-text)", background: "var(--admin-surface)" }}>
-                      <option value="Cash" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Cash</option>
-                      <option value="UPI" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>UPI</option>
-                      <option value="Bank Transfer" style={{ background: "var(--admin-surface)", color: "var(--admin-text)" }}>Bank Transfer</option>
-                    </select>
-                  </div>
-                  <button type="submit" disabled={isSubmitting} className="w-full mt-4 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors disabled:opacity-50" style={{ background: "var(--admin-accent)", color: "#000", fontFamily: "'DM Sans', sans-serif" }}>
-                    {isSubmitting ? "Saving..." : "Save Offline Order"}
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full mt-2 py-2.5 rounded-lg text-[12px] uppercase tracking-wider font-bold transition-colors disabled:opacity-50"
+                    style={{ background: "var(--admin-accent)", color: "#000", fontFamily: "'DM Sans', sans-serif" }}
+                  >
+                    {isSubmitting ? "Saving..." : `Save Order (${offlineForm.lineItems.length} item${offlineForm.lineItems.length > 1 ? "s" : ""})`}
                   </button>
                 </form>
               </div>

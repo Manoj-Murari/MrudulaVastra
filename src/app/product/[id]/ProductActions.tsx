@@ -35,7 +35,7 @@ const BOTTOMS_SIZES = [
   { size: "XL", waist: "32–34", hip: "42–44" },
 ];
 
-export default function ProductActions({ product, isSoldOut }: { product: Product; isSoldOut: boolean }) {
+export default function ProductActions({ product, isSoldOut, isCTAVisible = false }: { product: Product; isSoldOut: boolean; isCTAVisible?: boolean }) {
   const { addToCart } = useCart();
   const [showSizeChart, setShowSizeChart] = useState(false);
 
@@ -104,8 +104,12 @@ export default function ProductActions({ product, isSoldOut }: { product: Produc
       )}
 
       <button
-        onClick={() => !isSoldOut && selectedSize && addToCart(product, selectedSize || undefined)}
-        disabled={isSoldOut || (selectedSize ? (sizeStock && sizeStock[selectedSize] !== undefined && (sizeStock[selectedSize] as number) <= 0) : false)}
+        onClick={() => {
+          if (!isSoldOut && (sortedSizes.length === 0 || selectedSize)) {
+            addToCart(product, selectedSize || undefined);
+          }
+        }}
+        disabled={isSoldOut || (sortedSizes.length > 0 && !selectedSize) || (selectedSize ? (sizeStock && sizeStock[selectedSize] !== undefined && (sizeStock[selectedSize] as number) <= 0) : false)}
         className={`w-full py-4 uppercase tracking-[0.15em] text-sm font-bold transition-all flex justify-center items-center ${
           isSoldOut
             ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
@@ -261,6 +265,45 @@ export default function ProductActions({ product, isSoldOut }: { product: Produc
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Mobile Sticky CTA Bar — visible only when inline Add to Bag is scrolled out of view */}
+      {isCTAVisible && (
+        <div
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 border-t"
+          style={{
+            background: "rgba(253,251,247,0.97)",
+            backdropFilter: "blur(12px)",
+            borderColor: "rgba(184,150,62,0.15)",
+            boxShadow: "0 -4px 24px rgba(26,60,46,0.08)",
+          }}
+        >
+          <div className="flex flex-col">
+            <span className="font-playfair text-forest font-bold text-lg leading-none">
+              ₹{product.price.toLocaleString("en-IN")}
+            </span>
+            {product.original_price > product.price && (
+              <span className="text-text-muted line-through text-xs font-dm">
+                ₹{product.original_price.toLocaleString("en-IN")}
+              </span>
+            )}
+          </div>
+          <button
+            className={`flex-1 py-3.5 text-sm uppercase tracking-[0.15em] font-bold transition-all ${
+              isSoldOut || (sortedSizes.length > 0 && !selectedSize) || (selectedSize ? (sizeStock && sizeStock[selectedSize] !== undefined && (sizeStock[selectedSize] as number) <= 0) : false)
+                ? "bg-neutral-300 text-neutral-500 cursor-not-allowed"
+                : "bg-forest text-white active:scale-[0.99] shadow-lg shadow-forest/20"
+            }`}
+            disabled={isSoldOut || (sortedSizes.length > 0 && !selectedSize) || (selectedSize ? (sizeStock && sizeStock[selectedSize] !== undefined && (sizeStock[selectedSize] as number) <= 0) : false)}
+            onClick={() => {
+              if (!isSoldOut && (sortedSizes.length === 0 || selectedSize)) {
+                addToCart(product, selectedSize || undefined);
+              }
+            }}
+          >
+            {isSoldOut ? "Sold Out" : "Add To Bag"}
+          </button>
         </div>
       )}
     </div>

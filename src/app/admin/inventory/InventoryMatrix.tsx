@@ -1196,9 +1196,11 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
                                     type="number" 
                                     min="0"
                                     placeholder="Stock"
-                                    value={formData.size_inventory[s] || ""}
+                                    value={formData.size_inventory[s] !== undefined ? formData.size_inventory[s] : ""}
+                                    onFocus={(e) => e.target.select()}
                                     onChange={(e) => {
-                                      const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                                      const raw = e.target.value;
+                                      const val = raw === "" ? 0 : Math.max(0, parseInt(raw, 10) || 0);
                                       setFormData(prev => ({
                                         ...prev,
                                         size_inventory: { ...prev.size_inventory, [s]: val }

@@ -93,8 +93,11 @@ export async function POST(req: Request) {
                   const sizeInvIdx = variantsCopy.findIndex((v: any) => v && v.type === "size_inventory");
                   if (sizeInvIdx !== -1 && variantsCopy[sizeInvIdx].data) {
                     const sizeData = { ...variantsCopy[sizeInvIdx].data };
-                    if (sizeData[item.variant] !== undefined) {
-                      sizeData[item.variant] = Math.max(0, (sizeData[item.variant] as number) - item.quantity);
+                    // Parse "Color | Size" format to extract the size name
+                    const variantParts = item.variant.split(" | ");
+                    const sizeName = variantParts.length > 1 ? variantParts[variantParts.length - 1] : item.variant;
+                    if (sizeData[sizeName] !== undefined) {
+                      sizeData[sizeName] = Math.max(0, (sizeData[sizeName] as number) - item.quantity);
                       variantsCopy[sizeInvIdx] = { ...variantsCopy[sizeInvIdx], data: sizeData };
                       updatePayload.variants = variantsCopy;
                     }
@@ -128,22 +131,42 @@ export async function POST(req: Request) {
 
               const shippingAddressFormatted = `${order.shipping_address || ""}${order.shipping_city ? `, ${order.shipping_city}` : ""}${order.shipping_state ? `, ${order.shipping_state}` : ""} - ${order.shipping_pincode || ""}`;
 
-              const html = await render(
+              const customerHtml = await render(
                 OrderReceipt({
                   orderId: order.id,
                   customerName: order.customer_name || "Valued Customer",
                   totalAmount: `₹${order.total_amount.toLocaleString("en-IN")}`,
                   items: orderItemsForEmail,
                   shippingAddress: shippingAddressFormatted,
+                  isAdmin: false,
                 }) as React.ReactElement
               );
 
+              const adminHtml = await render(
+                OrderReceipt({
+                  orderId: order.id,
+                  customerName: order.customer_name || "Valued Customer",
+                  totalAmount: `₹${order.total_amount.toLocaleString("en-IN")}`,
+                  items: orderItemsForEmail,
+                  shippingAddress: shippingAddressFormatted,
+                  isAdmin: true,
+                }) as React.ReactElement
+              );
+
+              // 1. Send to Customer
               await resend.emails.send({
                 from: "Mrudula Vastra <orders@mrudulavastra.in>",
                 to: order.customer_email,
-                bcc: "mrudulavastra@gmail.com",
                 subject: "Order Confirmed - Mrudula Vastra",
-                html,
+                html: customerHtml,
+              });
+
+              // 2. Send Notification to Admin
+              await resend.emails.send({
+                from: "Mrudula Vastra Notifications <orders@mrudulavastra.in>",
+                to: "mrudulavastra@gmail.com",
+                subject: `New Order Received - ${order.id}`,
+                html: adminHtml,
               });
             }
           } catch (emailError) {

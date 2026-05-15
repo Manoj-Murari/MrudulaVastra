@@ -399,11 +399,11 @@ export async function createOfflineOrder(data: {
 
   if (itemError) return { error: itemError.message };
 
-  const newInventoryCount = product.inventory_count - data.quantity;
+  const newInventoryCount = Math.max(0, product.inventory_count - data.quantity);
   
   await (supabase as any).from('products').update({
      inventory_count: newInventoryCount,
-     variants: newVariants
+     ...(newVariants !== product.variants ? { variants: newVariants } : {})
   }).eq('id', data.productId);
 
   revalidatePath("/admin/orders");
@@ -439,24 +439,42 @@ export async function cancelOrder(orderId: string) {
   // 2. Fetch items to restock
   const { data: items, error: itemsError } = await (supabase as any)
     .from("order_items")
-    .select("product_id, quantity")
+    .select("product_id, quantity, variant")
     .eq("order_id", orderId);
 
   if (itemsError) return { error: itemsError.message };
 
-  // 3. Increment inventory for each item
+  // 3. Increment inventory for each item (including size-level variant stock)
   if (items && items.length > 0) {
     const updatePromises = items.map(async (item: any) => {
       const { data: product } = await (supabase as any)
         .from("products")
-        .select("inventory_count")
+        .select("inventory_count, variants")
         .eq("id", item.product_id)
         .single();
       
       if (product) {
+        const updatePayload: any = {
+          inventory_count: (product.inventory_count || 0) + item.quantity
+        };
+
+        // Also restore size-level variant stock if the item had a variant
+        if (item.variant && product.variants && Array.isArray(product.variants)) {
+          const variantsCopy = [...product.variants];
+          const sizeInvIdx = variantsCopy.findIndex((v: any) => v && v.type === "size_inventory");
+          if (sizeInvIdx !== -1 && variantsCopy[sizeInvIdx].data) {
+            const sizeData = { ...variantsCopy[sizeInvIdx].data };
+            if (sizeData[item.variant] !== undefined) {
+              sizeData[item.variant] = (sizeData[item.variant] as number) + item.quantity;
+              variantsCopy[sizeInvIdx] = { ...variantsCopy[sizeInvIdx], data: sizeData };
+              updatePayload.variants = variantsCopy;
+            }
+          }
+        }
+
         return (supabase as any)
           .from("products")
-          .update({ inventory_count: product.inventory_count + item.quantity })
+          .update(updatePayload)
           .eq("id", item.product_id);
       }
     });

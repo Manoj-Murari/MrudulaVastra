@@ -24,8 +24,8 @@ const SHIPPING_HIGHLIGHTS = [
   },
   {
     icon: IndianRupee,
-    title: "Free Shipping Above ₹1,999",
-    text: "Enjoy free shipping on all prepaid orders above ₹1,999. A flat ₹99 fee applies below this amount.",
+    title: "Free Shipping Above ₹999",
+    text: "Enjoy free shipping on all orders above ₹999. A flat ₹150 fee applies below this amount.",
   },
   {
     icon: Package,
@@ -48,7 +48,7 @@ const SHIPPING_DETAILS = [
   {
     question: "What are the shipping charges?",
     answer:
-      "We offer free shipping on all prepaid orders above ₹1,999. For orders below ₹1,999, a flat shipping fee of ₹99 is applicable. Cash on Delivery (COD) orders carry an additional ₹49 handling charge.",
+      "We offer free shipping on all orders above ₹999. For orders below ₹999, a flat shipping fee of ₹150 is applicable.",
   },
   {
     question: "How long does delivery take?",

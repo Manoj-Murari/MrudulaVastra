@@ -75,7 +75,7 @@ export default function ProductGallery({ primaryImage, galleryImages, productNam
             <button
               key={idx}
               onClick={() => setActiveImage(img)}
-              className={`relative w-16 h-20 lg:w-20 lg:h-28 shrink-0 overflow-hidden transition-all duration-300 outline-none ${
+              className={`relative w-20 h-24 lg:w-20 lg:h-28 shrink-0 overflow-hidden transition-all duration-300 outline-none ${
                 activeImage === img 
                   ? "border border-forest shadow-md" 
                   : "border border-transparent opacity-60 hover:opacity-100 hover:border-gold/50"

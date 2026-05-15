@@ -25,6 +25,7 @@ interface OrderReceiptEmailProps {
   totalAmount: string;
   items: OrderItem[];
   shippingAddress: string;
+  isAdmin?: boolean;
 }
 
 export default function OrderReceipt({
@@ -33,11 +34,16 @@ export default function OrderReceipt({
   totalAmount,
   items,
   shippingAddress,
+  isAdmin = false,
 }: OrderReceiptEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>Thank you for your elegant purchase — Mrudula Vastra</Preview>
+      <Preview>
+        {isAdmin
+          ? `New Order Received - ${orderId}`
+          : "Thank you for your elegant purchase — Mrudula Vastra"}
+      </Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={headerSection}>
@@ -46,12 +52,20 @@ export default function OrderReceipt({
           </Section>
 
           <Section style={bodySection}>
-            <Heading style={h1}>Order Confirmed</Heading>
-            <Text style={text}>Dear {customerName},</Text>
+            <Heading style={h1}>
+              {isAdmin ? "New Order Received" : "Order Confirmed"}
+            </Heading>
             <Text style={text}>
-              Thank you for choosing Mrudula Vastra. We are thrilled to prepare
-              your exquisite selections. Here are your order details:
+              {isAdmin 
+                ? `A new order has been placed by ${customerName}.` 
+                : `Dear ${customerName},`}
             </Text>
+            {!isAdmin && (
+              <Text style={text}>
+                Thank you for choosing Mrudula Vastra. We are thrilled to prepare
+                your exquisite selections. Here are your order details:
+              </Text>
+            )}
 
             <Text style={orderSubLabel}>Order ID: {orderId}</Text>
             <Hr style={hr} />

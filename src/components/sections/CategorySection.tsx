@@ -76,10 +76,10 @@ export default function CategorySection({ categories }: CategorySectionProps) {
 
                 {/* Typography */}
                 <div className="text-center">
-                  <h3 className="font-playfair text-forest font-medium text-lg sm:text-2xl lg:text-[26px] mb-2 tracking-wide group-hover:text-gold transition-colors duration-500">
+                  <h3 className="font-playfair text-forest font-medium text-[15px] sm:text-2xl lg:text-[26px] mb-1 sm:mb-2 tracking-wide group-hover:text-gold transition-colors duration-500">
                     {cat.title}
                   </h3>
-                  <div className="flex flex-col items-center">
+                  <div className="hidden sm:flex flex-col items-center">
                     <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] font-black text-forest/40 group-hover:text-gold transition-colors duration-500">
                       Explore
                     </p>

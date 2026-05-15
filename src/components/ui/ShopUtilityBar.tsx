@@ -26,10 +26,13 @@ interface ShopUtilityBarProps {
   parentCategoryTitle?: string;
   materialFilter?: string;
   onMaterialChange?: (val: string) => void;
+  materialOptions?: string[];
   colorFilter?: string;
   onColorChange?: (val: string) => void;
+  colorOptions?: string[];
   sizeFilter?: string;
   onSizeChange?: (val: string) => void;
+  sizeOptions?: string[];
 }
 
 export default function ShopUtilityBar({
@@ -48,10 +51,13 @@ export default function ShopUtilityBar({
   parentCategoryTitle,
   materialFilter = "All",
   onMaterialChange,
+  materialOptions,
   colorFilter = "All",
   onColorChange,
+  colorOptions,
   sizeFilter = "All",
   onSizeChange,
+  sizeOptions,
 }: ShopUtilityBarProps) {
   const [sortOpen, setSortOpen] = useState(false);
   const [materialOpen, setMaterialOpen] = useState(false);
@@ -59,15 +65,14 @@ export default function ShopUtilityBar({
   const [sizeOpen, setSizeOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const MATERIAL_OPTS = ["All", "Silk", "Cotton", "Linen", "Chiffon", "Georgette", "Crepe"];
-  const COLOR_OPTS = [
-    "All", "Red", "Blue", "Green", "Yellow", "Black", "White", "Pink", "Gold", "Silver", 
-    "Maroon", "Teal", "Mustard", "Peach", "Lavender", "Emerald Green", "Olive", "Magenta", 
-    "Cream", "Beige", "Turquoise", "Rust", "Coral", "Indigo", "Mint", "Wine", "Copper", "Coffee"
+  const MATERIAL_OPTS = materialOptions ?? ["All", "Silk", "Cotton", "Linen", "Chiffon", "Georgette", "Crepe"];
+  const COLOR_OPTS = colorOptions ?? [
+    "All", "Red", "Blue", "Green", "Yellow", "Black", "White", "Pink", "Gold", "Silver",
+    "Maroon", "Teal", "Mustard", "Peach", "Lavender",
   ];
-  const SIZE_OPTS = parentCategoryTitle === "Kids Wear"
+  const SIZE_OPTS = sizeOptions ?? (parentCategoryTitle === "Kids Wear"
     ? ["All", "1-2Y", "2-3Y", "3-4Y", "4-5Y", "5-6Y", "6-7Y", "7-8Y", "8-9Y", "9-10Y"]
-    : ["All", "Unstitched", "S", "M", "L", "XL", "XXL", "3XL"];
+    : ["All", "Unstitched", "XS", "S", "M", "L", "XL", "XXL", "3XL"]);
 
   const hasActiveFilters = 
     materialFilter !== "All" || 
@@ -91,27 +96,31 @@ export default function ShopUtilityBar({
           
           {/* Categories - Editorial Navigation Style */}
           {categories && onCategoryChange && (
-            <div className="flex items-center overflow-x-auto no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 gap-8 md:gap-10 scroll-smooth">
-              {categories.map((cat) => {
-                const isActive = activeCategory === cat;
-                return (
-                  <button
-                    key={cat}
-                    id={`cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => onCategoryChange(cat)}
-                    className={`group relative whitespace-nowrap flex-shrink-0 py-1.5 px-3 rounded-full text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
-                      isActive
-                        ? "text-forest bg-forest/[0.06]"
-                        : "text-text-muted hover:text-forest"
-                    }`}
-                  >
-                    {cat}
-                    <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gold transition-all duration-500 ${
-                      isActive ? "w-4" : "w-0 group-hover:w-4"
-                    }`} />
-                  </button>
-                );
-              })}
+            <div className="relative -mx-6 md:mx-0">
+              <div className="flex items-center overflow-x-auto no-scrollbar px-6 md:px-0 gap-8 md:gap-10 scroll-smooth pr-12 md:pr-0">
+                {categories.map((cat) => {
+                  const isActive = activeCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      id={`cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={() => onCategoryChange(cat)}
+                      className={`group relative whitespace-nowrap flex-shrink-0 py-1.5 px-3 rounded-full text-[11px] uppercase tracking-[0.2em] font-black transition-all duration-500 ${
+                        isActive
+                          ? "text-forest bg-forest/[0.06]"
+                          : "text-text-muted hover:text-forest"
+                      }`}
+                    >
+                      {cat}
+                      <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 h-0.5 bg-gold transition-all duration-500 ${
+                        isActive ? "w-4" : "w-0 group-hover:w-4"
+                      }`} />
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Right fade — mobile only */}
+              <div className="md:hidden absolute right-0 top-0 bottom-0 w-12 pointer-events-none" style={{ background: "linear-gradient(to right, transparent, #FDFBF7 80%)" }} />
             </div>
           )}
 

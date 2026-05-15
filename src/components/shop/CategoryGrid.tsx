@@ -21,11 +21,13 @@ export default function CategoryGrid({
   categoryTitle,
   categorySlug,
   initialCategories = ["All"],
+  multiCategory = false,
 }: {
   products: Product[];
   categoryTitle: string;
   categorySlug?: string;
   initialCategories?: string[];
+  multiCategory?: boolean;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function CategoryGrid({
   const [sizeFilter, setSizeFilter] = useState("All");
   const [quickAddProduct, setQuickAddProduct] = useState<Product | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState("All");
   
   // Sort initial categories
   const initialSorted = useMemo(() => {
@@ -53,6 +56,43 @@ export default function CategoryGrid({
 
   const [dynamicCategories, setDynamicCategories] = useState<string[]>(initialSorted);
   const { addToCart } = useCart();
+
+  // ── Dynamic filter options derived from actual product list ─────────────
+  const SIZE_ORDER = [
+    "New born", "0-3 M", "3-6 M", "6-9M", "9-12M",
+    "1-2Y", "2-3Y", "3-4Y", "4-5Y", "5-6Y", "6-7Y", "7-8Y", "8-9Y", "9-10Y",
+    "Unstitched", "XS", "S", "M", "L", "XL", "XXL", "3XL",
+    "38", "40", "42", "44", "46",
+  ];
+
+  const availableMaterials = useMemo(() => {
+    const vals = Array.from(
+      new Set(products.map((p) => (p as any).material).filter(Boolean) as string[])
+    ).sort((a, b) => a.localeCompare(b));
+    return ["All", ...vals];
+  }, [products]);
+
+  const availableColors = useMemo(() => {
+    const vals = Array.from(
+      new Set(products.map((p) => (p as any).color).filter(Boolean) as string[])
+    ).sort((a, b) => a.localeCompare(b));
+    return ["All", ...vals];
+  }, [products]);
+
+  const availableSizes = useMemo(() => {
+    const vals = Array.from(
+      new Set(products.flatMap((p) => p.sizes || []).filter(Boolean))
+    ).sort((a, b) => {
+      const ia = SIZE_ORDER.indexOf(a);
+      const ib = SIZE_ORDER.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    });
+    return ["All", ...vals];
+  }, [products]);
+  // ────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const fetchCats = async () => {
@@ -124,6 +164,11 @@ export default function CategoryGrid({
   const filtered = useMemo(() => {
     let result = [...products];
 
+    // Category filter (in-memory, for multi-category pages like /trending)
+    if (multiCategory && activeCategoryFilter && activeCategoryFilter !== "All") {
+      result = result.filter((p) => p.category === activeCategoryFilter);
+    }
+
     // Subcategory filter (from header)
     if (subCategory) {
       result = result.filter((p) => p.sub_category?.toLowerCase() === subCategory.toLowerCase());
@@ -179,42 +224,48 @@ export default function CategoryGrid({
     }
 
     return result;
-  }, [products, search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
+  }, [products, search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter, activeCategoryFilter, multiCategory]);
 
   // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(8);
-  }, [search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter]);
+  }, [search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter, activeCategoryFilter]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
   return (
     <>
-      {/* Utility Bar (no category pills since we're already in a category) */}
+      {/* Utility Bar */}
       <ShopUtilityBar
         search={search || searchFromUrl}
         onSearchChange={handleSearchChange}
         sortBy={sortBy}
         onSortChange={setSortBy}
         resultCount={filtered.length}
-        resultLabel={` in ${categoryTitle}`}
-        categories={undefined}
-        activeCategory={categoryTitle}
-        onCategoryChange={(cat) => {
-          if (cat === "All") router.push("/collections");
-          else router.push(`/collections/${cat.toLowerCase().replace(/\s+/g, '-')}`);
-        }}
-        subCategories={subCategories.length > 0 ? subCategories : undefined}
-        activeSubCategory={subCategory || null}
-        onSubCategoryChange={handleSubCategoryChange}
-        parentCategoryTitle={categoryTitle}
+        resultLabel={multiCategory ? " trending products" : ` in ${categoryTitle}`}
+        categories={multiCategory ? dynamicCategories : undefined}
+        activeCategory={multiCategory ? activeCategoryFilter : categoryTitle}
+        onCategoryChange={multiCategory
+          ? (cat) => setActiveCategoryFilter(cat)
+          : (cat) => {
+              if (cat === "All") router.push("/collections");
+              else router.push(`/collections/${cat.toLowerCase().replace(/\s+/g, '-')}`);
+            }
+        }
+        subCategories={multiCategory ? undefined : (subCategories.length > 0 ? subCategories : undefined)}
+        activeSubCategory={multiCategory ? null : (subCategory || null)}
+        onSubCategoryChange={multiCategory ? undefined : handleSubCategoryChange}
+        parentCategoryTitle={multiCategory ? undefined : categoryTitle}
         materialFilter={materialFilter}
         onMaterialChange={setMaterialFilter}
+        materialOptions={availableMaterials}
         colorFilter={colorFilter}
         onColorChange={setColorFilter}
+        colorOptions={availableColors}
         sizeFilter={sizeFilter}
         onSizeChange={setSizeFilter}
+        sizeOptions={availableSizes}
       />
 
       {/* Products Grid */}
@@ -248,7 +299,7 @@ export default function CategoryGrid({
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-3 sm:gap-6 lg:gap-8">
             {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -18,7 +18,17 @@ import type { Database } from "@/lib/supabase/types";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 
-export const revalidate = 0;
+export const revalidate = 300;
+
+// Pre-generate all product pages as static HTML at build time.
+// Users get instant CDN-cached responses with zero cold starts.
+export async function generateStaticParams() {
+  const supabase = await createPublicClient();
+  const { data: products } = await (supabase as any)
+    .from("products")
+    .select("id");
+  return (products || []).map((p: { id: string }) => ({ id: String(p.id) }));
+}
 
 export async function generateMetadata({
   params,
@@ -26,7 +36,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = await createPublicClient();
   const { data: product } = await (supabase as any)
     .from("products")
     .select("*")
@@ -83,7 +93,7 @@ export default async function ProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = await createPublicClient();
 
   const { data: product } = await (supabase as any)
     .from("products")
