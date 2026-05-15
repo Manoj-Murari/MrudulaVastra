@@ -278,7 +278,7 @@ export default function AdminShell({
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((v) => !v) }}>
-      <div className="flex h-screen overflow-hidden" style={{ background: "var(--admin-bg)", color: "var(--admin-text)" }}>
+      <div className="flex h-[100dvh] overflow-hidden bg-black" style={{ background: "var(--admin-bg)", color: "var(--admin-text)" }}>
         {/* ━━━ MOBILE BACKDROP ━━━ */}
         <AnimatePresence>
           {mobileOpen && (
@@ -634,7 +634,10 @@ export default function AdminShell({
           </AnimatePresence>
 
           {/* ── MAIN SCROLL AREA ── */}
-          <main className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 lg:p-8">
+          <main 
+            className="flex-1 overflow-y-auto admin-scroll p-4 sm:p-6 lg:p-8"
+            style={{ WebkitTransform: "translate3d(0,0,0)", transform: "translate3d(0,0,0)" }}
+          >
             {children}
           </main>
 
