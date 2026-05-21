@@ -3,13 +3,13 @@
 
 :root {
   --admin-bg: #0B0F0D;
-  --admin-surface: #111916;
-  --admin-surface-elevated: #172119;
-  --admin-border: rgba(184, 150, 62, 0.08);
+  --admin-surface: #141D18;
+  --admin-surface-elevated: #1A261E;
+  --admin-border: rgba(184, 150, 62, 0.12);
   --admin-border-active: rgba(184, 150, 62, 0.25);
   --admin-text: #E8E4DC;
   --admin-text-muted: #7A7567;
-  --admin-text-dim: #4A473F;
+  --admin-text-dim: #5C584E;
   --admin-accent: #B8963E;
   --admin-accent-glow: rgba(184, 150, 62, 0.12);
   --admin-emerald: #34D399;
