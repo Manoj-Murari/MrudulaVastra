@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
 interface BreadcrumbItem {
@@ -9,6 +10,7 @@ interface BreadcrumbItem {
 }
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
+  const router = useRouter();
   // On mobile: show only the last linkable parent (e.g. "← Sarees")
   const parentItem = [...items].reverse().find(item => item.href);
 
@@ -18,13 +20,19 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
       {/* Mobile: compact back-link */}
       <div className="flex lg:hidden items-center">
         {parentItem ? (
-          <Link
-            href={parentItem.href!}
+          <button
+            onClick={() => {
+              if (window.history.length > 2) {
+                router.back();
+              } else {
+                router.push(parentItem.href!);
+              }
+            }}
             className="flex items-center gap-1 text-[12px] font-dm text-text-muted hover:text-forest transition-colors uppercase tracking-wider"
           >
             <ChevronLeft size={14} strokeWidth={2} />
-            {parentItem.label}
-          </Link>
+            BACK
+          </button>
         ) : null}
       </div>
 
