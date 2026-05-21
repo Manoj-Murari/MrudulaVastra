@@ -372,14 +372,14 @@ export default function AdminShell({
         </aside>
 
         {/* ━━━ MAIN CONTENT ━━━ */}
-        <div className="flex-1 flex flex-col overflow-hidden relative">
+        <div className="flex-1 flex flex-col overflow-hidden relative min-w-0">
           
           {/* ── TOP HEADER ── */}
           <header
             className="h-16 shrink-0 flex items-center justify-between px-4 md:px-6 border-b z-[30]"
             style={{ borderColor: "var(--admin-border)", background: "var(--admin-surface)" }}
           >
-            <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex items-center gap-3 md:gap-4 min-w-0">
               {/* Mobile Hamburger */}
               <button
                 onClick={() => setMobileOpen(true)}
@@ -394,12 +394,12 @@ export default function AdminShell({
               </button>
 
               {/* Breadcrumbs */}
-              <div className="hidden sm:flex items-center gap-2 text-[12px]" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
-              <Link href="/admin" className="hover:text-[var(--admin-accent)] transition-colors">Dashboard</Link>
+              <div className="flex items-center gap-2 text-[12px] min-w-0 truncate" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
+              <Link href="/admin" className="hover:text-[var(--admin-accent)] transition-colors shrink-0">Dashboard</Link>
               {pathname !== "/admin" && (
                 <>
-                  <span>/</span>
-                  <span style={{ color: "var(--admin-text-muted)" }}>
+                  <span className="shrink-0">/</span>
+                  <span className="truncate" style={{ color: "var(--admin-text-muted)" }}>
                     {pathname.split("/").pop()?.replace(/^\w/, (c) => c.toUpperCase())}
                   </span>
                 </>
@@ -408,7 +408,7 @@ export default function AdminShell({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
               {/* CMD+K */}
               <button
                 onClick={() => setCmdOpen(true)}
@@ -421,9 +421,9 @@ export default function AdminShell({
                   fontSize: "12px",
                 }}
               >
-                <Search size={13} />
+                <Search size={13} className="shrink-0" />
                 <span className="hidden sm:inline">Search…</span>
-                <kbd className="hidden sm:inline-flex items-center ml-2 px-1.5 py-0.5 rounded text-[10px] border" style={{ borderColor: "var(--admin-border)" }}>
+                <kbd className="hidden sm:inline-flex items-center ml-2 px-1.5 py-0.5 rounded text-[10px] border shrink-0" style={{ borderColor: "var(--admin-border)" }}>
                   <Command size={9} className="inline -mt-0.5" />K
                 </kbd>
               </button>
@@ -505,13 +505,13 @@ export default function AdminShell({
 
               {/* User Avatar */}
               <div
-                className="flex items-center gap-2 px-2 py-1.5 md:px-3 rounded-lg"
+                className="flex items-center gap-2 px-2 py-1.5 md:px-3 rounded-lg max-w-[120px] sm:max-w-xs"
                 style={{ background: "var(--admin-surface-elevated)" }}
               >
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: "var(--admin-accent)", color: "#000" }}>
                   {user?.email?.[0]?.toUpperCase() || "A"}
                 </div>
-                <span className="text-[11px] font-medium hidden sm:block" style={{ color: "var(--admin-text-muted)" }}>
+                <span className="text-[11px] font-medium truncate" style={{ color: "var(--admin-text-muted)" }}>
                     {user?.email?.split("@")[0] || "Admin"}
                   </span>
               </div>
