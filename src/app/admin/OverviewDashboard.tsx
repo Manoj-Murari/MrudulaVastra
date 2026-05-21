@@ -202,7 +202,7 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Revenue Chart — 2/3 width */}
         <div
-          className="xl:col-span-2 rounded-xl border p-6"
+          className="xl:col-span-2 rounded-xl border p-3 sm:p-6"
           style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}
         >
           <div className="flex items-center justify-between mb-6">
@@ -248,6 +248,7 @@ export default function OverviewDashboard({ data }: { data: OverviewData }) {
                     tick={{ fill: "#4A473F", fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}
                     axisLine={{ stroke: "rgba(184,150,62,0.08)" }}
                     tickLine={false}
+                    minTickGap={20}
                   />
                   <YAxis
                     tick={{ fill: "#4A473F", fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}
