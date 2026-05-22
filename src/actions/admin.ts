@@ -48,10 +48,12 @@ export async function getAdminOverview() {
   const allProducts: Product[] = products || [];
   const allProfiles: Profile[] = profiles || [];
 
+  // Exclude pending orders from revenue and order metrics
+  const confirmedOrders = allOrders.filter((o) => o.status !== "pending");
+
   // KPIs
-  const totalRevenue = allOrders.reduce((acc, o) => acc + (o.total_amount || 0), 0);
-  const paidOrders = allOrders.filter((o) => o.status === "paid");
-  const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
+  const totalRevenue = confirmedOrders.reduce((acc, o) => acc + (o.total_amount || 0), 0);
+  const avgOrderValue = confirmedOrders.length > 0 ? totalRevenue / confirmedOrders.length : 0;
 
   // Revenue by month (last 6 months)
   const now = new Date();
@@ -62,7 +64,7 @@ export async function getAdminOverview() {
     const start = new Date(d.getFullYear(), d.getMonth(), 1);
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
 
-    const monthOrders = allOrders.filter((o) => {
+    const monthOrders = confirmedOrders.filter((o) => {
       const created = new Date(o.created_at);
       return created >= start && created <= end;
     });
@@ -91,7 +93,7 @@ export async function getAdminOverview() {
   return {
     kpis: {
       totalRevenue,
-      totalOrders: allOrders.length,
+      totalOrders: confirmedOrders.length,
       avgOrderValue: Math.round(avgOrderValue),
       totalCustomers: allProfiles.length,
       totalProducts: allProducts.length,
@@ -600,12 +602,13 @@ export async function getAdminCustomers() {
 
   const [{ data: profiles }, { data: orders }] = await Promise.all([
     (supabase as any).from("profiles").select("*"),
-    (supabase as any).from("orders").select("user_id, total_amount").neq("status", "cancelled"),
+    (supabase as any).from("orders").select("user_id, total_amount, status").neq("status", "cancelled"),
   ]);
 
   const orderMap: Record<string, { totalSpent: number; orderCount: number }> = {};
-  (orders || []).forEach((o: { user_id: string | null; total_amount: number }) => {
+  (orders || []).forEach((o: { user_id: string | null; total_amount: number; status: string }) => {
     if (!o.user_id) return;
+    if (o.status === "pending") return; // Exclude pending orders from customer stats
     if (!orderMap[o.user_id]) orderMap[o.user_id] = { totalSpent: 0, orderCount: 0 };
     orderMap[o.user_id].totalSpent += o.total_amount || 0;
     orderMap[o.user_id].orderCount += 1;
