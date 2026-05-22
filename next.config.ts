@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "vvycxuzvzhuztahfdwam.supabase.co", // Your exact Supabase project URL
+        hostname: "vvycxuzvzhuztahfdwam.supabase.co",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
         port: "",
         pathname: "/**",
       },

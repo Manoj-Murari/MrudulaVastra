@@ -21,7 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { getAdminProducts, updateProductField, deleteProduct, upsertProduct, manageSubCategory, manageCategory } from "@/actions/admin";
-import { createClient } from "@/lib/supabase/client";
+
 
 interface ProductVariant {
   color: string;
@@ -222,34 +222,39 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     if (validFiles.length === 0) return;
 
     setIsUploading(true);
-    const supabase = createClient();
-    
-    const uploadPromises = validFiles.map(async (file) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-        const { error } = await supabase.storage.from("product-images").upload(fileName, file);
-        if (error) return null;
-        const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
-        return publicUrl;
-    });
 
-    const results = await Promise.all(uploadPromises);
-    const uploadedUrls = results.filter((url): url is string => url !== null);
+    try {
+      const formDataPayload = new FormData();
+      validFiles.forEach((file) => formDataPayload.append("files", file));
 
-    if (uploadedUrls.length > 0) {
-        setFormData(prev => {
-            const currentImages = [...(prev.gallery_images || [])];
-            let newImage = prev.image;
-            let urlsToAdd = [...uploadedUrls];
-            if (!newImage && urlsToAdd.length > 0) {
-                newImage = urlsToAdd.shift()!;
-            }
-            return { ...prev, image: newImage, gallery_images: [...currentImages, ...urlsToAdd] };
-        });
-    } else {
-        alert("Image upload failed for all files.");
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataPayload,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.urls || data.urls.length === 0) {
+        alert(data.error || "Image upload failed for all files.");
+        setIsUploading(false);
+        return;
+      }
+
+      const uploadedUrls: string[] = data.urls;
+
+      setFormData(prev => {
+        const currentImages = [...(prev.gallery_images || [])];
+        let newImage = prev.image;
+        let urlsToAdd = [...uploadedUrls];
+        if (!newImage && urlsToAdd.length > 0) {
+          newImage = urlsToAdd.shift()!;
+        }
+        return { ...prev, image: newImage, gallery_images: [...currentImages, ...urlsToAdd] };
+      });
+    } catch (err) {
+      alert("Image upload failed. Please try again.");
     }
-    
+
     setIsUploading(false);
   };
 
@@ -274,32 +279,40 @@ export default function InventoryMatrix({ initialProducts }: { initialProducts: 
     if (validFiles.length === 0) return;
 
     setIsUploading(true);
-    const supabase = createClient();
-    const uploadedUrls: string[] = [];
-    
-    for (const file of validFiles) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-        const { error } = await supabase.storage.from("product-images").upload(fileName, file);
-        if (!error) {
-            const { data: { publicUrl } } = supabase.storage.from("product-images").getPublicUrl(fileName);
-            uploadedUrls.push(publicUrl);
-        }
+
+    try {
+      const formDataPayload = new FormData();
+      validFiles.forEach((file) => formDataPayload.append("files", file));
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataPayload,
+      });
+
+      const data = await res.json();
+      const uploadedUrls: string[] = data.urls || [];
+
+      if (uploadedUrls.length > 0) {
+        setFormData(prev => {
+          const newVariants = [...prev.variants];
+          const targetVariant = { ...newVariants[index] };
+          const allNewImages = [...uploadedUrls];
+
+          if (!targetVariant.image && allNewImages.length > 0) {
+            targetVariant.image = allNewImages.shift()!;
+          }
+
+          targetVariant.gallery_images = [...targetVariant.gallery_images, ...allNewImages];
+          newVariants[index] = targetVariant;
+          return { ...prev, variants: newVariants };
+        });
+      } else {
+        alert("Image upload failed for all files.");
+      }
+    } catch (err) {
+      alert("Variant image upload failed. Please try again.");
     }
 
-    setFormData(prev => {
-        const newVariants = [...prev.variants];
-        const targetVariant = { ...newVariants[index] };
-        const allNewImages = [...uploadedUrls];
-        
-        if (!targetVariant.image && allNewImages.length > 0) {
-            targetVariant.image = allNewImages.shift()!;
-        }
-        
-        targetVariant.gallery_images = [...targetVariant.gallery_images, ...allNewImages];
-        newVariants[index] = targetVariant;
-        return { ...prev, variants: newVariants };
-    });
     setIsUploading(false);
   };
 
