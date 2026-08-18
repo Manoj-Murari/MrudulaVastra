@@ -43,10 +43,11 @@ export default function JsonLd() {
     url: "https://mrudulavastra.in",
     logo: {
       "@type": "ImageObject",
-      url: "https://mrudulavastra.in/images/hero-saree.webp",
-      width: 1200,
-      height: 630,
+      url: "https://mrudulavastra.in/logo.png",
+      width: 512,
+      height: 512,
     },
+    image: "https://mrudulavastra.in/logo.png",
     description:
       "Mrudula Vastra (MrudulaVastra) is a premium Indian ethnic wear boutique based in Machilipatnam, Andhra Pradesh. Shop handpicked sarees, designer dress materials, kurtas, and kids wear sourced from India's finest weavers. Free shipping across India.",
     foundingDate: "2024",
@@ -75,6 +76,7 @@ export default function JsonLd() {
     "@id": "https://mrudulavastra.in/#localbusiness",
     name: "Mrudula Vastra",
     alternateName: brandNames,
+    logo: "https://mrudulavastra.in/logo.png",
     image: "https://mrudulavastra.in/images/hero-saree.webp",
     url: "https://mrudulavastra.in",
     telephone: "+91-7208903117",
