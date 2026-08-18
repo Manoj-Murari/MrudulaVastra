@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, ArrowRight } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import StarRating from "@/components/ui/StarRating";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
@@ -53,23 +53,6 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
               <div className="h-px w-12 bg-gold/40" />
               <OrnamentalDivider className="max-w-[120px]" />
               <div className="h-px w-12 bg-gold/40" />
-            </div>
-            
-            <div className="mt-4 sm:mt-8 flex justify-center">
-              <Link
-                href="/collections"
-                className="relative py-2 uppercase font-bold text-forest transition-all group overflow-hidden inline-block"
-                style={{ fontSize: "11px", letterSpacing: "0.2em" }}
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  Explore All
-                  <ArrowRight
-                    size={14}
-                    className="group-hover:translate-x-1.5 transition-transform duration-300"
-                  />
-                </span>
-                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gold/30 group-hover:bg-gold transition-colors duration-300" />
-              </Link>
             </div>
           </div>
 

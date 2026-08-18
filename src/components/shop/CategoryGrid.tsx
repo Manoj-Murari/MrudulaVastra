@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useCart } from "@/components/providers/CartProvider";
 import ShopUtilityBar from "@/components/ui/ShopUtilityBar";
 import ProductCard from "@/components/ui/ProductCard";
@@ -226,14 +226,6 @@ export default function CategoryGrid({
     return result;
   }, [products, search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter, activeCategoryFilter, multiCategory]);
 
-  // Reset visible count when filters change
-  useEffect(() => {
-    setVisibleCount(8);
-  }, [search, searchFromUrl, subCategory, sortBy, materialFilter, colorFilter, sizeFilter, activeCategoryFilter]);
-
-  const visibleProducts = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
-
   return (
     <>
       {/* Utility Bar */}
@@ -300,33 +292,13 @@ export default function CategoryGrid({
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-3 sm:gap-6 lg:gap-8">
-            {visibleProducts.map((product) => (
+            {filtered.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onAddToCart={handleAddToCart}
               />
             ))}
-          </div>
-        )}
-
-        {/* View More Button */}
-        {hasMore && (
-          <div className="text-center mt-10 sm:mt-14">
-            <button
-              onClick={() => setVisibleCount((prev) => prev + 8)}
-              className="group inline-flex items-center gap-2 px-10 py-3.5 uppercase font-bold font-dm text-forest border border-forest/20 hover:bg-forest hover:text-cream transition-all duration-500 active:scale-[0.97]"
-              style={{ fontSize: "11px", letterSpacing: "0.15em" }}
-            >
-              View More
-              <ChevronDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
-            </button>
-            <p className="text-text-muted/70 font-dm text-[11px] mt-3 tracking-wider">
-              Showing {visibleProducts.length} of {filtered.length} products
-            </p>
-            <div className="mx-auto mt-2 w-32 h-0.5 bg-gold/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gold/50 rounded-full transition-all duration-500" style={{ width: `${(visibleProducts.length / filtered.length) * 100}%` }} />
-            </div>
           </div>
         )}
       </section>

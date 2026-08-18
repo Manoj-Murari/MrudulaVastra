@@ -42,7 +42,6 @@ const NAV_ITEMS = [
   { label: "Inventory", icon: Package, href: "/admin/inventory" },
   { label: "Customers", icon: Users, href: "/admin/customers" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
-  { label: "Enquiries", icon: MessageSquare, href: "/admin/enquiries" },
   { label: "Coupons", icon: Ticket, href: "/admin/coupons" },
   { label: "Delivery Charges", icon: Truck, href: "/admin/settings" },
 ];
@@ -193,7 +192,7 @@ export default function AdminShell({
           .order('created_at', { ascending: false });
 
         const orders = (ordersRes.data || []) as any[];
-        const enquiries = (enquiriesRes.data || []) as any[];
+        const enquiries = (enquiriesRes.error ? [] : enquiriesRes.data || []) as any[];
 
         if (orders.length > 0 || enquiries.length > 0) {
           const totalAmt = orders.reduce((s: number, o: any) => s + (o.total_amount || 0), 0);

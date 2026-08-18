@@ -333,15 +333,6 @@ function SearchBar({ onSubmitCallback, fullWidth, dark }: { onSubmitCallback?: (
               )}
             </div>
           </div>
-
-          <div className="p-3 border-t border-gold/5 bg-sand/10">
-            <button
-              onClick={handleSubmit}
-              className="w-full py-2 bg-forest text-cream text-[11px] font-bold uppercase tracking-widest rounded-xl hover:bg-forest/90 transition-all active:scale-[0.98]"
-            >
-              View All Results
-            </button>
-          </div>
         </div>
       )}
     </div>

@@ -25,8 +25,10 @@ export default async function EnquiriesPage() {
 
       <div className="rounded-xl border overflow-hidden" style={{ background: "var(--admin-surface)", borderColor: "var(--admin-border)" }}>
         {error ? (
-          <div className="p-8 text-center text-red-500 font-dm">
-            Error loading enquiries. Please ensure the enquiries table exists in Supabase.
+          <div className="p-12 text-center">
+            <p className="text-[13px]" style={{ color: "var(--admin-text-dim)", fontFamily: "'DM Sans', sans-serif" }}>
+              No inquiries received yet.
+            </p>
           </div>
         ) : !enquiries || enquiries.length === 0 ? (
           <div className="p-12 text-center">
