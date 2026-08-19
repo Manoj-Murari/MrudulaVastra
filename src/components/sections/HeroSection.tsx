@@ -1,9 +1,6 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { InstagramIcon } from "@/components/ui/SocialIcons";
 
 const pillars = [
   ["Premium", "Quality"],
@@ -13,34 +10,31 @@ const pillars = [
 
 export default function HeroSection() {
   return (
-    <>
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          MOBILE HERO — Cinematic full-bleed editorial layout
-          Only visible on screens < 1024px (lg breakpoint)
-          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="lg:hidden relative w-full h-[65svh] flex flex-col justify-end overflow-hidden bg-[#0E2219] -mb-[1px]">
-        {/* Background Image with Ken Burns */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            animation: "ken-burns 25s ease-in-out infinite alternate",
-            willChange: "transform",
-          }}
-        >
-          <Image
-            src="/images/hero-saree.webp"
-            alt="Elegant woman wearing deep emerald silk saree"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 1vw"
-            className="object-cover object-top"
-          />
-        </div>
+    <section className="relative w-full overflow-hidden bg-[#0E2219]">
+      {/* ── Shared background image — single element, no duplication ── */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          animation: "ken-burns 25s ease-in-out infinite alternate",
+          willChange: "transform",
+        }}
+      >
+        <Image
+          src="/images/hero-saree.webp"
+          alt="Elegant woman wearing deep emerald silk saree"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-top"
+        />
+      </div>
 
-        {/* Gradient Overlay — editorial fade from bottom */}
+      {/* ── MOBILE layout — full-bleed cinematic, < lg ── */}
+      <div className="lg:hidden relative z-[2] flex flex-col justify-end h-[65svh]">
+        {/* Gradient overlay */}
         <div className="absolute inset-0 z-[1] bg-gradient-to-t from-[#0E2219] via-[#0E2219]/60 to-transparent" />
 
-        {/* Content over image */}
+        {/* Content */}
         <div className="relative z-[2] px-6 pb-7 pt-12 animate-fade-up">
           {/* Eyebrow */}
           <p
@@ -68,7 +62,6 @@ export default function HeroSection() {
             Woven with Love.
           </p>
 
-          {/* Body — shorter for mobile */}
           <p
             className="mb-5 max-w-[280px] text-cream/70 font-medium font-dm"
             style={{ lineHeight: 1.6, fontSize: "12px" }}
@@ -89,14 +82,12 @@ export default function HeroSection() {
             </Link>
 
             <Link
-              href="https://www.instagram.com/mrudulavastra/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-3.5 uppercase font-black flex items-center gap-2.5 text-cream/60 border border-cream/15 active:scale-[0.97] transition-transform"
+              href="/trending"
+              className="px-5 py-3.5 uppercase font-black flex items-center gap-2 text-cream/70 border border-cream/20 active:scale-[0.97] transition-transform hover:text-cream hover:border-cream/40"
               style={{ fontSize: "10px", letterSpacing: "0.25em" }}
             >
-              <InstagramIcon size={12} className="opacity-80" />
-              Watch Reels
+              New Arrivals
+              <ArrowRight size={10} />
             </Link>
           </div>
 
@@ -123,15 +114,15 @@ export default function HeroSection() {
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          DESKTOP HERO — Original side-by-side editorial layout
-          Only visible on screens >= 1024px (lg breakpoint)
-          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="hidden lg:flex bg-cream font-dm min-h-[75vh] flex-row items-center overflow-hidden w-full max-w-[100vw]">
-        {/* ━━ Left: Editorial Text Panel ━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <div className="w-1/2 flex flex-col justify-center items-end px-20 py-0">
+      {/* ── DESKTOP layout — editorial side-by-side, >= lg ── */}
+      <div className="hidden lg:flex bg-cream font-dm min-h-[75vh] flex-row items-center w-full max-w-[100vw] relative">
+        {/* Reset: override the dark bg inherited from the section on desktop */}
+        <div className="absolute inset-0 bg-cream z-[1]" />
+
+        {/* Left: Editorial text panel */}
+        <div className="relative z-[2] w-1/2 flex flex-col justify-center items-end px-20 py-0">
           <div className="max-w-lg animate-fade-up">
             {/* Eyebrow */}
             <p
@@ -172,25 +163,21 @@ export default function HeroSection() {
                 className="group relative px-12 py-4 uppercase font-black overflow-hidden bg-forest text-cream transition-all duration-500 flex items-center gap-4 shadow-lg shadow-forest/10 hover:shadow-forest/20"
                 style={{ fontSize: "10px", letterSpacing: "0.35em" }}
               >
-                <span className="relative z-10">
-                  Shop Collection
-                </span>
+                <span className="relative z-10">Shop Collection</span>
                 <ArrowRight
                   size={12}
                   className="relative z-10 group-hover:translate-x-2 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
               </Link>
- 
+
               <Link
-                href="https://www.instagram.com/mrudulavastra/"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/trending"
                 className="group px-8 py-4 uppercase font-black transition-all duration-500 flex items-center gap-3 text-forest/60 hover:text-forest"
                 style={{ fontSize: "10px", letterSpacing: "0.3em" }}
               >
-                <InstagramIcon size={12} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-                View Reels
+                New Arrivals
+                <ArrowRight size={11} className="group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
 
@@ -219,19 +206,18 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* ━━ Right: Framed Gallery Image ━━━━━━━━━━━━━━━━━━━━ */}
-        <div className="w-1/2 flex items-center justify-center py-12 px-10 lg:px-20 relative">
+        {/* Right: Framed gallery image — reuses the same background image via absolute positioning */}
+        <div className="relative z-[2] w-1/2 flex items-center justify-center py-12 px-10 lg:px-20">
           <div
             className="relative w-full max-w-[440px] aspect-[3.2/4] animate-fade-up group/hero"
             style={{ animationDelay: "0.3s" }}
           >
-            {/* Elegant Floating Background Frame */}
+            {/* Elegant floating corner frames */}
             <div className="absolute -top-8 -right-8 w-48 h-48 border-t border-r border-gold/20 z-0 pointer-events-none" />
             <div className="absolute -bottom-8 -left-8 w-48 h-48 border-b border-l border-gold/20 z-0 pointer-events-none" />
-            
-            {/* Main Image Container */}
+
+            {/* Main image container */}
             <div className="relative z-10 w-full h-full bg-[#F5F0E8] overflow-hidden shadow-[0_30px_100px_rgba(14,34,25,0.12)]">
-              {/* Ken Burns + Hover Zoom */}
               <div
                 className="absolute inset-0 transition-transform duration-[2000ms] ease-out group-hover/hero:scale-110"
                 style={{
@@ -243,33 +229,31 @@ export default function HeroSection() {
                   src="/images/hero-saree.webp"
                   alt="Elegant woman wearing deep emerald silk saree"
                   fill
-                  priority
-                  sizes="50vw"
+                  sizes="45vw"
                   className="object-cover"
                 />
               </div>
 
-              {/* Light Editorial Grain/Texture Overlay */}
+              {/* Grain overlay */}
               <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]" />
-              
               {/* Subtle inner gold border */}
               <div className="absolute inset-4 border border-white/10 pointer-events-none" />
             </div>
 
-            {/* Floating Badge (Luxury Detail) */}
+            {/* Floating badge */}
             <div className="absolute -right-10 top-20 z-20 bg-cream border border-gold/20 px-6 py-4 hidden xl:block shadow-xl animate-fade-in" style={{ animationDelay: "1s" }}>
               <p className="text-[9px] uppercase tracking-[0.3em] font-black text-gold mb-1">Established</p>
               <p className="font-playfair text-forest text-lg italic">Heritage Weaves</p>
             </div>
           </div>
 
-          {/* Scroll Down Indicator */}
+          {/* Scroll indicator */}
           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-3 animate-bounce">
-            <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-forest/30 vertical-text" style={{ writingMode: 'vertical-rl' }}>Scroll</span>
+            <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-forest/30 vertical-text" style={{ writingMode: "vertical-rl" }}>Scroll</span>
             <div className="w-px h-12 bg-gradient-to-b from-gold/50 to-transparent" />
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

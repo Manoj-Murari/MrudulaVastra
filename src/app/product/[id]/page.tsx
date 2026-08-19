@@ -154,14 +154,46 @@ export default async function ProductPage({
         rating={product.rating} 
       />
 
-      {/* You may also like */}
+      {/* You May Also Like — mobile horizontal scroll, desktop 4-col grid */}
       {relatedProducts && relatedProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-24 font-dm mt-8">
-          <h2 className="text-lg lg:text-xl text-text-primary mb-8 text-left">You may also like</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {relatedProducts.map((rp: Product) => (
-              <ProductCard key={rp.id} product={rp} />
-            ))}
+        <section className="bg-cream py-10 sm:py-16 border-t border-gold/10 font-dm">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10">
+            {/* Header */}
+            <div className="flex items-end justify-between mb-6 sm:mb-10">
+              <div>
+                <p className="uppercase text-[9px] tracking-[0.4em] font-bold text-gold mb-1.5">From the Same Collection</p>
+                <h2 className="font-playfair text-forest font-medium text-[22px] sm:text-[28px] tracking-wide">
+                  You May Also Like
+                </h2>
+              </div>
+              <Link
+                href={`/collections/${product.category.toLowerCase().replace(/\s+/g, '-')}`}
+                className="text-[10px] uppercase tracking-[0.2em] font-bold text-forest/40 hover:text-gold transition-colors duration-300 hidden sm:block"
+              >
+                View All →
+              </Link>
+            </div>
+
+            {/* Mobile: horizontal scroll | Desktop: 4-col grid */}
+            <div className="-mx-6 sm:mx-0">
+              <div className="flex sm:grid sm:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto no-scrollbar px-6 sm:px-0 pb-2 sm:pb-0">
+                {relatedProducts.map((rp: Product, idx: number) => (
+                  <div key={rp.id} className="w-[58vw] sm:w-auto flex-shrink-0">
+                    <ProductCard product={rp} priority={idx < 2} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile-only view all link */}
+            <div className="mt-6 sm:hidden">
+              <Link
+                href={`/collections/${product.category.toLowerCase().replace(/\s+/g, '-')}`}
+                className="w-full flex items-center justify-center gap-2 py-3 border border-forest/15 text-forest/60 text-[10px] uppercase tracking-[0.2em] font-bold hover:border-forest/30 hover:text-forest transition-all"
+              >
+                View All {product.category}
+              </Link>
+            </div>
           </div>
         </section>
       )}

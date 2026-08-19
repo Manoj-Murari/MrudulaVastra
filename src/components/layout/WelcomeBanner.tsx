@@ -7,6 +7,11 @@ export default function WelcomeBanner() {
   const [firstName, setFirstName] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only fetch on sm+ breakpoints (>= 640px) — this banner is hidden sm:block,
+    // so mobile users never see it. Skip the Supabase round-trip entirely for them.
+    const isSmOrWider = window.matchMedia("(min-width: 640px)").matches;
+    if (!isSmOrWider) return;
+
     async function fetchUser() {
       try {
         const supabase = createClient();
@@ -18,7 +23,7 @@ export default function WelcomeBanner() {
             .eq("id", user.id)
             .single();
           if (data?.full_name) {
-            setFirstName(data.full_name.split(' ')[0]);
+            setFirstName(data.full_name.split(" ")[0]);
           }
         }
       } catch (err) {

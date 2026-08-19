@@ -11,47 +11,65 @@ export default function WelcomeModal() {
 
   useEffect(() => {
     setMounted(true);
-    let timer: NodeJS.Timeout;
+    let timerHandle: NodeJS.Timeout | null = null;
+    let triggered = false;
 
     const checkStatus = async () => {
-      // 1. Check if user has dismissed it recently (last 7 days)
+      // 1. Check if dismissed recently (last 7 days)
       const dismissedAt = localStorage.getItem("mv-welcome-dismissed");
       if (dismissedAt) {
         const lastDismissed = parseInt(dismissedAt, 10);
         const sevenDays = 7 * 24 * 60 * 60 * 1000;
-        if (Date.now() - lastDismissed < sevenDays) {
-          return;
-        }
+        if (Date.now() - lastDismissed < sevenDays) return;
       }
 
-      // 2. Check if user is already authenticated
+      // 2. Skip if already authenticated
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        return;
-      }
+      if (session) return;
 
-      // Show after delay
-      timer = setTimeout(() => {
+      const show = () => {
+        if (triggered) return;
+        triggered = true;
         setIsOpen(true);
-      }, 5000);
+        cleanup();
+      };
+
+      // Trigger 1: 20-second fallback timer
+      timerHandle = setTimeout(show, 20000);
+
+      // Trigger 2: 50% scroll depth (whichever fires first)
+      const onScroll = () => {
+        const scrolled = window.scrollY + window.innerHeight;
+        const total = document.documentElement.scrollHeight;
+        if (scrolled / total >= 0.5) show();
+      };
+
+      window.addEventListener("scroll", onScroll, { passive: true });
+
+      const cleanup = () => {
+        if (timerHandle) clearTimeout(timerHandle);
+        window.removeEventListener("scroll", onScroll);
+      };
+
+      // Store cleanup reference for the outer useEffect return
+      return cleanup;
     };
 
-    checkStatus();
+    let cleanupFn: (() => void) | undefined;
+    checkStatus().then(fn => { cleanupFn = fn; });
 
     return () => {
-      if (timer) clearTimeout(timer);
+      cleanupFn?.();
     };
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    // Save dismissal time
     localStorage.setItem("mv-welcome-dismissed", Date.now().toString());
   };
 
-  // Prevent hydration mismatch by not rendering anything until mounted
+  // Prevent hydration mismatch
   if (!mounted || !isOpen) return null;
 
   return (
@@ -118,7 +136,7 @@ export default function WelcomeModal() {
               Sign Up
             </Link>
           </div>
-          
+
           {/* Footer Note (Desktop Only) */}
           <p className="hidden lg:block mt-10 text-[10px] text-text-muted/40 uppercase tracking-widest font-medium">
             Handpicked Ethnic Elegance

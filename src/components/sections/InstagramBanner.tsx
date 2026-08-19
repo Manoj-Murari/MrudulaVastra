@@ -5,13 +5,14 @@ import { Heart } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
 
+// Real product images already used on the site — pulled from category/hero assets
 const posts = [
-  { id: 0, img: "/images/insta-1.webp", alt: "Premium silk saree styling — elegant draping by Mrudula Vastra customer" },
-  { id: 1, img: "/images/insta-2.webp", alt: "Handpicked Kanjivaram saree in rich jewel tones from Mrudula Vastra" },
-  { id: 2, img: "/images/insta-3.webp", alt: "Traditional Indian ethnic wear — festive saree collection from Machilipatnam" },
-  { id: 3, img: "/images/insta-4.webp", alt: "Banarasi silk saree with intricate zari work — Mrudula Vastra collection" },
-  { id: 4, img: "/images/insta-5.webp", alt: "Premium dress materials and unstitched fabrics by Mrudula Vastra" },
-  { id: 5, img: "/images/insta-6.webp", alt: "Designer ethnic outfit for kids — adorable traditional wear from Mrudula Vastra" },
+  { id: 0, img: "/images/Saree.jpeg",          alt: "Premium handloom silk saree — Mrudula Vastra signature collection" },
+  { id: 1, img: "/images/Dresses.jpeg",         alt: "Elegant ethnic dress — curated women's wear by Mrudula Vastra" },
+  { id: 2, img: "/images/Dress-Materials.jpeg", alt: "Unstitched dress material — rich fabric selection at Mrudula Vastra" },
+  { id: 3, img: "/images/Kids-Wear.jpeg",       alt: "Traditional kids ethnic wear — adorable festive outfits for children" },
+  { id: 4, img: "/images/hero-saree.webp",      alt: "Heritage silk saree — deep emerald handloom weave from Machilipatnam" },
+  { id: 5, img: "/images/Saree.jpeg",           alt: "Kanjivaram silk saree — luxurious zari border collection at Mrudula Vastra" },
 ];
 
 export default function InstagramBanner() {
@@ -21,13 +22,11 @@ export default function InstagramBanner() {
         <div className="text-center mb-10 lg:mb-16 animate-fade-up">
           <div className="flex items-center justify-center gap-3 mb-4">
             <InstagramIcon size={16} className="text-gold" />
-            <p
-              className="uppercase font-bold text-gold tracking-[0.5em] text-[9px]"
-            >
+            <p className="uppercase font-bold text-gold tracking-[0.5em] text-[9px]">
               Follow Our Journey
             </p>
           </div>
-          
+
           <h2
             className="font-playfair text-forest font-medium tracking-wide mb-4"
             style={{ fontSize: "clamp(24px, 3.2vw, 40px)" }}
@@ -64,7 +63,7 @@ export default function InstagramBanner() {
                 fill
                 sizes="(max-width: 640px) 50vw, 16vw"
                 loading="lazy"
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="object-cover object-top transition-transform duration-500 group-hover:scale-110"
               />
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"

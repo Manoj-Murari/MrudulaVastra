@@ -532,6 +532,23 @@ export default function CartDrawer() {
               )}
             </div>
 
+            {/* ── Login nudge — shown only when cart has items and user is in cart step ── */}
+            {!success && items.length > 0 && checkoutStep === "cart" && (
+              <div className="mt-4 mx-0 px-4 py-3 bg-forest/[0.04] border border-forest/10 flex items-start gap-3">
+                <LogIn size={15} className="text-forest/50 mt-0.5 shrink-0" />
+                <p className="text-[11px] font-dm text-text-muted leading-relaxed">
+                  <span className="font-semibold text-forest">Sign in required</span> to place your order.{" "}
+                  <Link
+                    href="/login"
+                    onClick={() => toggleCart(false)}
+                    className="text-gold underline underline-offset-2 hover:text-forest transition-colors font-bold"
+                  >
+                    Login or Sign Up free →
+                  </Link>
+                </p>
+              </div>
+            )}
+
             {/* Footer / Checkout Button */}
             {!success && items.length > 0 && (
               <div className="p-6 border-t border-gold/20 bg-white shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">

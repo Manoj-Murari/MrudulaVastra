@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, ArrowRight } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/SocialIcons";
 import StarRating from "@/components/ui/StarRating";
 import OrnamentalDivider from "@/components/ui/OrnamentalDivider";
@@ -78,7 +78,7 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                       alt={`${product.name} — ${product.category} by Mrudula Vastra`}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      priority={idx < 4}
+                      priority={idx < 2}
                       className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
                     />
 
@@ -155,13 +155,36 @@ export default function TrendingSection({ products }: TrendingSectionProps) {
                       >
                         <ShoppingBag size={12} className="sm:hidden" />
                         <span className="hidden sm:inline">Add to Bag</span>
-                        <span className="sm:hidden">Add</span>
+                        <span className="sm:hidden">Add to Bag</span>
                       </button>
                     </div>
                   </div>
                 </div>
               </Link>
             ))}
+          </div>
+
+          {/* ── View All Collections CTA ── */}
+          <div className="mt-10 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Primary — full-width on mobile, auto on desktop */}
+            <Link
+              href="/collections"
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-10 py-4 bg-forest text-cream uppercase font-black tracking-[0.2em] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-forest/10 hover:shadow-forest/20 relative overflow-hidden group"
+              style={{ fontSize: "11px" }}
+            >
+              <span className="relative z-10">View All Collections</span>
+              <ArrowRight size={13} className="relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+            </Link>
+
+            {/* Secondary — quick category links */}
+            <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.18em] font-bold text-forest/50">
+              <Link href="/collections/sarees" className="hover:text-gold transition-colors duration-300">Sarees</Link>
+              <span className="text-gold/30">·</span>
+              <Link href="/collections/dresses" className="hover:text-gold transition-colors duration-300">Dresses</Link>
+              <span className="text-gold/30">·</span>
+              <Link href="/collections/kids-wear" className="hover:text-gold transition-colors duration-300">Kids Wear</Link>
+            </div>
           </div>
         </div>
       </section>

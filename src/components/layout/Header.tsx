@@ -406,6 +406,9 @@ export default function Header() {
 
   useEffect(() => {
     const checkAdmin = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return; // skip admin check for unauthenticated users
       const admin = await checkIsAdmin();
       setIsAdmin(admin);
     };

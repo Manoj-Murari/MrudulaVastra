@@ -301,7 +301,7 @@ export default function ProductCard({
           </button>
         </div>
 
-        {/* Mobile: Always-visible small Add to Bag button */}
+        {/* Mobile: Full-width always-visible Add to Bag bar */}
         {!isSoldOut && onAddToCart && (
           <button
             onClick={(e) => {
@@ -309,10 +309,15 @@ export default function ProductCard({
               e.stopPropagation();
               onAddToCart(product);
             }}
-            className="sm:hidden absolute bottom-3 right-3 z-20 w-9 h-9 rounded-full bg-forest text-cream flex items-center justify-center shadow-lg shadow-forest/20 active:scale-90 transition-transform"
+            className="sm:hidden absolute bottom-0 left-0 right-0 z-20 py-2.5 flex items-center justify-center gap-1.5 text-cream font-dm font-bold uppercase transition-colors"
+            style={{
+              background: "rgba(24,50,38,0.88)",
+              fontSize: "10px",
+              letterSpacing: "0.2em",
+            }}
             aria-label="Add to bag"
           >
-            <ShoppingBag size={14} />
+            Add to Bag
           </button>
         )}
       </Link>
@@ -337,6 +342,21 @@ export default function ProductCard({
             </span>
           )}
         </div>
+
+        {/* Desktop persistent Add to Bag — always visible, no hover required */}
+        {!isSoldOut && onAddToCart && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onAddToCart(product);
+            }}
+            className="hidden sm:flex items-center gap-1.5 mt-2 text-[10px] uppercase tracking-[0.18em] font-bold text-forest/50 hover:text-forest transition-colors duration-300 group/add"
+          >
+            <ShoppingBag size={11} className="group-hover/add:scale-110 transition-transform duration-200" />
+            Add to Bag
+          </button>
+        )}
 
         {product.rating > 0 && product.reviews > 0 && (
           <div className="flex items-center gap-1.5 mt-2">

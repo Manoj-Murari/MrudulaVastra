@@ -6,6 +6,7 @@ import CartDrawer from "@/components/layout/CartDrawer";
 import { ProgressBarProvider } from "@/components/providers/ProgressBarProvider";
 import JsonLd from "@/components/seo/JsonLd";
 import WelcomeModal from "@/components/ui/WelcomeModal";
+import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const playfair = Playfair_Display({
@@ -204,6 +205,7 @@ export default function RootLayout({
           </CartProvider>
         </ProgressBarProvider>
         <WelcomeModal />
+        <WhatsAppButton />
         <SpeedInsights />
       </body>
     </html>

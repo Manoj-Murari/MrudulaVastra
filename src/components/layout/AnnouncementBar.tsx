@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getShippingSettings } from "@/actions/shipping";
 
@@ -21,10 +22,13 @@ export default function AnnouncementBar() {
   }, []);
 
   return (
-    <div className="bg-forest text-center py-2 text-xs tracking-[0.15em] text-amber-200/80 uppercase font-dm">
+    <Link
+      href="/collections"
+      className="block bg-forest text-center py-2 text-xs tracking-[0.15em] text-amber-200/80 uppercase font-dm hover:bg-forest/90 transition-colors duration-200"
+    >
       {/* Short version on mobile, full on sm+ */}
       <span className="sm:hidden">✦ &nbsp; Free Shipping Above ₹{threshold.toLocaleString("en-IN")} &nbsp; ✦</span>
       <span className="hidden sm:inline">✦ &nbsp; Free Shipping on Orders Above ₹{threshold.toLocaleString("en-IN")} Across India &nbsp; ✦ &nbsp; Authentic Handloom Fabrics &nbsp; ✦</span>
-    </div>
+    </Link>
   );
 }
